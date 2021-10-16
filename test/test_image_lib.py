@@ -15,3 +15,9 @@ def test_circle_points():
     assert len(points) == 199
     assert points[0][0] == 330.
     assert points[0][1] == 80.
+
+def test_image_import():
+    image_lib = ImageLib()
+    image_lib.image_import()
+    assert image_lib.image is not None
+    assert image_lib.image.shape is None

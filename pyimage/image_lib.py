@@ -17,6 +17,7 @@ from skimage.morphology import medial_axis, skeletonize, thin
 class ImageLib():
     def __init__(self):
         self.image = None
+        self.path = "../assets/purple_ocimum_basilicum.png"
         # self.old_init()
 
     def old_init(self):
@@ -31,6 +32,11 @@ class ImageLib():
         self.image = binary
         print("read image")
 
+    def image_import(self, path=None):
+        if path is None:
+            path = self.path
+        self.image = io.imread(path)
+    
     def image_show(self, image, nrows=1, ncols=1, cmap='gray'):
         fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(14, 14))
         ax.imshow(image, cmap='gray')
