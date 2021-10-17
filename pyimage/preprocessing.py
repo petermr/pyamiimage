@@ -4,19 +4,30 @@ from skimage import color
 from skimage.color.colorconv import rgb2gray
 
 class ImageProcessor():
-    
+    # setting a sample image for default path
+    DEFAULT_PATH = "../assets/purple_ocimum_basilicum.png"
+
     def __init__(self) -> None:
         self.image = None
-        # setting a sample image for default path
-        self.path = "../assets/purple_ocimum_basilicum.png"
-    
-    def load_image(self, path=None):
-        if path is None:
-            path = self.path
-        self.image = io.imread(path)
+
+    def load_image(self, path):
+        """loads image with io.imread
+        resets self.image
+
+        :return: None if path is None"""
+        self.image = None
+        if path is not None:
+            self.image = io.imread(path)
+        return self.image
         
     def to_gray(self):
-        self.image = rgb2gray(self.image)
+        """convert existing self.image to grayscale
+        uses rgb2gray from skimage.color.colorconv
+        """
+        self.image_gray = None
+        if self.image is not None:
+            self.image_gray = rgb2gray(self.image)
+        return self.image_gray
 
     def show_image(self):
         if self.image is None:

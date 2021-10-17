@@ -13,7 +13,9 @@ import time
 
 from skimage.morphology import medial_axis, skeletonize, thin
 
-
+"""Code copied from earlier PMR ImageLib
+being gradually converted into ImageProcessor
+"""
 class ImageLib():
     def __init__(self):
         self.image = None
