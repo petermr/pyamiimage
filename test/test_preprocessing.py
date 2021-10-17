@@ -18,14 +18,19 @@ class TestImageCode():
     #     self.default_image = None
     #     self.default_image_gray = None
 
+    TEST_DIR = Path(__file__).parent
+    PYAMIIMAGE_DIR = TEST_DIR.parent
+    ASSETS_DIR = Path(PYAMIIMAGE_DIR, "assets").absolute()
+    assert ASSETS_DIR.exists(), "assets dir should exist"
+    OCIMUM_IMAGE = Path(ASSETS_DIR, "purple_ocimum_basilicum.png")
+    assert OCIMUM_IMAGE.exists(), "ocimum image should exist"
+
     def setup_method(self, method):
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
         """
         self.image_processor = ImageProcessor()
-        assert ImageProcessor.DEFAULT_PATH is not None
-        assert Path(ImageProcessor.DEFAULT_PATH).exists()
-        self.default_image = self.image_processor.load_image(ImageProcessor.DEFAULT_PATH)
+        self.default_image = self.image_processor.load_image(self.OCIMUM_IMAGE)
         assert self.default_image is not None
         self.default_image_gray = self.image_processor.to_gray()
         assert self.default_image_gray is not None
@@ -46,7 +51,7 @@ class TestImageCode():
     #     print("teardown")
 
     def test_load_image(self):
-        self.image_processor.load_image(ImageProcessor.DEFAULT_PATH)
+        self.image_processor.load_image(self.OCIMUM_IMAGE)
         assert self.image_processor.image is not None
 
     def test_to_gray_type(self):
@@ -69,3 +74,9 @@ class TestImageCode():
             # will block on user input
             assert self.image_processor.show_image()
         assert True, "finished display"
+
+# NOTES
+# progress on extracting graph?
+# https://stackoverflow.com/questions/57029293/calculating-a-graph-from-a-skeletonized-image
+# https://github.com/Image-Py/sknw#find-path
+# https://stackoverflow.com/questions/63653267/how-to-create-a-graph-with-an-images-pixel
