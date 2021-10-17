@@ -4,7 +4,9 @@ from pyimage.image_lib import ImageLib
 import numpy
 
 def test_circle_points():
-    """Old circle_points generates an array of numpy points on a circle"""
+    """Old circle_points generates an array of numpy points on a circle
+    This is primarily to test thetb the test system is working
+    """
     image_lib = ImageLib()
     # circle_points(200, [80, 250], 80)[:-1]
     resolution = 200 # ? number of points?
@@ -20,4 +22,5 @@ def test_image_import():
     image_lib = ImageLib()
     image_lib.image_import()
     assert image_lib.image is not None
-    assert image_lib.image.shape is None
+    #  use == for equality, not "is"
+    assert image_lib.image.shape == (923, 709, 3)
