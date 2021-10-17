@@ -24,6 +24,8 @@ class TestImageCode():
     assert ASSETS_DIR.exists(), "assets dir should exist"
     OCIMUM_IMAGE = Path(ASSETS_DIR, "purple_ocimum_basilicum.png")
     assert OCIMUM_IMAGE.exists(), "ocimum image should exist"
+    RED_BLACK_IMAGE = Path(ASSETS_DIR, "red_black_cv.png")
+    assert RED_BLACK_IMAGE.exists(), "red_black_image should exist"
 
     def setup_method(self, method):
         """setup any state tied to the execution of the given method in a
