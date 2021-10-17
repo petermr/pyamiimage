@@ -19,7 +19,7 @@ being gradually converted into ImageProcessor
 class ImageLib():
     def __init__(self):
         self.image = None
-        self.path = "../assets/purple_ocimum_basilicum.png"
+        self.path = "assets/purple_ocimum_basilicum.png"
         # self.old_init()
 
     def old_init(self):

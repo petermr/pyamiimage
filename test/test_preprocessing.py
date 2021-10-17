@@ -3,6 +3,13 @@ import pytest
 import numpy
 from pathlib import Path
 
+"""
+These tests are desinged to test the preprocessing module
+containing the ImageProcessing class 
+
+These tests are for Test Driven Development
+"""
+
 class TestImageCode():
 
     # apparently doesn't like init in Test class

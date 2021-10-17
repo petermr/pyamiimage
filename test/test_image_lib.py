@@ -3,6 +3,10 @@
 from pyimage.image_lib import ImageLib
 import numpy
 
+"""
+These tests are for experimenting with ImageLib class 
+"""
+
 def test_circle_points():
     """Old circle_points generates an array of numpy points on a circle
     This is primarily to test thetb the test system is working
