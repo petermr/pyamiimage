@@ -259,7 +259,7 @@ if __name__ == '__main__':
         [0, 0, 0, 1, 0, 0, 0, 0, 0]])
 
     sknw = Sknw()
-    sknw.example1()
-    sknw.example2() # works
+    # sknw.example1()
+    # sknw.example2() # works
     sknw.example3() # needs flipping White to black
 
