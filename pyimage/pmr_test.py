@@ -9,9 +9,10 @@ import numpy as np
 from numba import jit
 import networkx as nx
 from skimage.morphology import skeletonize
-from skimage import data
+from skimage import data, util
 import skimage.io
 from pathlib import Path
+from skimage.filters import threshold_otsu
 
 class Sknw:
     def __init__(self):
@@ -237,12 +238,36 @@ class Sknw:
         plt.show()
 
     def example3(self):
-        red_black_img = Path(Path(__file__).parent.parent, "assets/red_black_cv.png")
-        assert red_black_img is not None, "cannot read red_black"
-        img = skimage.io.imread(red_black_img, as_gray=True)
-        ske = skeletonize(img).astype(np.uint16)
+        img = Path(Path(__file__).parent.parent, "assets/red_black_cv.png")
+        self.skeleton_and_plot(img)
 
-        self.read_thinned_image_calculate_graph_and_plot(ske)
+    def example4(self):
+        img = Path(Path(__file__).parent.parent, "test/resources/biosynth_path_3.png")
+        self.skeleton_and_plot(img)
+
+    def skeleton_and_plot(self, img):
+        assert img is not None, "cannot read image"
+        img = skimage.io.imread(img, as_gray=True)
+        thresh = threshold_otsu(img)
+        binary = img < thresh # swap <> to invert image
+        print(binary)
+        plt.imshow(binary)
+        # plt.imshow(inv_ske, cmap='gray')
+        plt.title('Build Graph1')
+        plt.show()
+        # ske = skeletonize(img).astype(np.uint16)
+        ske = skeletonize(binary)
+        print(ske)
+        print("========ske=========")
+        # inv_ske = util.invert(ske)
+        plt.imshow(ske)
+        # plt.imshow(inv_ske, cmap='gray')
+        plt.title('Build Graph2')
+        plt.show()
+        print("========inv=========")
+        inv_ske = ske
+        self.read_thinned_image_calculate_graph_and_plot(inv_ske)
+
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
@@ -260,6 +285,7 @@ if __name__ == '__main__':
 
     sknw = Sknw()
     # sknw.example1()
-    # sknw.example2() # works
-    sknw.example3() # needs flipping White to black
+    sknw.example2() # works
+    # sknw.example3() # needs flipping White to black
+    # sknw.example4() # needs flipping White to black
 
