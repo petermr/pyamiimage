@@ -1,3 +1,4 @@
+from networkx.classes.function import subgraph
 import numpy as np
 from skimage import io
 from skimage import color
@@ -5,6 +6,8 @@ from skimage.color.colorconv import rgb2gray
 import skimage
 from skimage import morphology
 from skimage import filters
+from pathlib import Path
+import networkx as nx
 
 """
 The ImageProcessor class is current in development by PMR and Anuv for preprocessing images
@@ -46,25 +49,115 @@ class ImageProcessor():
             self.image_gray = rgb2gray(self.image)
         return self.image_gray
 
-    def invert(self):
+    def invert(self, image):
         """Inverts the brightness values of the image"""
-        self.inverted = skimage.util.invert(self.image)
+        self.inverted = skimage.util.invert(image)
         return self.inverted
     
-    def skeletonize(self):
+    def skeletonize(self, image):
         """Returns a skeleton of the image"""
-        self.skeleton = morphology.skeletonize(self.inverted)
+        mask = morphology.skeletonize(image)
+        self.skeleton = np.zeros(self.image.shape)
+        self.skeleton[mask] = 1
+        print("Skeleton Image: ", self.skeleton)
         return self.skeleton
 
-    def show_image(self):
+    def threshold(self, image):
+        """"Returns a binary image using a threshold value"""
+        threshold = filters.threshold_otsu(image)
+        # self.binary_image = np.zeros(self.image.shape)
+        # print(self.image.shape)
+        # idx = self.image > threshold
+        # print("Threshold Mask: ", idx)
+        # self.binary_image[idx] = 1
+        # print("Binary Image: ", self.binary_image)
+        self.binary_image = np.where(image >= threshold, 1, 0)
+        return self.binary_image
+
+    def show_image(self, image):
         """
         Shows self.image in a seperate window
         """
         if self.image is None:
             self.load_image()
-        # self.to_gray()
-        self.invert()
-        self.skeleton()
-        io.imshow(self.skeleton)
+        io.imshow(image)
         io.show()
         return True
+
+    def example1(self):
+        TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
+        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")
+        print(BIOSYNTH_PATH_IMAGE)
+        self.load_image(BIOSYNTH_PATH_IMAGE)
+        # print(self.image)
+        # print(self.image.shape)
+        # from skimage.exposure import histogram
+        # hist, hist_centers = histogram(self.threshold(self.image))
+        # print(hist)
+        # print(hist_centers)
+
+        self.show_image(self.image)
+        inverted_image = self.invert(self.image)
+        self.show_image(inverted_image)
+        binary_image = self.threshold(inverted_image)
+        self.show_image(binary_image)
+        skeleton = self.skeletonize(binary_image)
+        self.show_image(skeleton)
+
+    def binarize_and_skeletonize_arrows(self):
+        TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
+        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
+        self.load_image(BIOSYNTH_PATH_IMAGE)
+
+        skeleton = self.invert_threshold_skeletonize()
+        return skeleton
+
+    def example_skeletonize_extract_subgraphs(self):
+        skeleton = self.binarize_and_skeletonize_arrows()
+        skeleton = skeleton.astype(np.uint16)
+        print("skeleton values: ", skeleton)
+        print("skeleton type: ", type(skeleton))
+        print("skeleton value type: ", type(skeleton[0][0]))
+        print("skeleton shape:", skeleton.shape)
+        from pmr_test import Sknw
+        sknw = Sknw()
+        graph = sknw.build_sknw(skeleton)
+        print("Edges: ", graph.edges())
+        print("Nodes: ", graph.nodes())
+        # print("Output of build_graph", multigraph)
+        # sub_g = graph.subgraph([0, 1, 2])
+        # print(list(sub_g.edges))
+
+
+    def invert_threshold_skeletonize(self, show=False):
+        """Inverts Thresholds and Skeletonize a single channel grayscale image
+        :show: display images for invert, threshold and skeletonize 
+        :return: skeletonized image
+        """
+        if show:
+            self.show_image(self.image)
+
+        inverted_image = self.invert(self.image)
+        if show:
+            self.show_image(inverted_image)
+        
+        binary_image = self.threshold(inverted_image)
+        binary_image = binary_image.astype(np.uint16)
+        if show:
+            self.show_image(binary_image)
+        
+        skeleton = self.skeletonize(binary_image)
+        
+        if show:
+            self.show_image(skeleton)
+
+        return skeleton
+
+def main():
+    image_processor = ImageProcessor()
+    # image_processor.example1()
+    image_processor.example_skeletonize_extract_subgraphs()
+
+
+if __name__ == '__main__':
+    main()

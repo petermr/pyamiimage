@@ -241,7 +241,10 @@ class Sknw:
         assert red_black_img is not None, "cannot read red_black"
         img = skimage.io.imread(red_black_img, as_gray=True)
         ske = skeletonize(img).astype(np.uint16)
-
+        print("Ske values: ", ske)
+        print("Type: ", type(ske))
+        print("Array value datatype: ", type(ske[0][0]))
+        print("Shape: ", ske.shape)
         self.read_thinned_image_calculate_graph_and_plot(ske)
 
 if __name__ == '__main__':

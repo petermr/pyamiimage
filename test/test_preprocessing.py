@@ -71,18 +71,23 @@ class TestImageCode():
         width = 709
         assert self.default_image_gray.shape == (height, width)
 
-    def test_to_invert(self):
+    def test_invert(self):
+        """Inverts the default image"""
+        assert self.image_processor.image is not None
         assert self.image_processor.invert() is not None
 
     def test_skeletonize(self):
         assert self.image_processor.skeletonize() is not None
+
+    def test_threshold(self):
+        assert self.image_processor.threshold() is not None
 
     def test_interactive_show_image(self):
         """displays grayscale image and blocks on user """
         interactive = True
         if interactive:
             # will block on user input
-            assert self.image_processor.show_image()
+            assert self.image_processor.show_image("Original Image")
         assert True, "finished display"
 
 # NOTES
