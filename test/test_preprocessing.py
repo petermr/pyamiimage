@@ -27,13 +27,15 @@ class TestImageCode():
     TEST_RESOURCES_DIR = Path(Path(__file__).parent, "resources")
     RED_BLACK_IMAGE = Path(TEST_RESOURCES_DIR, "red_black_cv.png")
     assert RED_BLACK_IMAGE.exists(), f"red_black_image {RED_BLACK_IMAGE} should exist"
+    BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")
+    assert BIOSYNTH_PATH_IMAGE.exists(), f"biosynthetic pathway {BIOSYNTH_PATH_IMAGE} should exist"
 
     def setup_method(self, method):
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
         """
         self.image_processor = ImageProcessor()
-        self.default_image = self.image_processor.load_image(self.OCIMUM_IMAGE)
+        self.default_image = self.image_processor.load_image(self.BIOSYNTH_PATH_IMAGE)
         assert self.default_image is not None
         self.default_image_gray = self.image_processor.to_gray()
         assert self.default_image_gray is not None
@@ -69,10 +71,15 @@ class TestImageCode():
         width = 709
         assert self.default_image_gray.shape == (height, width)
 
+    def test_to_invert(self):
+        assert self.image_processor.invert() is not None
+
+    def test_skeletonize(self):
+        assert self.image_processor.skeletonize() is not None
 
     def test_interactive_show_image(self):
         """displays grayscale image and blocks on user """
-        interactive = False
+        interactive = True
         if interactive:
             # will block on user input
             assert self.image_processor.show_image()

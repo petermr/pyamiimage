@@ -2,6 +2,9 @@ import numpy as np
 from skimage import io
 from skimage import color
 from skimage.color.colorconv import rgb2gray
+import skimage
+from skimage import morphology
+from skimage import filters
 
 """
 The ImageProcessor class is current in development by PMR and Anuv for preprocessing images
@@ -20,6 +23,7 @@ class ImageProcessor():
 
     def __init__(self) -> None:
         self.image = None
+        self.inverted = None
 
     def load_image(self, path):
         """
@@ -42,13 +46,25 @@ class ImageProcessor():
             self.image_gray = rgb2gray(self.image)
         return self.image_gray
 
+    def invert(self):
+        """Inverts the brightness values of the image"""
+        self.inverted = skimage.util.invert(self.image)
+        return self.inverted
+    
+    def skeletonize(self):
+        """Returns a skeleton of the image"""
+        self.skeleton = morphology.skeletonize(self.inverted)
+        return self.skeleton
+
     def show_image(self):
         """
         Shows self.image in a seperate window
         """
         if self.image is None:
             self.load_image()
-        self.to_gray()
-        io.imshow(self.image)
+        # self.to_gray()
+        self.invert()
+        self.skeleton()
+        io.imshow(self.skeleton)
         io.show()
         return True
