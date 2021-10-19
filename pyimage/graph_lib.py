@@ -108,22 +108,14 @@ class Sknw:
     def parse_struc(self, img, nbs, acc, iso, ring):
         imgx = img.ravel() # flattened matrix
         buf = np.zeros(131072, dtype=np.int64)
-        num = 10
-        nodes = []
-        for p in range(len(imgx)):
-            if imgx[p] == 2:
-                isiso, nds = self.fill(imgx, p, num, nbs, acc, buf)
-                if isiso and not iso: continue
-                num += 1
-                nodes.append(nds)
-        edges = []
-        for p in range(len(imgx)):
-            if imgx[p] < 10: continue
-            for dp in nbs:
-                if imgx[p + dp] == 1:
-                    edge = self.trace(imgx, p + dp, nbs, acc, buf)
-                    edges.append(edge)
-        if not ring: return nodes, edges
+        num = 10 # no idea what this is
+        nodes, num = self.create_nodes(acc, buf, imgx, iso, nbs, num)
+        edges = self.create_edges(acc, buf, imgx, nbs)
+        if ring:
+            self.create_cyclic_edges(acc, buf, edges, imgx, nbs, nodes, num)
+        return nodes, edges
+
+    def create_cyclic_edges(self, acc, buf, edges, imgx, nbs, nodes, num):
         for p in range(len(imgx)):
             if imgx[p] != 1: continue
             imgx[p] = num;
@@ -133,8 +125,26 @@ class Sknw:
                 if imgx[p + dp] == 1:
                     edge = self.trace(imgx, p + dp, nbs, acc, buf)
                     edges.append(edge)
-        return nodes, edges
 
+    def create_nodes(self, acc, buf, imgx, iso, nbs, num):
+        nodes = []
+        for p in range(len(imgx)):
+            if imgx[p] == 2:
+                isiso, nds = self.fill(imgx, p, num, nbs, acc, buf)
+                if isiso and not iso: continue
+                num += 1
+                nodes.append(nds)
+        return nodes, num
+
+    def create_edges(self, acc, buf, imgx, nbs):
+        edges = []
+        for p in range(len(imgx)):
+            if imgx[p] < 10: continue
+            for dp in nbs:
+                if imgx[p + dp] == 1:
+                    edge = self.trace(imgx, p + dp, nbs, acc, buf)
+                    edges.append(edge)
+        return edges
 
     # use nodes and edges build a networkx graph
     def build_graph(self, nodes, edges, multi=False, full=True):
@@ -164,24 +174,6 @@ class Sknw:
         self.mark(buf, nbs)
         nodes, edges = self.parse_struc(buf, nbs, acc, iso, ring)
         return self.build_graph(nodes, edges, multi, full)
-
-
-    # # draw the graph
-    # def draw_graph(self, img, graph, cn=255, ce=128):
-    #     acc = np.cumprod((1,) + img.shape[::-1][:-1])[::-1]
-    #     img = img.ravel()
-    #     for (s, e) in graph.edges():
-    #         eds = graph[s][e]
-    #         if isinstance(graph, nx.MultiGraph):
-    #             for i in eds:
-    #                 pts = eds[i]['pts']
-    #                 img[np.dot(pts, acc)] = ce
-    #         else:
-    #             img[np.dot(eds['pts'], acc)] = ce
-    #     for idx in graph.nodes():
-    #         pts = graph.nodes[idx]['pts']
-    #         img[np.dot(pts, acc)] = cn
-
 
     def read_thinned_image_calculate_graph_and_plot(self, img):
         node_img = self.mark_node(img)

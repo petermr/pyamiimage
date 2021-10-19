@@ -8,6 +8,8 @@ from skimage import morphology
 from skimage import filters
 from pathlib import Path
 import networkx as nx
+from pyimage.graph_lib import Sknw
+import matplotlib.pyplot as plt
 
 """
 The ImageProcessor class is current in development by PMR and Anuv for preprocessing images
@@ -119,15 +121,64 @@ class ImageProcessor():
         print("skeleton type: ", type(skeleton))
         print("skeleton value type: ", type(skeleton[0][0]))
         print("skeleton shape:", skeleton.shape)
-        from pmr_test import Sknw
         sknw = Sknw()
         graph = sknw.build_sknw(skeleton)
+        print("graph type", type(graph))
         print("Edges: ", graph.edges())
         print("Nodes: ", graph.nodes())
-        # print("Output of build_graph", multigraph)
-        # sub_g = graph.subgraph([0, 1, 2])
-        # print(list(sub_g.edges))
+        nodes = graph.nodes()
+        edges = graph.edges()
+        print("node0", type(nodes[0]), nodes[0].keys())
+        print("node0", nodes[0]["pts"], nodes[0]["o"])
+        print("nodes", len(nodes))
+        node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
+        print("node_dict", node_dict)
+        x1, y1 = [-1, 12], [1, 5]
+        x2, y2 = [1, 10], [3, 2]
+        x3, y3 = [9, 7], [9, 4]
+        plt.plot(x1, y1, marker = "x")
+        plt.plot(x2, y2, marker = 'o')
+        plt.plot(x3, y3, marker = '.')
+        # for edge in edges:
+        #     self.plot_line(node_dict, edge[0], edge[1])
 
+        # plt.Circle((3.0, 4.0), 0.5, color="b")
+        # plt.show()
+
+        fig, ax = plt.subplots()  # note we must use plt.subplots, not plt.subplot
+        # (or if you have an existing figure)
+        # fig = plt.gcf()
+        # ax = fig.gca()
+        # scalex = 1./800
+        # scaley = 1./1200
+        # for i, node in enumerate(nodes):
+        #     circle = plt.Circle((node_dict[i][1] * scalex, 1 - node_dict[i][0] * scaley), 0.0015, color='r')
+        #     ax.add_patch(circle)
+
+        maxx = -999999
+        maxy = -999999
+        for node, i in enumerate(nodes):
+            print(type(node), type(i))
+            # certainly a more pythonic way exists
+            x = node_dict[i][0]
+            if x > maxx:
+                maxx = x
+            y = node_dict[i][1]
+            if y > maxy:
+                maxy = y
+            scales = (1, 1)
+        for edge in edges:
+            self.plot_line(node_dict, edge[0], edge[1], scales, maxy)
+        fig.savefig(Path(Path(__file__).parent.parent, "temp", "plotarrows.png"))
+
+    def plot_line(self, node_dict, node0, node1, scales, ymax):
+        # print("node", node0, type(node0))
+        xy0 = node_dict[node0]
+        xy1 = node_dict[node1]
+        # print("xy0 xy1", xy0, xy1)
+        # x and y are swapped
+        plt.plot([xy0[1] * scales[1], xy1[1] * scales[1]], [ymax - xy0[0], ymax - xy1[0]], marker = "")
+        print(type(node0))
 
     def invert_threshold_skeletonize(self, show=False):
         """Inverts Thresholds and Skeletonize a single channel grayscale image
