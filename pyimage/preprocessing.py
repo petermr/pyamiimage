@@ -8,7 +8,7 @@ from skimage import morphology
 from skimage import filters
 from pathlib import Path
 import networkx as nx
-from pyimage.graph_lib import Sknw
+from graph_lib import Sknw
 import matplotlib.pyplot as plt
 
 """
@@ -135,9 +135,9 @@ class ImageProcessor():
         # extract subgraphs
         # sub_graphs = nx.connected_component_subgraphs(UG)
         # sub_graphs = nx.weakly_connected_components(UG)
-        print(dir(nx))
-        nx.strongly_connected_component_subgraphs()
-        sub_graphs = nx.strongly_connected_component_subgraphs(graph)
+        # print(dir(nx))
+        # nx.strongly_connected_component_subgraphs()
+        # sub_graphs = nx.strongly_connected_component_subgraphs(graph)
         if False:
 
             G = nx.DiGraph()
@@ -161,7 +161,7 @@ class ImageProcessor():
         # print("node0", nodes[0]["pts"], nodes[0]["o"])
         # print("nodes", len(nodes))
         node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
-        # print("node_dict", node_dict)
+        print("node_dict", node_dict)
 
         fig, ax = plt.subplots()  # note we must use plt.subplots, not plt.subplot
         maxx, maxy = self.get_maxx_maxy_non_pythonic(node_dict, nodes)
