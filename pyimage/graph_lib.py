@@ -13,6 +13,7 @@ from skimage import data, util
 import skimage.io
 from pathlib import Path
 from skimage.filters import threshold_otsu
+import copy
 
 class Sknw:
     def __init__(self):
@@ -281,11 +282,71 @@ class Sknw:
         # print("Shape: ", ske.shape)
         # self.read_thinned_image_calculate_graph_and_plot(ske)
 
+class AmiGraph():
+    """holds AmiNodes and AmiEdges
+    may also hold subgraphs
+    """
+    def __init__(self, generate_nodes=True):
+        """create fro nodes and edges"""
+        self.ami_node_dict = None
+        self.ami_edge_dict = None
+        self.generate_nodes = generate_nodes
+
+    def read_nodes(self, nodes):
+        """create a list of AmiNodes """
+        if nodes is not None:
+            for node in nodes:
+                self.add_raw_node(node)
+
+    def add_raw_node(self, raw_node):
+        """add a raw node either a string or string-indexed dict
+        if already a dict, deepcopy it
+        if a primitive make a node_dict and start it with raw_node as id
+        """
+        if raw_node is not None:
+            ami_node = AmiNode();
+            if type(raw_node) is dict:
+                key = raw_node.key
+                if key in self.ami_node_dict:
+                    raise AmiGraphError(f"cannot add same node twice {key}")
+                ami_node.node_dict[key] = copy.deepcopy(raw_node)
+            else:
+                ami_node.node_dict = {raw_node: None,}
+        else:
+            self.logger.warn("node cannot be None")
+
+
+
+    def read_edges(self, edges):
+        self.edges = edges
+        if self.nodes is None and self.generate_nodes:
+            self.generate_nodes_from_edges()
+
+    def generate_nodes_from_edges(self):
+        if self.edges is not None:
+            for edge in self.edges:
+                self.add_raw_node(edge[0])
+                self.add_raw_node(edge[1])
+
+
+class AmiNode():
+    def __init__(self):
+        self.node_dict = {}
+
+class AmiEdge():
+    def __init__(self):
+        pass
+
+class AmiGraphError(Exception):
+    def __init__(self, msg):
+        super().__init__(msg)
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     img = np.array([
         [0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 1, 0],
         [0, 0, 0, 1, 0, 0, 0, 1, 0],
         [0, 0, 0, 1, 0, 0, 0, 0, 0],
         [1, 1, 1, 1, 0, 0, 0, 0, 0],
