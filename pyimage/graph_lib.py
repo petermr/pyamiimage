@@ -18,9 +18,11 @@ class Sknw:
     def __init__(self):
         self.graph = None
         self.img = None
-        # self.buf = None
 
-    def neighbors(self, shape):
+    def calc_neighbors(self, shape):
+        """not sure what this does yet
+        I think it might take a region and create margins
+        """
         dim = len(shape)
         block = np.ones([3] * dim)
         block[tuple([1] * dim)] = 0
@@ -28,7 +30,8 @@ class Sknw:
         idx = np.array(idx, dtype=np.uint8).T
         idx = np.array(idx - [1] * dim)
         acc = np.cumprod((1,) + shape[::-1][:-1])
-        return np.dot(idx, acc[::-1])
+        neighbors = np.dot(idx, acc[::-1])
+        return neighbors
 
 
     # my mark
@@ -72,14 +75,18 @@ class Sknw:
                     imgx[cp] = num
                     buf[s] = cp
                     s += 1
-                if imgx[cp] == 1: iso = False
+                if imgx[cp] == 1:
+                    iso = False
             cur += 1
-            if cur == s: break
-        return iso, self.idx2rc(buf[:s], acc)
+            if cur == s:
+                break
+        # transform ? 1-dim index to row + column indexes
+        rc = self.idx2rc(buf[:s], acc)
+        return iso, rc
 
 
     # trace the edge and use a buffer, then buf.copy, if use [] numba not works
-    def trace(self, img, p, nbs, acc, buf):
+    def trace_edge_of_something(self, img, p, nbs, acc, buf):
         c1 = 0;
         c2 = 0;
         newp = 0
@@ -101,12 +108,15 @@ class Sknw:
                     newp = cp
             p = newp
             if c2 != 0: break
-        return (c1 - 10, c2 - 10, self.idx2rc(buf[:cur + 1], acc))
+        # create row and column indexes
+        rc = self.idx2rc(buf[:cur + 1], acc)
+        return (c1 - 10, c2 - 10, rc)
 
 
     # parse the image then get the nodes and edges
     def parse_struc(self, img, nbs, acc, iso, ring):
         imgx = img.ravel() # flattened matrix
+        # NO IDEA where this number comes from
         buf = np.zeros(131072, dtype=np.int64)
         num = 10 # no idea what this is
         nodes, num = self.create_nodes(acc, buf, imgx, iso, nbs, num)
@@ -123,7 +133,7 @@ class Sknw:
             nodes.append(self.idx2rc([p], acc))
             for dp in nbs:
                 if imgx[p + dp] == 1:
-                    edge = self.trace(imgx, p + dp, nbs, acc, buf)
+                    edge = self.trace_edge_of_something(imgx, p + dp, nbs, acc, buf)
                     edges.append(edge)
 
     def create_nodes(self, acc, buf, imgx, iso, nbs, num):
@@ -142,14 +152,15 @@ class Sknw:
             if imgx[p] < 10: continue
             for dp in nbs:
                 if imgx[p + dp] == 1:
-                    edge = self.trace(imgx, p + dp, nbs, acc, buf)
+                    edge = self.trace_edge_of_something(imgx, p + dp, nbs, acc, buf)
                     edges.append(edge)
         return edges
 
     # use nodes and edges build a networkx graph
     def build_graph(self, nodes, edges, multi=False, full=True):
         os = np.array([i.mean(axis=0) for i in nodes])
-        if full: os = os.round().astype(np.uint16)
+        if full:
+            os = os.round().astype(np.uint16)
         graph = nx.MultiGraph() if multi else nx.Graph()
         for i in range(len(nodes)):
             graph.add_node(i, pts=nodes[i], o=os[i])
@@ -162,14 +173,14 @@ class Sknw:
 
     def mark_node(self, img):
         node_buf = np.pad(img, (1, 1), mode='constant')
-        nbs = self.neighbors(node_buf.shape)
+        nbs = self.calc_neighbors(node_buf.shape)
         acc = np.cumprod((1,) + node_buf.shape[::-1][:-1])[::-1]
         self.mark(node_buf, nbs)
         return node_buf
 
     def build_sknw(self, img, multi=False, iso=True, ring=True, full=True):
         buf = np.pad(img, (1, 1), mode='constant')
-        nbs = self.neighbors(buf.shape)
+        nbs = self.calc_neighbors(buf.shape)
         acc = np.cumprod((1,) + buf.shape[::-1][:-1])[::-1]
         self.mark(buf, nbs)
         nodes, edges = self.parse_struc(buf, nbs, acc, iso, ring)

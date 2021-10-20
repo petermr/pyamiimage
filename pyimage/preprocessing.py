@@ -128,37 +128,51 @@ class ImageProcessor():
         print("Nodes: ", graph.nodes())
         nodes = graph.nodes()
         edges = graph.edges()
-        print("node0", type(nodes[0]), nodes[0].keys())
-        print("node0", nodes[0]["pts"], nodes[0]["o"])
-        print("nodes", len(nodes))
-        node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
-        print("node_dict", node_dict)
-        x1, y1 = [-1, 12], [1, 5]
-        x2, y2 = [1, 10], [3, 2]
-        x3, y3 = [9, 7], [9, 4]
-        plt.plot(x1, y1, marker = "x")
-        plt.plot(x2, y2, marker = 'o')
-        plt.plot(x3, y3, marker = '.')
-        # for edge in edges:
-        #     self.plot_line(node_dict, edge[0], edge[1])
 
-        # plt.Circle((3.0, 4.0), 0.5, color="b")
-        # plt.show()
+        # make an undirected copy of the digraph
+        UG = graph.to_undirected()
+
+        # extract subgraphs
+        # sub_graphs = nx.connected_component_subgraphs(UG)
+        # sub_graphs = nx.weakly_connected_components(UG)
+        print(dir(nx))
+        nx.strongly_connected_component_subgraphs()
+        sub_graphs = nx.strongly_connected_component_subgraphs(graph)
+        if False:
+
+            G = nx.DiGraph()
+            assert list(nx.weakly_connected_components(G)) == []
+            assert nx.number_weakly_connected_components(G) == 0
+            print ("nnn", nx.number_weakly_connected_components(G))
+
+        if False:
+            import networkx
+            sub_graphs = networkx.weakly_connected_component_subgraphs(ug)
+            for i, sg in enumerate(sub_graphs):
+                print
+                "subgraph {} has {} nodes".format(i, sg.number_of_nodes())
+                print
+                "\tNodes:", sg.nodes(data=True)
+                print
+                "\tEdges:", sg.edges()
+
+
+        # print("node0", type(nodes[0]), nodes[0].keys())
+        # print("node0", nodes[0]["pts"], nodes[0]["o"])
+        # print("nodes", len(nodes))
+        node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
+        # print("node_dict", node_dict)
 
         fig, ax = plt.subplots()  # note we must use plt.subplots, not plt.subplot
-        # (or if you have an existing figure)
-        # fig = plt.gcf()
-        # ax = fig.gca()
-        # scalex = 1./800
-        # scaley = 1./1200
-        # for i, node in enumerate(nodes):
-        #     circle = plt.Circle((node_dict[i][1] * scalex, 1 - node_dict[i][0] * scaley), 0.0015, color='r')
-        #     ax.add_patch(circle)
+        maxx, maxy = self.get_maxx_maxy_non_pythonic(node_dict, nodes)
+        for edge in edges:
+            self.plot_line(node_dict, edge[0], edge[1], maxy)
+        fig.savefig(Path(Path(__file__).parent.parent, "temp", "plotarrows.png"))
 
+    def get_maxx_maxy_non_pythonic(self, node_dict, nodes):
         maxx = -999999
         maxy = -999999
         for node, i in enumerate(nodes):
-            print(type(node), type(i))
             # certainly a more pythonic way exists
             x = node_dict[i][0]
             if x > maxx:
@@ -166,19 +180,16 @@ class ImageProcessor():
             y = node_dict[i][1]
             if y > maxy:
                 maxy = y
-            scales = (1, 1)
-        for edge in edges:
-            self.plot_line(node_dict, edge[0], edge[1], scales, maxy)
-        fig.savefig(Path(Path(__file__).parent.parent, "temp", "plotarrows.png"))
+        return maxx, maxy
 
-    def plot_line(self, node_dict, node0, node1, scales, ymax):
+    def plot_line(self, node_dict, node0, node1, ymax):
         # print("node", node0, type(node0))
         xy0 = node_dict[node0]
         xy1 = node_dict[node1]
         # print("xy0 xy1", xy0, xy1)
         # x and y are swapped
-        plt.plot([xy0[1] * scales[1], xy1[1] * scales[1]], [ymax - xy0[0], ymax - xy1[0]], marker = "")
-        print(type(node0))
+        plt.plot([xy0[1], xy1[1]], [ymax - xy0[0], ymax - xy1[0]], marker = "")
+        # print(type(node0))
 
     def invert_threshold_skeletonize(self, show=False):
         """Inverts Thresholds and Skeletonize a single channel grayscale image
