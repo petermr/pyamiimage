@@ -8,7 +8,7 @@ from skimage import morphology
 from skimage import filters
 from pathlib import Path
 import networkx as nx
-from pyimage.graph_lib import Sknw
+from graph_lib import Sknw
 import matplotlib.pyplot as plt
 
 """
@@ -138,6 +138,7 @@ class ImageProcessor():
         # print(dir(nx))
         # nsc = nx.number_strongly_connected_components(graph)
         # print("nsc", nsc)
+        # nx.strongly_connected_component_subgraphs()
         # sub_graphs = nx.strongly_connected_component_subgraphs(graph)
         if False:
 
