@@ -114,7 +114,7 @@ class Sknw:
         rc = self.idx2rc(buf[:cur + 1], acc)
 
         rc1 = (c1 - 10, c2 - 10, rc)
-        print("rc1.shape", rc1.shape)
+        # print("rc1.shape", rc1.shape)
         return rc1
 
 
@@ -335,6 +335,7 @@ class AmiGraph():
     def add_edge(self, raw_edge, id, fail_on_duplicate=True):
         if raw_edge is None:
             raise AmiGraphError("cannot add edge=None")
+        # node0 =
         edge1 = ("n"+str(raw_edge[0]), "n"+str(raw_edge[1]))
         self.ami_edge_dict[id] = edge1
 
