@@ -56,17 +56,18 @@ class TestGraphLib():
 
     def test_img_contents(self):
         img = self.GRAPH_DICT[self.SIMPLE_2N1E]
-        print("img", img)
+        # print("img", img)
 
     def test_read_graph_nodes(self):
         ami_graph = AmiGraph()
         ami_graph.read_nodes(self.NODES1)
-        assert len(ami_graph.ami_node_dict) == 27, f"ami_graph has {len(self.NODES1)} nodes"
+        assert len(ami_graph.ami_node_dict.keys()) == 27, f"ami_graph has {len(self.NODES1)} nodes"
 
     def test_read_graph_edges(self):
         ami_graph = AmiGraph()
         ami_graph.read_nodes(self.NODES1)
         ami_graph.read_edges(self.EDGES1)
+        print("\nnodes + edges: "+str(ami_graph))
         assert len(ami_graph.edges) == 23, f"ami_graph has {len(self.EDGES1)} edges"
 
     def test_read_edges_without_nodes(self):

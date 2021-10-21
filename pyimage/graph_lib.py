@@ -108,10 +108,14 @@ class Sknw:
                 if img[cp] == 1:
                     newp = cp
             p = newp
-            if c2 != 0: break
+            if c2 != 0:
+                break
         # create row and column indexes
         rc = self.idx2rc(buf[:cur + 1], acc)
-        return (c1 - 10, c2 - 10, rc)
+
+        rc1 = (c1 - 10, c2 - 10, rc)
+        print("rc1.shape", rc1.shape)
+        return rc1
 
 
     # parse the image then get the nodes and edges
@@ -166,7 +170,8 @@ class Sknw:
         for i in range(len(nodes)):
             graph.add_node(i, pts=nodes[i], o=os[i])
         for s, e, pts in edges:
-            if full: pts[[0, -1]] = os[[s, e]]
+            if full:
+                pts[[0, -1]] = os[[s, e]]
             l = np.linalg.norm(pts[1:] - pts[:-1], axis=1).sum()
             graph.add_edge(s, e, pts=pts, weight=l)
         return graph
@@ -288,8 +293,8 @@ class AmiGraph():
     """
     def __init__(self, generate_nodes=True):
         """create fro nodes and edges"""
-        self.ami_node_dict = None
-        self.ami_edge_dict = None
+        self.ami_node_dict = {}
+        self.ami_edge_dict = {}
         self.generate_nodes = generate_nodes
 
     def read_nodes(self, nodes):
@@ -298,35 +303,53 @@ class AmiGraph():
             for node in nodes:
                 self.add_raw_node(node)
 
-    def add_raw_node(self, raw_node):
+    def add_raw_node(self, raw_node, fail_on_duplicate=False):
         """add a raw node either a string or string-indexed dict
         if already a dict, deepcopy it
         if a primitive make a node_dict and start it with raw_node as id
+        :raw_node: node to add, must have key
+        :fail_on_duplicate: if true fail if key already exists
         """
         if raw_node is not None:
             ami_node = AmiNode();
+            key = raw_node.key if type(raw_node) is dict else str(raw_node)
+            key = "n"+str(key)
+            if key in self.ami_node_dict and fail_on_duplicate:
+                raise AmiGraphError(f"cannot add same node twice {key}")
             if type(raw_node) is dict:
-                key = raw_node.key
-                if key in self.ami_node_dict:
-                    raise AmiGraphError(f"cannot add same node twice {key}")
-                ami_node.node_dict[key] = copy.deepcopy(raw_node)
+                self.ami_node_dict[key] = copy.deepcopy(raw_node)
             else:
-                ami_node.node_dict = {raw_node: None,}
+                self.ami_node_dict[key] = "node" # store just the key at present
         else:
             self.logger.warn("node cannot be None")
 
-
-
     def read_edges(self, edges):
         self.edges = edges
-        if self.nodes is None and self.generate_nodes:
+        if len(self.ami_node_dict.keys()) == 0 and self.generate_nodes:
             self.generate_nodes_from_edges()
+            print("after node generation", str(self))
+        for i, edge in enumerate(self.edges):
+            id = "e"+str(i)
+            self.add_edge(edge, id)
+
+    def add_edge(self, raw_edge, id, fail_on_duplicate=True):
+        if raw_edge is None:
+            raise AmiGraphError("cannot add edge=None")
+        edge1 = ("n"+str(raw_edge[0]), "n"+str(raw_edge[1]))
+        self.ami_edge_dict[id] = edge1
+
+
 
     def generate_nodes_from_edges(self):
         if self.edges is not None:
             for edge in self.edges:
                 self.add_raw_node(edge[0])
                 self.add_raw_node(edge[1])
+
+    def __str__(self):
+        s = "nodes: " + str(self.ami_node_dict) + \
+            "\n edges: " + str(self.ami_edge_dict)
+        return s
 
 
 class AmiNode():

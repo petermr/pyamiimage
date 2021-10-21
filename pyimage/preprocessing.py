@@ -61,7 +61,7 @@ class ImageProcessor():
         mask = morphology.skeletonize(image)
         self.skeleton = np.zeros(self.image.shape)
         self.skeleton[mask] = 1
-        print("Skeleton Image: ", self.skeleton)
+        # print("Skeleton Image: ", self.skeleton)
         return self.skeleton
 
     def threshold(self, image):
@@ -117,7 +117,7 @@ class ImageProcessor():
     def example_skeletonize_extract_subgraphs(self):
         skeleton = self.binarize_and_skeletonize_arrows()
         skeleton = skeleton.astype(np.uint16)
-        print("skeleton values: ", skeleton)
+        # print("skeleton values: ", skeleton)
         print("skeleton type: ", type(skeleton))
         print("skeleton value type: ", type(skeleton[0][0]))
         print("skeleton shape:", skeleton.shape)
