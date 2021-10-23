@@ -1,7 +1,12 @@
 # !/usr/bin/env python
 #-*- coding: utf8 -*-
 # from https://github.com/delimitry/octree_color_quantizer CC0, thanks
-from physchem.python.image.ColorModule import Color
+import imageio
+from pathlib import Path
+
+from pyimage.ColorModule import Color
+from pyimage.image_lib import ImageLib
+from PIL import Image
 
 class OctreeNode(object):
     """
@@ -193,11 +198,12 @@ class OctreeQuantizer(object):
 
 def quantize(image, size=4):
     import time
-    from physchem.python.image.ColorModule import Color
-    from physchem.python.image.Octree import OctreeQuantizer
+    from pyimage.ColorModule import Color
+    from pyimage.Octree import OctreeQuantizer
 
     # size = 16 => 256 colors for 8 bits per pixel output image
 
+    # print("pixels shape", image.shape)
     pixels = image.load()
     width, height = image.size
     print(width, height)
@@ -225,6 +231,7 @@ def create_palette_image(size, octree, width, height):
     for i, color in enumerate(palette):
         rgb = (color.red, color.green, color.blue)
         palette_pixels[i % size, i // size] = rgb
+        print("rgb", rgb)
     print("palette time", time.perf_counter()-time0)
     return palette, palette_image
 
@@ -242,3 +249,19 @@ def create_output_image(width, height, octree, palette, pixels):
 
     print("output time", time.perf_counter()-time0)
     return out_image
+
+def main():
+    image_name = "red_black_cv.png"
+    image_name = "purple_ocimum_basilicum.png"
+    path = Path(Path(__file__).parent.parent, "assets", image_name)
+    assert path.exists()
+    # img = imageio.imread(path)
+    img = Image.open(path)
+
+    # ImageLib.image_show(img)
+    # print(img)
+
+    quantize(img, size=4)
+
+if __name__ == "__main__":
+    main()

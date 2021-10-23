@@ -74,6 +74,14 @@ class TestGraphLib():
         ami_graph = AmiGraph()
         ami_graph.read_edges(self.EDGES1)
 
+    def test_create_islands(self):
+        ami_graph = AmiGraph()
+        ami_graph.read_nodes(self.NODES1)
+        ami_graph.read_edges(self.EDGES1)
+        print("\nnodes + edges: "+str(ami_graph))
+        assert len(ami_graph.edges) == 23, f"ami_graph has {len(self.EDGES1)} edges"
+        print("info", ami_graph.get_graph_info())
+
 
 
 

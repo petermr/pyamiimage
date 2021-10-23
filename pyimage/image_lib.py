@@ -38,8 +38,10 @@ class ImageLib():
         if path is None:
             path = self.path
         self.image = io.imread(path)
-    
-    def image_show(self, image, nrows=1, ncols=1, cmap='gray'):
+
+    @classmethod
+    def image_show(cls, image, nrows=1, ncols=1, cmap='gray'):
+        print("image shape", image.shape)
         fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(14, 14))
         ax.imshow(image, cmap='gray')
         ax.axis('off')

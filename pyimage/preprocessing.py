@@ -10,6 +10,8 @@ from pathlib import Path
 import networkx as nx
 from graph_lib import Sknw
 import matplotlib.pyplot as plt
+from networkx.algorithms import tree
+from graph_lib import AmiGraph
 
 """
 The ImageProcessor class is current in development by PMR and Anuv for preprocessing images
@@ -121,55 +123,15 @@ class ImageProcessor():
         print("skeleton type: ", type(skeleton))
         print("skeleton value type: ", type(skeleton[0][0]))
         print("skeleton shape:", skeleton.shape)
-        sknw = Sknw()
-        graph = sknw.build_sknw(skeleton)
-        print("graph type", type(graph))
-        print("Edges: ", graph.edges())
-        print("Nodes: ", graph.nodes())
-        nodes = graph.nodes()
-        edges = graph.edges()
 
-        # make an undirected copy of the digraph
-        UG = graph.to_undirected()
-
-        # extract subgraphs
-        # sub_graphs = nx.connected_component_subgraphs(UG)
-        # sub_graphs = nx.weakly_connected_components(UG)
-        # print(dir(nx))
-        # nsc = nx.number_strongly_connected_components(graph)
-        # print("nsc", nsc)
-        # nx.strongly_connected_component_subgraphs()
-        # sub_graphs = nx.strongly_connected_component_subgraphs(graph)
-        if False:
-
-            G = nx.DiGraph()
-            assert list(nx.weakly_connected_components(G)) == []
-            assert nx.number_weakly_connected_components(G) == 0
-            print ("nnn", nx.number_weakly_connected_components(G))
-
-        if False:
-            import networkx
-            sub_graphs = networkx.weakly_connected_component_subgraphs(ug)
-            for i, sg in enumerate(sub_graphs):
-                print
-                "subgraph {} has {} nodes".format(i, sg.number_of_nodes())
-                print
-                "\tNodes:", sg.nodes(data=True)
-                print
-                "\tEdges:", sg.edges()
-
-
-        # print("node0", type(nodes[0]), nodes[0].keys())
-        # print("node0", nodes[0]["pts"], nodes[0]["o"])
-        # print("nodes", len(nodes))
-        node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
-        print("node_dict", node_dict)
+        graph = AmiGraph.create_ami_graph(skeleton)
+        print("node_dict", graph)
 
         fig, ax = plt.subplots()  # note we must use plt.subplots, not plt.subplot
-        maxx, maxy = self.get_maxx_maxy_non_pythonic(node_dict, nodes)
-        for edge in edges:
-            self.plot_line(node_dict, edge[0], edge[1], maxy)
-        fig.savefig(Path(Path(__file__).parent.parent, "temp", "plotarrows.png"))
+        # maxx, maxy = self.get_maxx_maxy_non_pythonic(node_dict, nodes)
+        # for edge in self.edges:
+        #     self.plot_line(node_dict, edge[0], edge[1], maxy)
+        # fig.savefig(Path(Path(__file__).parent.parent, "temp", "plotarrows.png"))
 
     def get_maxx_maxy_non_pythonic(self, node_dict, nodes):
         maxx = -999999
