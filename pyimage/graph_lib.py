@@ -1,15 +1,16 @@
 import numpy as np
 import networkx as nx
-from skimage.morphology import skeletonize
-from skimage import data
-from pathlib import Path
-from skimage.filters import threshold_otsu
+# from skimage.morphology import skeletonize
+# from skimage import data
+# from pathlib import Path
+# from skimage.filters import threshold_otsu
 import copy
 from networkx.algorithms import tree
 from skimage import morphology, io
 from skan.pre import threshold
-from pmrsknw import PmrSknw
+# from pyimage.pmrsknw import PmrSknw
 import matplotlib.pyplot as plt
+import sknw # must pip install sknw
 
 
 class AmiSkeleton:
