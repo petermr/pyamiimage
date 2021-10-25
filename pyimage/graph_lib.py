@@ -21,8 +21,12 @@ class AmiSkeleton:
     * networkx graph
     * plots
 
+
     May need rationalizatiom with AmiGraph
     """
+    NODE_PTS = "pts"
+    CENTROID = "o"
+
     def __init__(self):
         self.skeleton = None
         self.binary = None

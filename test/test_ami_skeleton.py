@@ -94,11 +94,26 @@ class TestAmiSkeleton:
                                         {8, 9, 26, 19},
                                         {10, 11, 12, 13, 14, 15, 16, 17, 18, 20},
                                         {21, 22, 23, 24, 25}]
-
+        assert connected_components[0] == {0,1,2,3,4,5,6,7}
+        assert connected_components[1] == {8,9,26,19}
 
     def test_create_bounding_box_from_node_list(self):
-        nx_graph = AmiSkeleton().create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
-        nodes = {0, 1, 2, 3, 4, 5, 6, 7}
+        ami_skeleton = AmiSkeleton()
+        nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
+        node_ids = {0, 1, 2, 3, 4, 5, 6, 7}
+        # coord_list = np.array([0,0])
+        coord_list = []
+
+        # "pts" gives all points in the node, "o" gives the centroid
+        for id in node_ids:
+            centroid_xy = nx_graph.nodes[id][AmiSkeleton.CENTROID]
+            print("centroid", centroid_xy, type(centroid_xy))
+            coord_list.append(centroid_xy)
+            # np.concatenate(np_coords, centroid_xy)
+        print("pts ", coord_list)
+
+
+
 
 
 
