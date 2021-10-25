@@ -8,7 +8,7 @@ from skimage import morphology
 from skimage import filters
 from pathlib import Path
 import networkx as nx
-from graph_lib import Sknw
+from graph_lib import PmrSknw
 import matplotlib.pyplot as plt
 from networkx.algorithms import tree
 from graph_lib import AmiGraph
@@ -90,7 +90,8 @@ class ImageProcessor():
 
     def example1(self):
         TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
-        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")
+        # BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")
+        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
         print(BIOSYNTH_PATH_IMAGE)
         self.load_image(BIOSYNTH_PATH_IMAGE)
         # print(self.image)
@@ -181,8 +182,8 @@ class ImageProcessor():
 
 def main():
     image_processor = ImageProcessor()
-    # image_processor.example1()
-    image_processor.example_skeletonize_extract_subgraphs()
+    image_processor.example1()
+    #image_processor.example_skeletonize_extract_subgraphs()
 
 
 if __name__ == '__main__':

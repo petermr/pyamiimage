@@ -8,7 +8,7 @@ import copy
 from networkx.algorithms import tree
 from skimage import morphology, io
 from skan.pre import threshold
-import sknw
+from pmrsknw import PmrSknw
 import matplotlib.pyplot as plt
 
 
@@ -148,7 +148,7 @@ class AmiGraph():
     def create_ami_graph(self, skeleton_image):
         """Uses Sknw to create a graph object within a new AmiGraph"""
         ami_graph = AmiGraph()
-        ami_graph.nx_graph, nodes, edges = Sknw().build_sknw(skeleton_image)
+        ami_graph.nx_graph, nodes, edges = PmrSknw().build_sknw(skeleton_image)
         ami_graph.read_nodes(nodes)
         ami_graph.read_edges(edges)
         return ami_graph
@@ -206,7 +206,7 @@ if __name__ == '__main__':
         [0, 1, 0, 0, 1, 0, 0, 0, 0],
         [0, 0, 0, 1, 0, 0, 0, 0, 0]])
 
-    sknw = Sknw()
+    sknw = PmrSknw()
     # sknw.example1()
     sknw.example2horse()  # works
     # sknw.example3() # needs flipping White to black

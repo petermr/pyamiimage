@@ -4,8 +4,8 @@
 import imageio
 from pathlib import Path
 
-from pyimage.ColorModule import Color
-from pyimage.image_lib import ImageLib
+from ColorModule import Color
+from image_lib import ImageLib
 from PIL import Image
 
 class OctreeNode(object):
@@ -198,8 +198,8 @@ class OctreeQuantizer(object):
 
 def quantize(image, size=4):
     import time
-    from pyimage.ColorModule import Color
-    from pyimage.Octree import OctreeQuantizer
+    from ColorModule import Color
+    from Octree import OctreeQuantizer
 
     # size = 16 => 256 colors for 8 bits per pixel output image
 
