@@ -4,14 +4,12 @@ from skan.pre import threshold
 
 from test.resources import Resources
 from skimage import filters, color, io, data, draw
-from skimage import morphology
+from skimage.segmentation import flood_fill
 import numpy as np
-from skan import skeleton_to_csgraph
 import networkx as nx
-
-from pyimage.graph_lib import AmiSkeleton
 import sknw
 
+from pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph
 
 
 class TestAmiSkeleton:
@@ -60,18 +58,18 @@ class TestAmiSkeleton:
     def test_skeletonize_biosynth1_no_text(self):
         file = Resources.BIOSYNTH1_ARROWS
         assert file.exists()
-        skeleton = AmiSkeleton().create_white_skeleton(file)
+        skeleton = AmiSkeleton().create_white_skeleton_from_file(file)
         assert np.count_nonzero(skeleton) == 1378
         # will be white on gray
         plt.imshow(skeleton, cmap="gray")
         print("\n", skeleton)
 
-    def test_skeleton_to_graph(self):
+    def test_skeleton_to_graph_arrows1(self):
         ami_skel = AmiSkeleton()
-        skeleton = ami_skel.create_white_skeleton(Resources.BIOSYNTH1_ARROWS)
+        skeleton = ami_skel.create_white_skeleton_from_file(Resources.BIOSYNTH1_ARROWS)
         # build graph from skeleton
-        nx_graph = sknw.build_sknw(skeleton)
-        ami_skel.plot_nx_graph(nx_graph)
+        ami_skel.nx_graph = sknw.build_sknw(skeleton)
+        ami_skel.plot_nx_graph()
 
     def test_skeleton_to_graph_text(self):
         ami_skel = AmiSkeleton()
@@ -101,18 +99,96 @@ class TestAmiSkeleton:
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
         node_ids = {0, 1, 2, 3, 4, 5, 6, 7}
-        # coord_list = np.array([0,0])
-        coord_list = []
 
-        # "pts" gives all points in the node, "o" gives the centroid
-        for id in node_ids:
-            centroid_xy = nx_graph.nodes[id][AmiSkeleton.CENTROID]
-            print("centroid", centroid_xy, type(centroid_xy))
-            coord_list.append(centroid_xy)
-            # np.concatenate(np_coords, centroid_xy)
-        print("pts ", coord_list)
+        bbox = ami_skeleton.extract_bbox_for_nodes(node_ids)
+        assert bbox == ((82.0, 102.0), (661.0, 863.0))
+
+    def test_create_bounding_boxes_from_node_list(self):
+        ami_skeleton = AmiSkeleton()
+        nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
+        bboxes = AmiSkeleton.create_bboxes_for_connected_components(ami_skeleton)
+        assert bboxes == [((82.0, 102.0), (661.0, 863.0)),
+                         ((117.0, 313.0), (391.0, 953.0)),
+                         ((148.0, 236.0), (991.0, 1064.0)),
+                         ((252.0, 294.0), (992.0, 1009.0))]
+
+    def test_create_bounding_box_from_node_list(self):
+        ami_skeleton = AmiSkeleton()
+        nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
+        node_ids = {0, 1, 2, 3, 4, 5, 6, 7}
+
+        bbox = ami_skeleton.extract_bbox_for_nodes(node_ids)
+        assert bbox == ((82.0, 102.0), (661.0, 863.0))
+
+    def test_remove_pixels_in_bounding_box_arrows1(self):
+        image = io.imread(Resources.BIOSYNTH1_ARROWS)
+        bbox = ((82, 102), (661, 863))
+        image = AmiGraph.set_bbox_pixels_to_color(bbox, image)
+        fig, ax = plt.subplots()
+        ax.imshow(image, cmap='gray')
+        return
+
+    def test_remove_pixels_in_bounding_boxes_from_islands_arrows1(self):
+        image = io.imread(Resources.BIOSYNTH1_ARROWS)
+        ami_skeleton = AmiSkeleton()
+        nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
+        bboxes = ami_skeleton.create_bboxes_for_connected_components()
+        dd = 2  #  to overcome some of the antialiasing
+        for bbox in bboxes:
+            bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
+            AmiGraph.set_bbox_pixels_to_color(bbox, image)
+        fig, ax = plt.subplots()
+        ax.imshow(image, cmap='gray')
+        return
+
+    def test_remove_all_pixels_in_bounding_boxes_from_islands(self):
+        image = io.imread(Resources.BIOSYNTH1)
+        ami_skeleton = AmiSkeleton()
+        nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1)
+        bboxes = ami_skeleton.create_bboxes_for_connected_components()
+        dd = 2  #  to overcome some of the antialiasing
+        for bbox in bboxes:
+            bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
+            AmiGraph.set_bbox_pixels_to_color(bbox, image, color=160)
+        fig, ax = plt.subplots()
+        ax.imshow(image, cmap='gray')
+        return
+
+    def test_remove_pixels_in_arrow_bounding_boxes_from_islands_text1(self):
+        ami_skeleton = AmiSkeleton()
+        # arrows_image = io.imread(Resources.BIOSYNTH1_ARROWS)
+        arrows_image = ami_skeleton.create_grayscale_from_file(Resources.BIOSYNTH1_ARROWS)
+
+        cropped_image = ami_skeleton.create_grayscale_from_file(Resources.BIOSYNTH1_CROPPED)
+        nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
+        bboxes_arrows = ami_skeleton.create_bboxes_for_connected_components()
+        dd = 2  #  to overcome some of the antialiasing
+        for bbox in bboxes_arrows:
+            bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
+            AmiGraph.set_bbox_pixels_to_color(bbox, cropped_image, color=127)
+        fig, ax = plt.subplots()
+        ax.imshow(cropped_image, cmap='gray')
+        plt.show()
+        return
+
+    def test_flood_fill(self):
+        colors = [0x00ff0000, 0x0000ff00, 0x000000ff, 0x00ffff00, 0x00ff00ff, 0x0000ffff, 0x00000000]
+        ami_skeleton = AmiSkeleton()
+        # arrows_image = io.imread(Resources.BIOSYNTH1_ARROWS)
+        arrows_image = ami_skeleton.create_grayscale_from_file(Resources.BIOSYNTH1_ARROWS)
+
+        cropped_image = ami_skeleton.create_grayscale_from_file(Resources.BIOSYNTH1_CROPPED)
+        nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
+        ami_skeleton.get_nodes_and_edges_from_nx_graph()
+        components = ami_skeleton.get_connected_components()
+        for i, component in enumerate(components):
+            ami_skeleton.flood_fill(component, colors[i % len(colors)])
 
 
+        fig, ax = plt.subplots()
+        ax.imshow(cropped_image, cmap='gray')
+        plt.show()
+        return
 
 
 
