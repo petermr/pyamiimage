@@ -8,8 +8,10 @@ from skimage.segmentation import flood_fill
 import numpy as np
 import networkx as nx
 import sknw
-
+from lxml import etree
 from pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph
+from lxml.etree import Element, ElementTree
+from pathlib import Path
 
 
 class TestAmiSkeleton:
@@ -190,7 +192,65 @@ class TestAmiSkeleton:
         plt.show()
         return
 
+    def test_hocr_to_svg(self):
+        """
+        Convert HOCR (HTML) to SVG
+        :return: svg
 
+        Typical input
+        <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <title></title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+  <meta name='ocr-system' content='tesseract 4.1.1' />
+  <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word ocrp_wconf'/>
+ </head>
 
+ <body>
+  <div class='ocr_page' id='page_1' title='image "biosynth_path_1.png"; bbox 0 0 1515 1167; ppageno 0'>
+   <div class='ocr_carea' id='block_1_1' title="bbox 687 43 846 71">
+    <p class='ocr_par' id='par_1_1' lang='eng' title="bbox 687 43 846 71">
+     <span class='ocr_line' id='line_1_1' title="bbox 687 43 846 71; baseline -0.006 -5; x_size 28; x_descenders 6; x_ascenders 7">
+      <span class='ocrx_word' id='word_1_1' title='bbox 687 44 807 66; x_wconf 91'>Isomerase</span>
+      <span class='ocrx_word' id='word_1_2' title='bbox 815 43 846 71; x_wconf 90'>(?)</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_2' title="bbox 336 76 1217 111">
+    <p class='ocr_par' id='par_1_2' lang='eng' title="bbox 336 76 1217 111">
+     <span class='ocr_header' id='line_1_2' title="bbox 336 76 1217 111; baseline -0.006 -9; x_size 28; x_descenders 6; x_ascenders 7">
+      <span class='ocrx_word' id='word_1_3' title='bbox 336 80 474 108; x_wconf 92'>Isopentenyl</span>
+      ...
+      <span class='ocrx_word' id='word_1_8' title='bbox 1072 76 1217 104; x_wconf 96'>diphosphate</span>
+     </span>
+    </p>
+   </div>
+
+        """
+        ami_skeleton = AmiSkeleton()
+
+        biosynth_html = str(Resources.BIOSYNTH1_HOCR)
+        html = etree.parse(biosynth_html)
+        word_spans = html.findall("//{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']")
+        svg = Element("svg")
+        svg.attrib["xmlns"] = "http://www.w3.org/2000/svg"
+
+        for word_span in word_spans:
+            title = word_span.attrib["title"]
+            title_dict = ami_skeleton.parse_hocr_title(title)
+            bbox = title_dict["bbox"]
+            text = word_span.text
+            g = ami_skeleton.create_svg_text_box_from_hocr(bbox, text)
+            svg.append(g)
+
+        bb = etree.tostring(svg, encoding='utf-8', method='xml')
+        s = bb.decode("utf-8")
+        path_svg = Path(Path(__file__).parent.parent, "temp", "textbox.svg")
+        with open(path_svg, "w", encoding="UTF-8") as f:
+            f.write(s)
+            print(f"Wrote textboxes to {path_svg}")
 
 

@@ -8,6 +8,7 @@ import sknw  # must pip install sknw
 import logging
 from pathlib import Path
 import matplotlib.pyplot as plt
+from lxml.etree import Element
 
 class AmiSkeleton:
     """manages workflow from file to plot.
@@ -279,6 +280,60 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         j = xy[1]
         neighbours = image[max(i - 1, 0):min(i + 2, image.shape[0]), max(j - 1, 0):min(j + 2, image.shape[1])]
         return neighbours
+
+    def parse_hocr_title(self, title):
+        """
+         title="bbox 336 76 1217 111; baseline -0.006 -9; x_size 28; x_descenders 6; x_ascenders 7"
+
+        :param title:
+        :param kw:
+        :return:
+        """
+        if title is None:
+            return None
+        parts = title.split("; ")
+        title_dict = {}
+        for part in parts:
+            pp = part.split()
+            kw = pp[0]
+            if kw == "bbox":
+                val = ((pp[1], pp[3]), (pp[2], pp[4]))
+            else:
+                val = pp[1:]
+            title_dict[kw] = val
+            # print(f"kw {kw} val {val}")
+            # print(f"title_dict {title_dict}")
+        return title_dict
+
+    def create_svg_text_box_from_hocr(self, bbox, txt):
+
+        g = Element("g")
+        g.attrib["xmlns"] = "http://www.w3.org/2000/svg"
+
+        rect = Element("rect")
+        rect.attrib["xmlns"] = "http://www.w3.org/2000/svg"
+        rect.attrib["x"] = bbox[0][0]
+        rect.attrib["width"] = str(int(bbox[0][1]) - int(bbox[0][0]))
+        height = int(bbox[1][1]) - int(bbox[1][0])
+        rect.attrib["y"] = str(int(bbox[1][0]) - height)  # kludge for offset of inverted text
+        rect.attrib["height"] = str(height)
+        rect.attrib["stroke-width"] = "1.0"
+        rect.attrib["stroke"] = "red"
+        rect.attrib["fill"] = "none"
+        g.append(rect)
+
+        text = Element("text")
+        text.attrib["xmlns"] = "http://www.w3.org/2000/svg"
+        text.attrib["x"] = bbox[0][0]
+        text.attrib["y"] = bbox[1][0]
+        text.attrib["font-size"] = str(0.9 * height)
+        text.attrib["stroke"] = "blue"
+        text.attrib["font-family"] = "sans-serif"
+        text.text = txt
+
+        g.append(text)
+
+        return g
 
 class AmiGraph:
     """holds AmiNodes and AmiEdges
