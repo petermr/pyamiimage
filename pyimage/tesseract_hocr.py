@@ -4,7 +4,7 @@ from lxml import etree as et
 from lxml import html
 import numpy as np
 import skimage
-from preprocessing import ImageProcessor
+from pyimage.preprocessing import ImageProcessor
 
 """
 This file is to play with the output of hocr
@@ -17,10 +17,10 @@ def pretty_print_html(root):
     """
     print(et.tostring(root, pretty_print=True).decode("utf-8"))
 
-def hocr_on_image(path):
+def hocr_from_image_path(path):
     """Runs tesseract hocr on the given image
-    input: Path
-    returns: hocr string
+    :param: Path
+    :returns: hocr string
     """
     # pytesseract only seems to accept string for image path
     if path is not str:
@@ -88,6 +88,7 @@ def extract_bbox_from_hocr(root):
     --------x2,y2    
     """
     bbox_for_words = []
+    words = []
 
     # Each of the bbox coordinates are in span
     # iterdescendants('span') iterates over all the span elements in the tree
@@ -97,6 +98,7 @@ def extract_bbox_from_hocr(root):
             # coordinates for bbox has the following format: 'bbox 333 74 471 102; x_wconf 76'
             # we are only interested in the coordinates, so we split at ; and append the first part
             bbox_for_words.append(child.attrib['title'].split(';')[0])
+            words.append(child.text)
 
     # now we have a list with string elenments like 'bbox 333 74 471 102'
     # first we convert each string into a list, and then remove 'bbox', leaving just the coordinate
@@ -107,16 +109,55 @@ def extract_bbox_from_hocr(root):
 
     # and return a numpy array from the generated list
     bbox_for_words =  np.array(bbox_for_words)
-    return bbox_for_words
+    return bbox_for_words, words
 
+def find_phrases(root, word_seperation=20, y_tolerance=10):
+    phrases = []
+    bbox_for_phrases = []
+    bboxes, words = extract_bbox_from_hocr(root)
+    for i in range(len(words)):
+        phrase = [words[i]]
+        last_bbox = bboxes[i]
+        for j in range(i+1, len(words)):
+            # check if words are on the same line
+            # if words on a different line, break loop
+            if abs(bboxes[j][1] - bboxes[i][1]) > y_tolerance or abs(bboxes[j][3] - bboxes[i][3]) > y_tolerance:
+                break
+            # If the seperation is small enough, add the word to the phrase
+            if (bboxes[j][0] - last_bbox[2]) < word_seperation:
+                phrase.append(words[j])
+                last_bbox = bboxes[j]
+            else:
+                break
+        phrase = " ".join(phrase)
+        if phrase == ' ':
+            # if phrase is empty do not add to the list of phrases
+            continue
+        elif not phrases:
+            # if array is empty add element
+            phrases.append(phrase)
+            bbox_for_phrases.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
+        elif not phrases[-1].endswith(phrase):
+            # only add phrase if the last phrase added does not end with current phrase
+            phrases.append(phrase)
+            bbox_for_phrases.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
+    output_phrases_to_file(phrases)
+    return phrases, bbox_for_phrases
+
+def output_phrases_to_file(list):
+    BIOSYNTH3_PHRASES = Path(Path(__file__).parent.parent, "temp/biosynth3_phrases.txt")
+    with open(BIOSYNTH3_PHRASES, 'w') as f:
+        for item in list:
+            f.write("%s\n" % item)
 
 def extract_bbox_from_image(path):
     """Given an image path, returns the coordinates for bboxes around the words
     :input: path
     :returns: numpy array
     """
-    hocr = hocr_on_image(path)
+    hocr = hocr_from_image_path(path)
     root = parse_hocr_string(hocr)
+    pretty_print_html(root)
     bbox_for_words = extract_bbox_from_hocr(root)
     
     return bbox_for_words
@@ -151,10 +192,26 @@ def example_fill_bbox_in_image():
     words_redacted_image = redact_words_from_image(image, bbox_coordinates, intensity=0)
     image_processor.show_image(words_redacted_image)
 
+def example_2_fill_bbox_in_image():
+    RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
+    IMAGE_PATH = Path(RESOURCES_DIR, "biosynth_path_3.png")
+    # IMAGE_PATH = Path(RESOURCES_DIR, "biosynth_path_1_cropped.png")
+    image_processor = ImageProcessor()
+    
+    image = image_processor.load_image(IMAGE_PATH)
+    bbox_coordinates = extract_bbox_from_image(IMAGE_PATH)
+    
+    bbox_around_words_image = draw_bbox_around_words(image, bbox_coordinates)
+    image_processor.show_image(bbox_around_words_image)
+    
+    print(image)
+    words_redacted_image = redact_words_from_image(image, bbox_coordinates, intensity=0)
+    image_processor.show_image(words_redacted_image)
+
 def main():
     # example_extract_bbox_for_image_without_arrows()
     # example_extract_bbox_from_hocr_file()
-    example_fill_bbox_in_image()
+    example_2_fill_bbox_in_image()
 
 if __name__ == '__main__':
     main()
