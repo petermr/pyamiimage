@@ -1,10 +1,9 @@
 import pytesseract
 from pathlib import Path
 from lxml import etree as et
-from lxml import html
 import numpy as np
-import skimage
-from preprocessing import ImageProcessor
+
+from pyimage.preprocessing import ImageProcessor
 
 """
 This file is to play with the output of hocr

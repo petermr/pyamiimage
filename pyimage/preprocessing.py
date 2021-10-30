@@ -7,11 +7,8 @@ import skimage
 from skimage import morphology
 from skimage import filters
 from pathlib import Path
-import networkx as nx
-from graph_lib import PmrSknw
 import matplotlib.pyplot as plt
-from networkx.algorithms import tree
-from graph_lib import AmiGraph
+from pyimage.graph_lib import AmiGraph
 
 """
 The ImageProcessor class is current in development by PMR and Anuv for preprocessing images
