@@ -19,3 +19,7 @@ class Resources:
     assert BIOSYNTH2.exists(), f"file exists {BIOSYNTH2}"
     BIOSYNTH3 = Path(TEST_RESOURCE_DIR, "biosynth_path_3.png")
     assert BIOSYNTH3.exists(), f"file exists {BIOSYNTH3}"
+
+    BIOSYNTH3_HOCR = Path(TEST_RESOURCE_DIR, "tesseract_biosynth_path_3.hocr.html")
+    assert BIOSYNTH3_HOCR.exists(), f"file exists {BIOSYNTH3_HOCR}"
+
