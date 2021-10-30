@@ -7,8 +7,10 @@ from skan.pre import threshold
 import sknw  # must pip install sknw
 import logging
 from pathlib import Path
-import matplotlib.pyplot as plt
+from collections import deque
 from lxml.etree import Element
+from lxml import etree
+import matplotlib.pyplot as plt
 
 class AmiSkeleton:
     """manages workflow from file to plot.
@@ -36,6 +38,7 @@ class AmiSkeleton:
         self.nodes = []
         self.image = None
         self.path = None
+        self.new_binary = None
 
     def create_grayscale_from_file(self, path):
         """
@@ -230,56 +233,74 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         :param nx_graph:
         :return:
         """
+        self.get_nodes_and_edges_from_nx_graph()
         assert self.nx_graph is not None
         connected_components = list(nx.algorithms.components.connected_components(self.nx_graph))
         return connected_components
 
-    def flood_fill(self, component, color=0x00ff0000):
+    def read_image_plot_component(self, component_index, image):
         """
-        Fills the component with the color
-        :param component:
-        :param color: default is "#ff0"
-        :return: new_image
+        Convenience method to read imag, get components and plot given one
+        :param component_index:
+        :param image:
+        :return:
         """
-        assert component is not None
-        assert self.nx_graph is not None
-        assert self.nodes is not None
-        assert len(self.nodes) > 0
-        assert self.binary is not None
-        start = 0
-        node = self.nodes[start]
-        xy = node["pts"][start]
-        # xy = [xy[1], xy[0]]
-        # print("xy+", xy)
-        print(self.binary)
-        img = self.binary
-        # xy = (1,1)
-        print ("shape", self.image.shape)
-        # new_image = morphology.flood_fill(self.binary, xy, color)
-        color = self.binary[xy[0], xy[1]]
-        new_image = self.flood_fill_binary(self.binary, xy, color )
-        print("new", new_image)
-        return new_image
+        components = self.get_connected_components_from_image(image)
+        component = components[component_index]
+        self.plot_component(component)
 
-    def flood_fill_binary(self, binary_image, seed_xy, color):
-        assert seed_xy is not None
-        assert binary_image is not None
-        self.binary_image = binary_image
-        neighbours = self.get_neighbours(self.binary_image, seed_xy)
-        print("neigh", neighbours)
-        for i in range(3):
-            for j in range(3):
-                seed_xy = (seed_xy[0] + i, seed_xy[1] + j)
-                neighbours = self.get_neighbours(self.binary_image, seed_xy)
-                print("neigh", neighbours)
-        return None
+    def plot_component(self, component):
+        """
+        Plots a given component
+        :param component:
+        :return:
+        """
+        print("CC ", type(component), component)
+        start_node_index = list(component)[0]  # take first node
+        start_node = self.nodes[start_node_index]
+        start_pixel = start_node["pts"][0]  # may be a list of xy for a complex node always pick first
+        flooder = FloodFill()
+        pixels = flooder.flood_fill(self.binary, start_pixel)
+        print(f"used pixels {pixels}")
+        flooder.plot_used_pixels()
+
+    def create_and_plot_all_components(self, path, min_size=None):
+        if min_size is None:
+            min_size = (30,30)
+        self.create_nx_graph_via_skeleton_sknw(path)
+        self.get_nodes_and_edges_from_nx_graph()
+        components = self.get_connected_components()
+        bboxes = self.create_bboxes_for_connected_components()
+        for component, bbox in zip(components, bboxes):
+            w, h = AmiSkeleton.get_width_height(bbox)
+            if min_size[0] < w or min_size[1] < h:
+                self.plot_component(component)
 
     @classmethod
-    def get_neighbours(cls, image, xy):
-        i = xy[0]
-        j = xy[1]
-        neighbours = image[max(i - 1, 0):min(i + 2, image.shape[0]), max(j - 1, 0):min(j + 2, image.shape[1])]
-        return neighbours
+    def get_width_height(cls, bbox):
+        """
+
+        :param bbox: tuple of tuples ((x0,x1), (y0,y1))
+        :return: (width, height) tuple
+        """
+        """
+        needs to have its own class
+        """
+        width = bbox[0][1] - bbox[0][0]
+        height = bbox[1][1] - bbox[1][0]
+        return (width, height)
+
+    def get_connected_components_from_image(self, image):
+        """
+        read image, calculate components
+
+        :param image:
+        :return: list of components in arbitrary order
+        """
+        self.create_nx_graph_via_skeleton_sknw(image)
+        self.get_nodes_and_edges_from_nx_graph()
+        components = self.get_connected_components()
+        return components
 
     def parse_hocr_title(self, title):
         """
@@ -304,6 +325,30 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
             # print(f"kw {kw} val {val}")
             # print(f"title_dict {title_dict}")
         return title_dict
+
+    def create_svg_from_hocr(self, hocr_html):
+        """
+
+        :param hocr_html:
+        :return:
+        """
+        html = etree.parse(hocr_html)
+        word_spans = html.findall("//{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']")
+        svg = Element("svg")
+        svg.attrib["xmlns"] = "http://www.w3.org/2000/svg"
+        for word_span in word_spans:
+            title = word_span.attrib["title"]
+            title_dict = self.parse_hocr_title(title)
+            bbox = title_dict["bbox"]
+            text = word_span.text
+            g = self.create_svg_text_box_from_hocr(bbox, text)
+            svg.append(g)
+        bb = etree.tostring(svg, encoding='utf-8', method='xml')
+        s = bb.decode("utf-8")
+        path_svg = Path(Path(__file__).parent.parent, "temp", "textbox.svg")
+        with open(path_svg, "w", encoding="UTF-8") as f:
+            f.write(s)
+            print(f"Wrote textboxes to {path_svg}")
 
     def create_svg_text_box_from_hocr(self, bbox, txt):
 
@@ -334,6 +379,77 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         g.append(text)
 
         return g
+
+class FloodFill:
+    """creates a list of flood_filling pixels given a seed"""
+
+    def __init__(self):
+        self.start_pixel = None
+        self.binary = None
+        self.filling_pixels = None
+
+    def flood_fill(self, binary_image, start_pixel):
+        """
+
+        :param binary_image: Not altered
+        :return: (filled image, set of filling pixels)
+        """
+        # self.binary = self.binary.astype(int)
+
+        self.start_pixel = start_pixel
+        self.binary = binary_image
+        self.filling_pixels = self.get_filling_pixels()
+        return self.filling_pixels
+
+    def get_filling_pixels(self):
+        new_image = np.copy(self.binary)
+        xy = self.start_pixel
+        xy_deque = deque()
+        xy_deque.append(xy)
+        filling_pixels = set()
+        while xy_deque:
+            xy = xy_deque.popleft()
+            self.binary[xy[0], xy[1]] = 0 # unset pixel
+            neighbours_list = self.get_neighbours(xy)
+            for neighbour in neighbours_list:
+                neighbour_xy = (neighbour[0], neighbour[1]) # is this necessary??
+                if not neighbour_xy in filling_pixels:
+                    filling_pixels.add(neighbour_xy)
+                    xy_deque.append(neighbour_xy)
+                else:
+                    pass
+        return filling_pixels
+
+    def get_neighbours(self, xy):
+        i = xy[0]
+        j = xy[1]
+        w = 3
+        h = 3
+        neighbours = []
+        # I am sure there's a more pythonic way
+        for i in range(w):
+            ii = xy[0] + i - 1
+            if ii < 0 or ii >= self.binary.shape[0]:
+                continue
+            for j in range(h):
+                jj = xy[1] + j - 1
+                if jj >= 0 or jj < self.binary.shape[1]:
+                    if self.binary[ii][jj] == 1:
+                        neighbours.append((ii, jj))
+        return neighbours
+
+    def plot_used_pixels(self):
+        used_image = self.create_image_of_filled_pixels()
+        fig, ax = plt.subplots()
+        ax.imshow(used_image)
+        plt.show()
+
+    def create_image_of_filled_pixels(self):
+        used_image = np.zeros(self.binary.shape, dtype=bool)
+        for pixel in self.filling_pixels:
+            used_image[pixel[0], pixel[1]] = 1
+        return used_image
+
 
 class AmiGraph:
     """holds AmiNodes and AmiEdges
