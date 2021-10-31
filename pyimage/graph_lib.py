@@ -369,11 +369,12 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
 
         g = Element(QName(XMLNamespaces.svg, self.E_G))
         height = int(bbox[1][1]) - int(bbox[1][0])
+        print("height", height)
 
         rect = Element(QName(XMLNamespaces.svg, self.E_RECT))
         rect.attrib[self.A_X] = bbox[0][0]
         rect.attrib[self.A_WIDTH] = str(int(bbox[0][1]) - int(bbox[0][0]))
-        rect.attrib[self.A_Y] = str(int(bbox[1][0]) - height)  # kludge for offset of inverted text
+        rect.attrib[self.A_Y] = str(int(bbox[1][0]))  # kludge for offset of inverted text
         rect.attrib[self.A_HEIGHT] = str(height)
         rect.attrib[self.A_STROKE_WIDTH] = "1.0"
         rect.attrib[self.A_STROKE] = "red"
@@ -382,7 +383,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
 
         text = Element(QName(XMLNamespaces.svg, self.E_TEXT))
         text.attrib[self.A_X] = bbox[0][0]
-        text.attrib[self.A_Y] = bbox[1][0]
+        text.attrib[self.A_Y] = str(int(bbox[1][0]) + height +)
         text.attrib[self.A_FONT_SIZE] = str(0.9 * height)
         text.attrib[self.A_STROKE] = "blue"
         text.attrib[self.A_FONT_FAMILY] = "sans-serif"
