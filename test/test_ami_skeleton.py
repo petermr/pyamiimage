@@ -184,7 +184,7 @@ class TestAmiSkeleton:
     def test_flood_fill_many_components_select(self):
         ami_skeleton = AmiSkeleton()
         path = Resources.BIOSYNTH1_CROPPED
-        ami_skeleton.create_and_plot_all_components(path, min_size={30, 30})
+        ami_skeleton.create_and_plot_all_components(path, min_size=[30, 30])
         return
 
     def test_flood_fill_many_components_biosynth3(self):

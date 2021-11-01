@@ -8,9 +8,10 @@ import sknw  # must pip install sknw
 import logging
 from pathlib import Path
 from collections import deque
-from lxml.etree import Element
+from lxml.etree import Element, QName
 from lxml import etree
 import matplotlib.pyplot as plt
+
 
 class AmiSkeleton:
     """manages workflow from file to plot.
@@ -26,6 +27,24 @@ class AmiSkeleton:
     """
     NODE_PTS = "pts"
     CENTROID = "o"
+
+    E_G = 'g'
+    E_RECT = 'rect'
+    E_SVG = 'svg'
+    E_TEXT = "text"
+
+    A_BBOX = "bbox"
+    A_FILL = "fill"
+    A_FONT_SIZE = "font-size"
+    A_FONT_FAMILY = "font-family"
+    A_HEIGHT = "height"
+    A_STROKE = "stroke"
+    A_STROKE_WIDTH = "stroke-width"
+    A_TITLE = "title"
+    A_WIDTH = "width"
+    A_XLINK = 'xlink'
+    A_X = "x"
+    A_Y = "y"
 
     logger = logging.getLogger("ami_skeleton")
 
@@ -86,7 +105,6 @@ class AmiSkeleton:
         :return: binary with white pixels as signal
         """
         self.binary, self.thresh = self.create_thresholded_image_and_value(image)
-        # print("thresh", self.thresh)
         self.binary = np.invert(self.binary)
 
     def create_thresholded_image_and_value(self, image):
@@ -97,16 +115,15 @@ class AmiSkeleton:
         :param image: grayscale
         :return: thresholded image, threshold value (latter may not work)
         """
-        # print("image", np.amin(image), np.amax(image))
+
         t_image = threshold(image)
-        # print("t_image", np.amin(t_image), np.amax(t_image))
-        tt = np.where(t_image > 0)
-        # print("tt", np.amin(tt), np.amax(tt))
+        tt = np.where(t_image > 0) # above threshold
         return t_image, tt
 
     def binarize_skeletonize_sknw_nx_graph_plot(self, path):
         """
         Creates skeleton and nx_graph and plots it
+
         :param path:
         :return: AmiSkeleton
         """
@@ -169,8 +186,9 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         :return: Node
         """
         assert self.nx_graph is not None
-        self.nodes = self.nx_graph.nodes()
-        self.node_xy = np.array([self.nodes[i]['o'] for i in self.nodes])
+        graph_nodes = self.nx_graph.nodes()
+        self.nodes = graph_nodes
+        self.node_xy = np.array([self.nodes[i][self.CENTROID] for i in self.nodes])
         # draw edges by pts (s(tart),e(nd)) appear to be the nodes on each edge
         self.edge_xy_list = []
         for (s, e) in self.nx_graph.edges():
@@ -215,7 +233,6 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
     def create_bboxes_for_connected_components(self):
         """
 
-        :param nx_graph:
         :return: list of bboxes
         """
 
@@ -230,9 +247,9 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         Get the pixel-disjoint "islands"
 
-        :param nx_graph:
         :return:
         """
+
         self.get_nodes_and_edges_from_nx_graph()
         assert self.nx_graph is not None
         connected_components = list(nx.algorithms.components.connected_components(self.nx_graph))
@@ -255,18 +272,16 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         :param component:
         :return:
         """
-        print("CC ", type(component), component)
         start_node_index = list(component)[0]  # take first node
         start_node = self.nodes[start_node_index]
-        start_pixel = start_node["pts"][0]  # may be a list of xy for a complex node always pick first
+        start_pixel = start_node[self.NODE_PTS][0]  # may be a list of xy for a complex node always pick first
         flooder = FloodFill()
         pixels = flooder.flood_fill(self.binary, start_pixel)
-        print(f"used pixels {pixels}")
         flooder.plot_used_pixels()
 
     def create_and_plot_all_components(self, path, min_size=None):
         if min_size is None:
-            min_size = (30,30)
+            min_size = [30,30]
         self.create_nx_graph_via_skeleton_sknw(path)
         self.get_nodes_and_edges_from_nx_graph()
         components = self.get_connected_components()
@@ -307,7 +322,6 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
          title="bbox 336 76 1217 111; baseline -0.006 -9; x_size 28; x_descenders 6; x_ascenders 7"
 
         :param title:
-        :param kw:
         :return:
         """
         if title is None:
@@ -315,15 +329,13 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         parts = title.split("; ")
         title_dict = {}
         for part in parts:
-            pp = part.split()
-            kw = pp[0]
-            if kw == "bbox":
-                val = ((pp[1], pp[3]), (pp[2], pp[4]))
+            vals = part.split()
+            kw = vals[0]
+            if kw == self.A_BBOX:
+                val = ((vals[1], vals[3]), (vals[2], vals[4]))
             else:
-                val = pp[1:]
+                val = vals[1:]
             title_dict[kw] = val
-            # print(f"kw {kw} val {val}")
-            # print(f"title_dict {title_dict}")
         return title_dict
 
     def create_svg_from_hocr(self, hocr_html):
@@ -334,12 +346,15 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         html = etree.parse(hocr_html)
         word_spans = html.findall("//{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']")
-        svg = Element("svg")
-        svg.attrib["xmlns"] = "http://www.w3.org/2000/svg"
+        E_SVG = 'svg'
+        svg = Element(QName(XMLNamespaces.svg, self.E_SVG), nsmap={
+            self.E_SVG: XMLNamespaces.svg,
+            self.A_XLINK: XMLNamespaces.xlink,
+        })
         for word_span in word_spans:
-            title = word_span.attrib["title"]
+            title = word_span.attrib[self.A_TITLE]
             title_dict = self.parse_hocr_title(title)
-            bbox = title_dict["bbox"]
+            bbox = title_dict[self.A_BBOX]
             text = word_span.text
             g = self.create_svg_text_box_from_hocr(bbox, text)
             svg.append(g)
@@ -352,33 +367,37 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
 
     def create_svg_text_box_from_hocr(self, bbox, txt):
 
-        g = Element("g")
-        g.attrib["xmlns"] = "http://www.w3.org/2000/svg"
-
-        rect = Element("rect")
-        rect.attrib["xmlns"] = "http://www.w3.org/2000/svg"
-        rect.attrib["x"] = bbox[0][0]
-        rect.attrib["width"] = str(int(bbox[0][1]) - int(bbox[0][0]))
+        g = Element(QName(XMLNamespaces.svg, self.E_G))
         height = int(bbox[1][1]) - int(bbox[1][0])
-        rect.attrib["y"] = str(int(bbox[1][0]) - height)  # kludge for offset of inverted text
-        rect.attrib["height"] = str(height)
-        rect.attrib["stroke-width"] = "1.0"
-        rect.attrib["stroke"] = "red"
-        rect.attrib["fill"] = "none"
+        print("height", height)
+
+        rect = Element(QName(XMLNamespaces.svg, self.E_RECT))
+        rect.attrib[self.A_X] = bbox[0][0]
+        rect.attrib[self.A_WIDTH] = str(int(bbox[0][1]) - int(bbox[0][0]))
+        rect.attrib[self.A_Y] = str(int(bbox[1][0]))  # kludge for offset of inverted text
+        rect.attrib[self.A_HEIGHT] = str(height)
+        rect.attrib[self.A_STROKE_WIDTH] = "1.0"
+        rect.attrib[self.A_STROKE] = "red"
+        rect.attrib[self.A_FILL] = "none"
         g.append(rect)
 
-        text = Element("text")
-        text.attrib["xmlns"] = "http://www.w3.org/2000/svg"
-        text.attrib["x"] = bbox[0][0]
-        text.attrib["y"] = bbox[1][0]
-        text.attrib["font-size"] = str(0.9 * height)
-        text.attrib["stroke"] = "blue"
-        text.attrib["font-family"] = "sans-serif"
+        text = Element(QName(XMLNamespaces.svg, self.E_TEXT))
+        text.attrib[self.A_X] = bbox[0][0]
+        text.attrib[self.A_Y] = str(int(bbox[1][0]) + height +)
+        text.attrib[self.A_FONT_SIZE] = str(0.9 * height)
+        text.attrib[self.A_STROKE] = "blue"
+        text.attrib[self.A_FONT_FAMILY] = "sans-serif"
+
         text.text = txt
 
         g.append(text)
 
         return g
+
+class XMLNamespaces:
+    svg = "http://www.w3.org/2000/svg"
+    xlink = "http://www.w3.org/1999/xlink"
+
 
 class FloodFill:
     """creates a list of flood_filling pixels given a seed"""

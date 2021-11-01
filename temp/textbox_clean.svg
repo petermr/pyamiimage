@@ -4,12 +4,14 @@
     <text x="687" y="44" font-size="19.8" stroke="blue" font-family="serif" on-click="">Isomerase</text>
   </g>
   <g>
-    <rect x="815" width="31" y="15" height="28" stroke-width="1.0" stroke="red" fill="none"/>
+    <rect x="815" width="31" y="15" height="28" stroke-width="1.0" stroke="red" fill="green" opacity="0.3"/>
     <text x="815" y="43" font-size="25.2" stroke="blue" font-family="serif">(?)</text>
   </g>
   <g title="isopentenyl diphosphate">
-    <rect x="335" width="292" y="50" height="32" stroke-width="2.0" stroke="green" fill="none"/>
+   <a href="https://en.wikipedia.org/wiki/Isopentenyl_diphosphate">
+    <rect x="335" width="292" y="50" height="32" stroke-width="2.0" stroke="green" fill="pink" opacity="0.3"/>
 	<title href="https://en.wikipedia.org/wiki/Isopentenyl_pyrophosphate#/media/File:Isopentenyl-pyrophosphate-3D-balls.png">isopentenyl diphosphate</title>
+   </a>
   <g>
     <rect x="336" width="138" y="52" height="28" stroke-width="1.0" stroke="red" fill="none"/>
     <text x="336" y="80" font-size="25.2" stroke="blue" font-family="serif">Isopentenyl</text>
@@ -36,8 +38,10 @@
     <text x="1072" y="76" font-size="25.2" stroke="blue" font-family="serif">diphosphate</text>
   </g>
   <g>
-    <rect x="195" width="148" y="329" height="28" stroke-width="1.0" stroke="red" fill="none"/>
+   <a href="https://www.genome.jp/dbget-bin/www_bget?ec:1.13.11.12">
+    <rect x="195" width="148" y="329" height="28" stroke-width="1.0" stroke="red" fill="cyan" opacity="0.4"/>
     <text x="195" y="357" font-size="25.2" stroke="blue" font-family="serif">Phytosterols</text>
+   </a>
   </g>
   <g>
     <rect x="197" width="162" y="501" height="28" stroke-width="1.0" stroke="red" fill="none"/>

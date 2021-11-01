@@ -7,10 +7,7 @@ import skimage
 from skimage import morphology
 from skimage import filters
 from pathlib import Path
-import networkx as nx
-# from graph_lib import PmrSknw
 import matplotlib.pyplot as plt
-from networkx.algorithms import tree
 from pyimage.graph_lib import AmiGraph
 
 """

@@ -60,8 +60,8 @@ class TestTesseractHOCR():
         nwhite = np.count_nonzero(binary)
         assert nwhite == 960392
         nblack = npix - nwhite
-        # print(f"npix {npix}, nwhite {nwhite} nblack {nblack} nother {npix - nwhite - nblack}")
-        # print(binary)
+        print(f"npix {npix}, nwhite {nwhite} nblack {nblack} nother {npix - nwhite - nblack}")
+        print(binary)
 
         fig, ax = plt.subplots()
         ax.imshow(binary, cmap="gray")
@@ -70,6 +70,7 @@ class TestTesseractHOCR():
         nwhite = np.count_nonzero(binary)
         assert nwhite == 31048
         ax.imshow(binary, cmap="gray")
+        plt.show()
 
         return
 

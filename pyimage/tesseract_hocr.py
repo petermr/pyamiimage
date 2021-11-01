@@ -1,9 +1,7 @@
 import pytesseract
 from pathlib import Path
 from lxml import etree as et
-from lxml import html
 import numpy as np
-import skimage
 from pyimage.preprocessing import ImageProcessor
 from pyami.py4ami import wikimedia
 """
