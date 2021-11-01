@@ -383,7 +383,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
 
         text = Element(QName(XMLNamespaces.svg, self.E_TEXT))
         text.attrib[self.A_X] = bbox[0][0]
-        text.attrib[self.A_Y] = str(int(bbox[1][0]) + height +)
+        text.attrib[self.A_Y] = str(int(bbox[1][0]) + height)
         text.attrib[self.A_FONT_SIZE] = str(0.9 * height)
         text.attrib[self.A_STROKE] = "blue"
         text.attrib[self.A_FONT_FAMILY] = "sans-serif"
