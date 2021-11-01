@@ -14,12 +14,14 @@ These tests are for Test Driven Development
 """
 
 class TestTesseractHOCR():
-    
+
     def setup_method(self, method):
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
         """
-        pass
+        path = Resources.BIOSYNTH3
+        hocr = tesseract_hocr.hocr_from_image_path(path)
+        root = tesseract_hocr.parse_hocr_string(hocr)
 
     def teardown_method(self, method):
         """teardown any state that was previously setup with a setup_method
@@ -72,34 +74,35 @@ class TestTesseractHOCR():
         return
 
     def test_pretty_print_html(self):
-        path = Resources.BIOSYNTH3
-        hocr = tesseract_hocr.hocr_from_image_path(path)
-        root = tesseract_hocr.parse_hocr_string(hocr)
-        tesseract_hocr.pretty_print_html(root)
+        tesseract_hocr.pretty_print_html(self.root)
 
     def test_extract_bbox_from_hocr(self):
-        path = Resources.BIOSYNTH3
-        hocr = tesseract_hocr.hocr_from_image_path(path)
-        root = tesseract_hocr.parse_hocr_string(hocr)
-        bbox, words = tesseract_hocr.extract_bbox_from_hocr(root)
+        bbox, words = tesseract_hocr.extract_bbox_from_hocr(self.root)
         print(words)
 
     def test_find_phrases(self):
-        path = Resources.BIOSYNTH3
-        hocr = tesseract_hocr.hocr_from_image_path(path)
-        root = tesseract_hocr.parse_hocr_string(hocr)
-        phrases, bbox_for_phrases = tesseract_hocr.find_phrases(root)
+        phrases, bbox_for_phrases = tesseract_hocr.find_phrases(self.root)
         print(phrases)
         print(bbox_for_phrases)
         assert phrases is not None
         assert len(phrases) == 29
         assert len(bbox_for_phrases) == 29
 
+    def test_phrase_wikidata_search(self):
+        path = Resources.BIOSYNTH3
+        hocr = tesseract_hocr.hocr_from_image_path(path)
+        root = tesseract_hocr.parse_hocr_string(hocr)
+        phrases, bbox_for_phrases = tesseract_hocr.find_phrases(root)
+        qitems, desc = tesseract_hocr.wikidata_lookup(phrases)    
+        print("qitems: ", qitems)
+        print("desc: ", desc)    
+
 def main():
     tester = TestTesseractHOCR()
-    tester.test_pretty_print_html()
-    tester.test_extract_bbox_from_hocr()
-    tester.test_find_phrases()
+    # tester.test_pretty_print_html()
+    # tester.test_extract_bbox_from_hocr()
+    # tester.test_find_phrases()
+    tester.test_phrase_wikidata_search()
 
 if __name__ == '__main__':
     main()

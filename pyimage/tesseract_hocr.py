@@ -5,7 +5,7 @@ from lxml import html
 import numpy as np
 import skimage
 from pyimage.preprocessing import ImageProcessor
-
+from pyami.py4ami import wikimedia
 """
 This file is to play with the output of hocr
 """
@@ -143,6 +143,11 @@ def find_phrases(root, word_seperation=20, y_tolerance=10):
             bbox_for_phrases.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
     output_phrases_to_file(phrases)
     return phrases, bbox_for_phrases
+
+def wikidata_lookup(phrases):
+    lookup = wikimedia.WikidataLookup()
+    qitems, desc = lookup.lookup_items(phrases)
+    return qitems, desc
 
 def output_phrases_to_file(list):
     BIOSYNTH3_PHRASES = Path(Path(__file__).parent.parent, "temp/biosynth3_phrases.txt")
