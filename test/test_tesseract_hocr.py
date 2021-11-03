@@ -14,14 +14,18 @@ These tests are for Test Driven Development
 """
 
 class TestTesseractHOCR():
-
+    def __init__(self) -> None:
+        self.path = Resources.BIOSYNTH3
+        self.hocr = tesseract_hocr.hocr_from_image_path(self.path)
+        self.root = tesseract_hocr.parse_hocr_string(self.hocr)
+        
     def setup_method(self, method):
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
         """
-        path = Resources.BIOSYNTH3
-        hocr = tesseract_hocr.hocr_from_image_path(path)
-        root = tesseract_hocr.parse_hocr_string(hocr)
+        self.path = Resources.BIOSYNTH3
+        self.hocr = tesseract_hocr.hocr_from_image_path(self.path)
+        self.root = tesseract_hocr.parse_hocr_string(self.hocr)
 
     def teardown_method(self, method):
         """teardown any state that was previously setup with a setup_method
@@ -79,12 +83,12 @@ class TestTesseractHOCR():
 
     def test_extract_bbox_from_hocr(self):
         bbox, words = tesseract_hocr.extract_bbox_from_hocr(self.root)
-        print(words)
+        print("Words: ", words)
 
     def test_find_phrases(self):
         phrases, bbox_for_phrases = tesseract_hocr.find_phrases(self.root)
-        print(phrases)
-        print(bbox_for_phrases)
+        print("Phrases:", phrases)
+        print("Bounding Boxes for phrases:", bbox_for_phrases)
         assert phrases is not None
         assert len(phrases) == 29
         assert len(bbox_for_phrases) == 29
@@ -100,10 +104,10 @@ class TestTesseractHOCR():
 
 def main():
     tester = TestTesseractHOCR()
-    # tester.test_pretty_print_html()
-    # tester.test_extract_bbox_from_hocr()
-    # tester.test_find_phrases()
-    tester.test_phrase_wikidata_search()
+    tester.test_pretty_print_html()
+    tester.test_extract_bbox_from_hocr()
+    tester.test_find_phrases()
+    # tester.test_phrase_wikidata_search()
 
 if __name__ == '__main__':
     main()
