@@ -7,7 +7,7 @@
     <rect x="815" width="31" y="15" height="28" stroke-width="1.0" stroke="red" fill="green" opacity="0.3"/>
     <text x="815" y="43" font-size="25.2" stroke="blue" font-family="serif">(?)</text>
   </g>
-  <g title="isopentenyl diphosphate">
+  <g title="isopentenyl diphosphate" font-size="30" >
    <a href="https://en.wikipedia.org/wiki/Isopentenyl_diphosphate">
     <rect x="335" width="292" y="50" height="32" stroke-width="2.0" stroke="green" fill="pink" opacity="0.3"/>
 	<title href="https://en.wikipedia.org/wiki/Isopentenyl_pyrophosphate#/media/File:Isopentenyl-pyrophosphate-3D-balls.png">isopentenyl diphosphate</title>

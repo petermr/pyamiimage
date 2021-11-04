@@ -165,9 +165,9 @@ def extract_bbox_from_image(path):
     hocr = hocr_from_image_path(path)
     root = parse_hocr_string(hocr)
     pretty_print_html(root)
-    bbox_for_words = extract_bbox_from_hocr(root)
+    bbox_for_words, words = extract_bbox_from_hocr(root)
     
-    return bbox_for_words
+    return bbox_for_words, words
 
 
 def example_extract_bbox_for_image_without_arrows():
@@ -206,7 +206,7 @@ def example_2_fill_bbox_in_image():
     image_processor = ImageProcessor()
     
     image = image_processor.load_image(IMAGE_PATH)
-    bbox_coordinates = extract_bbox_from_image(IMAGE_PATH)
+    bbox_coordinates, words = extract_bbox_from_image(IMAGE_PATH)
     
     bbox_around_words_image = draw_bbox_around_words(image, bbox_coordinates)
     image_processor.show_image(bbox_around_words_image)
@@ -215,10 +215,32 @@ def example_2_fill_bbox_in_image():
     words_redacted_image = redact_words_from_image(image, bbox_coordinates, intensity=0)
     image_processor.show_image(words_redacted_image)
 
+def example_2_fill_bbox_for_phrases():
+    RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
+    IMAGE_PATH = Path(RESOURCES_DIR, "biosynth_path_3.png")
+    # IMAGE_PATH = Path(RESOURCES_DIR, "biosynth_path_1_cropped.png")
+    image_processor = ImageProcessor()
+    
+    image = image_processor.load_image(IMAGE_PATH)
+    # bbox_coordinates, words = extract_bbox_from_image(IMAGE_PATH)
+    hocr = hocr_from_image_path(IMAGE_PATH)
+    root = parse_hocr_string(hocr)
+    phrases, bbox_coordinates  = find_phrases(root)
+
+    words, bbox_coordinates_words = extract_bbox_from_hocr(root)
+
+    # Print out the phrase and its corresponding coordinates
+    for word, bbox in zip(words, bbox_coordinates_words):
+        print("Phrase: ", word, " Coordinates: ", bbox)
+    
+    bbox_around_words_image = draw_bbox_around_words(image, bbox_coordinates)
+    image_processor.show_image(bbox_around_words_image)
+
 def main():
     # example_extract_bbox_for_image_without_arrows()
     # example_extract_bbox_from_hocr_file()
-    example_2_fill_bbox_in_image()
+    # example_2_fill_bbox_in_image()
+    example_2_fill_bbox_for_phrases()
 
 if __name__ == '__main__':
     main()
