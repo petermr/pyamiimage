@@ -19,9 +19,9 @@ class TestTesseractHOCR():
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
         """
-        path = Resources.BIOSYNTH3
-        hocr = tesseract_hocr.hocr_from_image_path(path)
-        root = tesseract_hocr.parse_hocr_string(hocr)
+        self.path = Resources.BIOSYNTH3
+        self.hocr = tesseract_hocr.hocr_from_image_path(self.path)
+        self.root = tesseract_hocr.parse_hocr_string(self.hocr)
 
     def teardown_method(self, method):
         """teardown any state that was previously setup with a setup_method
