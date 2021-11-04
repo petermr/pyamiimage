@@ -1,0 +1,242 @@
+<svg:svg xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="1200" width="1000"> 
+<svg:g>
+<svg:rect x="201" width="101" y="45" height="30" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="201" y="75" font-size="27.0" stroke="blue" font-family="sans-serif">Straight</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="311" width="68" y="45" height="23" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="311" y="68" font-size="20.7" stroke="blue" font-family="sans-serif">chain</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="390" width="60" y="49" height="19" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="390" y="68" font-size="17.1" stroke="blue" font-family="sans-serif">ester</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="458" width="159" y="45" height="29" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="458" y="74" font-size="26.1" stroke="blue" font-family="sans-serif">biosynthesis</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="627" width="61" y="45" height="23" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="627" y="68" font-size="20.7" stroke="blue" font-family="sans-serif">from</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="699" width="57" y="45" height="30" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="699" y="75" font-size="27.0" stroke="blue" font-family="sans-serif">fatty</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="766" width="64" y="45" height="23" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="766" y="68" font-size="20.7" stroke="blue" font-family="sans-serif">acids</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="88" width="155" y="100" height="29" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="88" y="129" font-size="26.1" stroke="blue" font-family="sans-serif">Compounds</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="142" width="76" y="157" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="142" y="175" font-size="16.2" stroke="blue" font-family="sans-serif">linoleic</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="226" width="43" y="157" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="226" y="175" font-size="16.2" stroke="blue" font-family="sans-serif">acid</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="49" width="20" y="265" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="49" y="283" font-size="16.2" stroke="blue" font-family="sans-serif">13</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="78" width="151" y="265" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="78" y="289" font-size="21.6" stroke="blue" font-family="sans-serif">hydroperoxide</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="237" width="76" y="265" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="237" y="283" font-size="16.2" stroke="blue" font-family="sans-serif">linoleic</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="321" width="42" y="265" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="321" y="283" font-size="16.2" stroke="blue" font-family="sans-serif">acid</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="150" width="110" y="373" height="19" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="150" y="392" font-size="17.1" stroke="blue" font-family="sans-serif">hex-3-enal</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="45" width="90" y="384" height="4" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="45" y="388" font-size="3.6" stroke="blue" font-family="sans-serif"> </svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="44" width="4" y="385" height="347" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="44" y="732" font-size="312.3" stroke="blue" font-family="sans-serif"> </svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="151" width="110" y="486" height="19" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="151" y="505" font-size="17.1" stroke="blue" font-family="sans-serif">hex-2-enal</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="87" width="2" y="385" height="183" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="87" y="568" font-size="164.70000000000002" stroke="blue" font-family="sans-serif"> </svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="87" width="120" y="564" height="5" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="87" y="569" font-size="4.5" stroke="blue" font-family="sans-serif"> </svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="118" width="124" y="644" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="118" y="662" font-size="16.2" stroke="blue" font-family="sans-serif">hex-3-enoic</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="249" width="43" y="644" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="249" y="662" font-size="16.2" stroke="blue" font-family="sans-serif">acid</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="45" width="164" y="729" height="4" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="45" y="733" font-size="3.6" stroke="blue" font-family="sans-serif"> </svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="153" width="111" y="808" height="19" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="153" y="827" font-size="17.1" stroke="blue" font-family="sans-serif">hex-3-enol</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="204" width="6" y="187" height="722" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="204" y="909" font-size="649.8000000000001" stroke="blue" font-family="sans-serif"> </svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="112" width="111" y="923" height="23" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="112" y="946" font-size="20.7" stroke="blue" font-family="sans-serif">hex-3-enyl</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="231" width="71" y="926" height="16" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="231" y="942" font-size="14.4" stroke="blue" font-family="sans-serif">acetate</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="407" width="105" y="103" height="28" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="407" y="131" font-size="25.2" stroke="blue" font-family="sans-serif">Enzyme</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="390" width="136" y="191" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="390" y="215" font-size="21.6" stroke="blue" font-family="sans-serif">lipoxygenase</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="391" width="31" y="228" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="391" y="246" font-size="16.2" stroke="blue" font-family="sans-serif">EC</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="433" width="105" y="228" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="433" y="246" font-size="16.2" stroke="blue" font-family="sans-serif">1.13.11.12</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="393" width="150" y="303" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="393" y="327" font-size="21.6" stroke="blue" font-family="sans-serif">hydroperoxide</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="551" width="52" y="303" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="551" y="327" font-size="21.6" stroke="blue" font-family="sans-serif">lyase</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="394" width="59" y="333" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="394" y="357" font-size="21.6" stroke="blue" font-family="sans-serif">[CYT</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="459" width="53" y="333" height="19" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="459" y="352" font-size="17.1" stroke="blue" font-family="sans-serif">P450</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="520" width="49" y="333" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="520" y="357" font-size="21.6" stroke="blue" font-family="sans-serif">74B]</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="394" width="150" y="415" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="394" y="439" font-size="21.6" stroke="blue" font-family="sans-serif">hydroperoxide</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="552" width="102" y="415" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="552" y="433" font-size="16.2" stroke="blue" font-family="sans-serif">isomerase</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="392" width="32" y="451" height="19" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="392" y="470" font-size="17.1" stroke="blue" font-family="sans-serif">EC</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="431" width="83" y="451" height="19" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="431" y="470" font-size="17.1" stroke="blue" font-family="sans-serif">4.2.1.92</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="394" width="93" y="569" height="23" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="394" y="592" font-size="20.7" stroke="blue" font-family="sans-serif">aldehyde</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="494" width="155" y="569" height="23" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="494" y="592" font-size="20.7" stroke="blue" font-family="sans-serif">dehydrogenase</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="393" width="32" y="605" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="393" y="623" font-size="16.2" stroke="blue" font-family="sans-serif">EC</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="435" width="67" y="605" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="435" y="623" font-size="16.2" stroke="blue" font-family="sans-serif">1.2.1.3</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="392" width="74" y="738" height="19" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="392" y="757" font-size="17.1" stroke="blue" font-family="sans-serif">alcohol</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="474" width="155" y="738" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="474" y="762" font-size="21.6" stroke="blue" font-family="sans-serif">dehydrogenase</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="391" width="31" y="777" height="19" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="391" y="796" font-size="17.1" stroke="blue" font-family="sans-serif">EC</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="433" width="65" y="777" height="19" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="433" y="796" font-size="17.1" stroke="blue" font-family="sans-serif">1.1.1.1</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="392" width="75" y="854" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="392" y="872" font-size="16.2" stroke="blue" font-family="sans-serif">alcohol</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="475" width="41" y="854" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="475" y="878" font-size="21.6" stroke="blue" font-family="sans-serif">acyl</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="525" width="111" y="854" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="525" y="872" font-size="16.2" stroke="blue" font-family="sans-serif">transferase</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="391" width="32" y="892" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="391" y="910" font-size="16.2" stroke="blue" font-family="sans-serif">EC</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="431" width="83" y="892" height="18" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="431" y="910" font-size="16.2" stroke="blue" font-family="sans-serif">2.3.1.84</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="823" width="67" y="101" height="23" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="823" y="124" font-size="20.7" stroke="blue" font-family="sans-serif">ESTs</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="817" width="152" y="189" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="817" y="213" font-size="21.6" stroke="blue" font-family="sans-serif">(41,34,17,165)</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="817" width="100" y="304" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="817" y="328" font-size="21.6" stroke="blue" font-family="sans-serif">(4,1,3,29)</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="819" width="87" y="415" height="23" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="819" y="438" font-size="20.7" stroke="blue" font-family="sans-serif">(3,1,2,9)</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="819" width="151" y="568" height="24" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="819" y="592" font-size="21.6" stroke="blue" font-family="sans-serif">(27,10,17,143)</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="817" width="152" y="740" height="23" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="817" y="763" font-size="20.7" stroke="blue" font-family="sans-serif">(37,19,18,153)</svg:text>
+</svg:g>
+<svg:g>
+<svg:rect x="817" width="99" y="853" height="23" stroke-width="1.0" stroke="red" fill="none"/>
+<svg:text x="817" y="876" font-size="20.7" stroke="blue" font-family="sans-serif">(3,1,2,10)</svg:text>
+</svg:g>
+</svg:svg>
