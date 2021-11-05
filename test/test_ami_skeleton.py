@@ -63,6 +63,7 @@ class TestAmiSkeleton:
         print("\n", skeleton)
 
     def test_skeleton_to_graph_arrows1(self):
+        """creates nodes and edges for already clipped """
         ami_skel = AmiSkeleton()
         skeleton = ami_skel.create_white_skeleton_from_file(Resources.BIOSYNTH1_ARROWS)
         # build graph from skeleton
@@ -80,6 +81,7 @@ class TestAmiSkeleton:
         AmiSkeleton().binarize_skeletonize_sknw_nx_graph_plot(Resources.BIOSYNTH2)
 
     def test_skeleton_to_graph_path3(self):
+        """plots all islands in page, including characters"""
         AmiSkeleton().binarize_skeletonize_sknw_nx_graph_plot(Resources.BIOSYNTH3)
 
     def test_skeleton_to_graph_components_with_nodes(self):
@@ -99,18 +101,43 @@ class TestAmiSkeleton:
         node_ids = {0, 1, 2, 3, 4, 5, 6, 7}
 
         bbox = ami_skeleton.extract_bbox_for_nodes(node_ids)
-        assert bbox == ((82.0, 102.0), (661.0, 863.0))
+        assert bbox == ( (661.0, 863.0), (82.0, 102.0))
 
     def test_create_bounding_boxes_from_node_list(self):
+        """reads plot with 4 islands, extracts islands and calculates their bboxes"""
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
-        bboxes = AmiSkeleton.create_bboxes_for_connected_components(ami_skeleton)
-        assert bboxes == [((82.0, 102.0), (661.0, 863.0)),
-                         ((117.0, 313.0), (391.0, 953.0)),
-                         ((148.0, 236.0), (991.0, 1064.0)),
-                         ((252.0, 294.0), (992.0, 1009.0))]
+        bboxes = ami_skeleton.create_bboxes_for_connected_components()
+        assert len(bboxes) == 4
+        assert bboxes == [((661.0, 863.0), (82.0, 102.0)),
+                         ((391.0, 953.0), (117.0, 313.0)),
+                         ((991.0, 1064.0), (148.0, 236.0)),
+                         ((992.0, 1009.0), (252.0, 294.0))]
+
+    def test_create_bounding_boxes_from_node_list_with_size_filter_biosynth3(self):
+        """filters out small components by bbox_gauge"""
+
+        ami_skeleton = AmiSkeleton()
+        nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH3)
+        min_box = (50, 50)
+        # ami_skeleton.set_minimum_dimension(min_box)
+        bboxes = ami_skeleton.create_bboxes_for_connected_components()
+        assert len(bboxes) == 417
+
+        bboxes_small = [bbox for bbox in bboxes if AmiSkeleton.fits_within(bbox, min_box)]
+        assert len(bboxes_small) == 412
+        bboxes_large = [bbox for bbox in bboxes if not AmiSkeleton.fits_within(bbox, min_box)]
+        assert len(bboxes_large) == 5
+
+        assert bboxes_large == [
+             ((194, 217), (188, 242)),
+             ((194, 217), (298, 354)),
+             ((87, 219), (385, 786)),
+             ((193, 216), (410, 465)),
+             ((197, 219), (849, 904))]
 
     def test_create_bounding_box_from_node_list(self):
+        """computes bbox for single 7-node island"""
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
         node_ids = {0, 1, 2, 3, 4, 5, 6, 7}
@@ -204,6 +231,7 @@ class TestAmiSkeleton:
         ami_skeleton.create_svg_from_hocr(biosynth_html)
 
     def test_hocr_to_svg_biosynth3(self):
+        """creates textboxes for HOCR put and writes to temp/textbox"""
         ami_skeleton = AmiSkeleton()
 
         ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH3_HOCR))

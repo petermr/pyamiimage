@@ -206,6 +206,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         assert node_ids is not None
         node_xy = self.extract_coords_for_nodes(node_ids)
+        # print ("node_xy...", node_xy)
         xx = node_xy[:, 0]
         yy = node_xy[:, 1]
         xmin = int(np.min(xx))
@@ -218,6 +219,8 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
     def extract_coords_for_nodes(self, node_ids):
         """
         gets coordinates for a set of nx_graph nodes
+        *** NOTE it seems the sknw output has y,x rather than x,y ***
+
         :param node_ids:
         :return: node_xy as [npoints, 2] ndarray
         """
@@ -225,28 +228,36 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         npoints = len(node_ids)
         node_xy = np.empty([0, 2], dtype=float)
         for id in node_ids:
-            centroid = self.nx_graph.nodes[id][AmiSkeleton.CENTROID]
+            node_data = self.nx_graph.nodes[id]
+            # print("\nnode data", node_data)
+            centroid = node_data[AmiSkeleton.CENTROID]
+            # print ("centroidxy", centroid)
+            centroid = (centroid[1], centroid[0])
+            # print ("centroidyx", centroid)
             node_xy = np.append(node_xy, centroid)
-        node_xy = np.reshape(node_xy, (npoints, 2))
+        reshape = True
+        if reshape:
+            node_xy = np.reshape(node_xy, (npoints, 2))
         return node_xy
 
     def create_bboxes_for_connected_components(self):
         """
-
         :return: list of bboxes
         """
 
         assert self.nx_graph is not None
         connected_components = self.get_connected_components()
+        print ("\ncomponents: ", len(connected_components))
         bboxes = []
         for component in connected_components:
-            bboxes.append(self.extract_bbox_for_nodes(component))
+            bbox = self.extract_bbox_for_nodes(component)
+            # print ("\n============\n", bbox)
+            bboxes.append(bbox)
         return bboxes
 
     def get_connected_components(self):
         """
         Get the pixel-disjoint "islands"
-
         :return:
         """
 
@@ -304,6 +315,20 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         width = bbox[0][1] - bbox[0][0]
         height = bbox[1][1] - bbox[1][0]
         return (width, height)
+
+    @classmethod
+    def fits_within(cls, bbox, bbox_gauge):
+        """
+
+        :param bbox: tuple of tuples ((x0,x1), (y0,y1))
+        :param bbox_gauge: tuple of (width, height) that bbox must fit in
+        :return: true if firs in rectangle
+        """
+        """
+        needs to have its own class
+        """
+        width, height = cls.get_width_height(bbox)
+        return width < bbox_gauge[0] and height < bbox_gauge[1]
 
     def get_connected_components_from_image(self, image):
         """
