@@ -221,24 +221,28 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         gets coordinates for a set of nx_graph nodes
         *** NOTE it seems the sknw output has y,x rather than x,y ***
 
-        :param node_ids:
+        :param node_ids: normally ints but I suppose could be other
         :return: node_xy as [npoints, 2] ndarray
         """
         assert node_ids is not None
         npoints = len(node_ids)
         node_xy = np.empty([0, 2], dtype=float)
         for id in node_ids:
-            node_data = self.nx_graph.nodes[id]
-            # print("\nnode data", node_data)
-            centroid = node_data[AmiSkeleton.CENTROID]
-            # print ("centroidxy", centroid)
-            centroid = (centroid[1], centroid[0])
-            # print ("centroidyx", centroid)
+            centroid = self.extract_coords_for_node(id)
             node_xy = np.append(node_xy, centroid)
-        reshape = True
-        if reshape:
-            node_xy = np.reshape(node_xy, (npoints, 2))
+        node_xy = np.reshape(node_xy, (npoints, 2))
         return node_xy
+
+    def extract_coords_for_node(self, id):
+        """
+        gets coords for a single node with given id
+        :param id: normally an int
+        :return:
+        """
+        node_data = self.nx_graph.nodes[id]
+        centroid = node_data[AmiSkeleton.CENTROID]
+        centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
+        return centroid
 
     def create_bboxes_for_connected_components(self):
         """
@@ -246,24 +250,24 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
 
         assert self.nx_graph is not None
-        connected_components = self.get_connected_components()
-        print ("\ncomponents: ", len(connected_components))
+        connected_components = self.get_connected_components_from_nx_graph()
         bboxes = []
         for component in connected_components:
             bbox = self.extract_bbox_for_nodes(component)
-            # print ("\n============\n", bbox)
             bboxes.append(bbox)
         return bboxes
 
-    def get_connected_components(self):
+    def get_connected_components_from_nx_graph(self):
         """
-        Get the pixel-disjoint "islands"
-        :return:
+        Get the pixel-disjoint "islands" as from NetworkX
+        :return: list of nodesets of ints
         """
 
         self.get_nodes_and_edges_from_nx_graph()
         assert self.nx_graph is not None
-        connected_components = list(nx.algorithms.components.connected_components(self.nx_graph))
+        connected_components = []
+        for connected_component in nx.algorithms.components.connected_components(self.nx_graph):
+            connected_components.append(connected_component)
         return connected_components
 
     def read_image_plot_component(self, component_index, image):
@@ -291,11 +295,17 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         flooder.plot_used_pixels()
 
     def create_and_plot_all_components(self, path, min_size=None):
+        """
+
+        :param path:
+        :param min_size:
+        :return:
+        """
         if min_size is None:
             min_size = [30,30]
         self.create_nx_graph_via_skeleton_sknw(path)
         self.get_nodes_and_edges_from_nx_graph()
-        components = self.get_connected_components()
+        components = self.get_connected_components_from_nx_graph()
         bboxes = self.create_bboxes_for_connected_components()
         for component, bbox in zip(components, bboxes):
             w, h = AmiSkeleton.get_width_height(bbox)
@@ -339,7 +349,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         self.create_nx_graph_via_skeleton_sknw(image)
         self.get_nodes_and_edges_from_nx_graph()
-        components = self.get_connected_components()
+        components = self.get_connected_components_from_nx_graph()
         return components
 
     def parse_hocr_title(self, title):

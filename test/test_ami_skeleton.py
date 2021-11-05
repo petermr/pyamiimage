@@ -143,7 +143,7 @@ class TestAmiSkeleton:
         node_ids = {0, 1, 2, 3, 4, 5, 6, 7}
 
         bbox = ami_skeleton.extract_bbox_for_nodes(node_ids)
-        assert bbox == ((82.0, 102.0), (661.0, 863.0))
+        assert bbox == ((661.0, 863.0), (82.0, 102.0))
 
     def test_remove_pixels_in_bounding_box_arrows1(self):
         image = io.imread(Resources.BIOSYNTH1_ARROWS)
