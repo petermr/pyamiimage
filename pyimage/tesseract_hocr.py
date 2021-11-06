@@ -218,6 +218,7 @@ def example_2_fill_bbox_for_phrases():
     image_processor = ImageProcessor()
     
     image = image_processor.load_image(IMAGE_PATH)
+    print(image.shape)
     # bbox_coordinates, words = extract_bbox_from_image(IMAGE_PATH)
     hocr = hocr_from_image_path(IMAGE_PATH)
     root = parse_hocr_string(hocr)
