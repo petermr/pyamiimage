@@ -3,7 +3,11 @@ from pathlib import Path
 from lxml import etree as et
 import numpy as np
 from pyimage.preprocessing import ImageProcessor
-from pyami.py4ami import wikimedia
+try:
+    from pyami.py4ami import wikimedia
+except:
+    print("Cannot load pyami")
+
 """
 This file is to play with the output of hocr
 """

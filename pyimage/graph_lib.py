@@ -206,6 +206,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         assert node_ids is not None
         node_xy = self.extract_coords_for_nodes(node_ids)
+        # print ("node_xy...", node_xy)
         xx = node_xy[:, 0]
         yy = node_xy[:, 1]
         xmin = int(np.min(xx))
@@ -218,41 +219,55 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
     def extract_coords_for_nodes(self, node_ids):
         """
         gets coordinates for a set of nx_graph nodes
-        :param node_ids:
+        *** NOTE it seems the sknw output has y,x rather than x,y ***
+
+        :param node_ids: normally ints but I suppose could be other
         :return: node_xy as [npoints, 2] ndarray
         """
         assert node_ids is not None
         npoints = len(node_ids)
         node_xy = np.empty([0, 2], dtype=float)
         for id in node_ids:
-            centroid = self.nx_graph.nodes[id][AmiSkeleton.CENTROID]
+            centroid = self.extract_coords_for_node(id)
             node_xy = np.append(node_xy, centroid)
         node_xy = np.reshape(node_xy, (npoints, 2))
         return node_xy
 
+    def extract_coords_for_node(self, id):
+        """
+        gets coords for a single node with given id
+        :param id: normally an int
+        :return:
+        """
+        node_data = self.nx_graph.nodes[id]
+        centroid = node_data[AmiSkeleton.CENTROID]
+        centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
+        return centroid
+
     def create_bboxes_for_connected_components(self):
         """
-
         :return: list of bboxes
         """
 
         assert self.nx_graph is not None
-        connected_components = self.get_connected_components()
+        connected_components = self.get_connected_components_from_nx_graph()
         bboxes = []
         for component in connected_components:
-            bboxes.append(self.extract_bbox_for_nodes(component))
+            bbox = self.extract_bbox_for_nodes(component)
+            bboxes.append(bbox)
         return bboxes
 
-    def get_connected_components(self):
+    def get_connected_components_from_nx_graph(self):
         """
-        Get the pixel-disjoint "islands"
-
-        :return:
+        Get the pixel-disjoint "islands" as from NetworkX
+        :return: list of nodesets of ints
         """
 
         self.get_nodes_and_edges_from_nx_graph()
         assert self.nx_graph is not None
-        connected_components = list(nx.algorithms.components.connected_components(self.nx_graph))
+        connected_components = []
+        for connected_component in nx.algorithms.components.connected_components(self.nx_graph):
+            connected_components.append(connected_component)
         return connected_components
 
     def read_image_plot_component(self, component_index, image):
@@ -280,11 +295,17 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         flooder.plot_used_pixels()
 
     def create_and_plot_all_components(self, path, min_size=None):
+        """
+
+        :param path:
+        :param min_size:
+        :return:
+        """
         if min_size is None:
             min_size = [30,30]
         self.create_nx_graph_via_skeleton_sknw(path)
         self.get_nodes_and_edges_from_nx_graph()
-        components = self.get_connected_components()
+        components = self.get_connected_components_from_nx_graph()
         bboxes = self.create_bboxes_for_connected_components()
         for component, bbox in zip(components, bboxes):
             w, h = AmiSkeleton.get_width_height(bbox)
@@ -305,6 +326,20 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         height = bbox[1][1] - bbox[1][0]
         return (width, height)
 
+    @classmethod
+    def fits_within(cls, bbox, bbox_gauge):
+        """
+
+        :param bbox: tuple of tuples ((x0,x1), (y0,y1))
+        :param bbox_gauge: tuple of (width, height) that bbox must fit in
+        :return: true if firs in rectangle
+        """
+        """
+        needs to have its own class
+        """
+        width, height = cls.get_width_height(bbox)
+        return width < bbox_gauge[0] and height < bbox_gauge[1]
+
     def get_connected_components_from_image(self, image):
         """
         read image, calculate components
@@ -314,7 +349,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         self.create_nx_graph_via_skeleton_sknw(image)
         self.get_nodes_and_edges_from_nx_graph()
-        components = self.get_connected_components()
+        components = self.get_connected_components_from_nx_graph()
         return components
 
     def parse_hocr_title(self, title):
