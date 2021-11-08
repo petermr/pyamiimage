@@ -205,6 +205,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         :return: bounding box ((xmin, xmax), (ymin, ymax))
         """
         assert node_ids is not None
+        assert type(node_ids) is set, f"expected set found {type(node_ids)}"
         node_xy = self.extract_coords_for_nodes(node_ids)
         # print ("node_xy...", node_xy)
         xx = node_xy[:, 0]
@@ -213,7 +214,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         xmax = int(np.max(xx))
         ymin = int(np.min(yy))
         ymax = int(np.max(yy))
-        bbox = ((xmin, xmax), (ymin, ymax))
+        bbox = Bbox(((xmin, xmax), (ymin, ymax)))
         return bbox
 
     def extract_coords_for_nodes(self, node_ids):
@@ -225,6 +226,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         :return: node_xy as [npoints, 2] ndarray
         """
         assert node_ids is not None
+        assert type(node_ids) is set, f"expected set found {type(node_ids)}"
         npoints = len(node_ids)
         node_xy = np.empty([0, 2], dtype=float)
         for id in node_ids:
@@ -244,31 +246,36 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
         return centroid
 
-    def create_bboxes_for_connected_components(self):
+    def create_bboxes_for_islands(self):
         """
         :return: list of bboxes
         """
 
         assert self.nx_graph is not None
-        connected_components = self.get_connected_components_from_nx_graph()
+        islands = self.get_ami_islands_from_nx_graph()
         bboxes = []
-        for component in connected_components:
-            bbox = self.extract_bbox_for_nodes(component)
+        for island in islands:
+            print ("island", island)
+            bbox = self.extract_bbox_for_nodes(island)
             bboxes.append(bbox)
         return bboxes
 
-    def get_connected_components_from_nx_graph(self):
+    def get_ami_islands_from_nx_graph(self):
         """
         Get the pixel-disjoint "islands" as from NetworkX
-        :return: list of nodesets of ints
+        :return: list of AmiIslands
         """
 
         self.get_nodes_and_edges_from_nx_graph()
         assert self.nx_graph is not None
-        connected_components = []
-        for connected_component in nx.algorithms.components.connected_components(self.nx_graph):
-            connected_components.append(connected_component)
-        return connected_components
+        ami_islands = []
+        for node_ids in nx.algorithms.components.connected_components(self.nx_graph):
+            print("node_ids ", node_ids)
+            island = self.create_island(node_ids)
+            assert island is not None
+            assert type(island) is AmiIsland
+            ami_islands.append(island)
+        return ami_islands
 
     def read_image_plot_component(self, component_index, image):
         """
@@ -277,11 +284,11 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         :param image:
         :return:
         """
-        components = self.get_connected_components_from_image(image)
-        component = components[component_index]
-        self.plot_component(component)
+        islands = self.get_islands_from_image(image)
+        island = islands[component_index]
+        self.plot_island(island)
 
-    def plot_component(self, component):
+    def plot_island(self, component):
         """
         Plots a given component
         :param component:
@@ -305,12 +312,23 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
             min_size = [30,30]
         self.create_nx_graph_via_skeleton_sknw(path)
         self.get_nodes_and_edges_from_nx_graph()
-        components = self.get_connected_components_from_nx_graph()
-        bboxes = self.create_bboxes_for_connected_components()
+        components = self.get_ami_islands_from_nx_graph()
+        bboxes = self.create_bboxes_for_islands()
         for component, bbox in zip(components, bboxes):
             w, h = AmiSkeleton.get_width_height(bbox)
             if min_size[0] < w or min_size[1] < h:
-                self.plot_component(component)
+                self.plot_island(component)
+
+    def create_island(self, node_ids):
+        """
+        creates island deom node_ids
+        :param node_ids:
+        :return:
+        """
+        ami_island = AmiIsland()
+        ami_island.node_ids = node_ids
+        ami_island.coords = self.extract_coords_for_nodes(node_ids)
+        return ami_island
 
     @classmethod
     def get_width_height(cls, bbox):
@@ -340,17 +358,17 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         width, height = cls.get_width_height(bbox)
         return width < bbox_gauge[0] and height < bbox_gauge[1]
 
-    def get_connected_components_from_image(self, image):
+    def get_islands_from_image(self, image):
         """
-        read image, calculate components
+        read image, calculate islands
 
         :param image:
-        :return: list of components in arbitrary order
+        :return: list of islands in arbitrary order
         """
         self.create_nx_graph_via_skeleton_sknw(image)
         self.get_nodes_and_edges_from_nx_graph()
-        components = self.get_connected_components_from_nx_graph()
-        return components
+        islands = self.get_ami_islands_from_nx_graph()
+        return islands
 
     def parse_hocr_title(self, title):
         """
@@ -433,6 +451,59 @@ class XMLNamespaces:
     svg = "http://www.w3.org/2000/svg"
     xlink = "http://www.w3.org/1999/xlink"
 
+class AmiIsland:
+    def __init__(self):
+        self.ami_skeleton = None
+        self.node_ids = None
+        self.coords = None
+
+
+    def get_bounding_box(self):
+        bbox = None
+
+class Bbox:
+    def __init__(self, limits=None):
+        self.set_limits(limits)
+
+    def set_limits(self, limits):
+
+        if limits is not None:
+            assert len(limits) == 2 , "bbox limits should be a 2-tuple"
+            self.limits[0] = copy(limits[0])
+            assert is_ordered_numbers(limits[0]), f"{limits[0]} should be an ordered tuple"
+            self.limits[1] = copy(limits[1])
+            assert is_ordered_numbers(limits[1]), f"{limits[1]} should be an ordered tuple"
+
+    def get_width_height(self):
+        """
+
+        :return: tuple (width, height) or None
+        """
+        if self.limits is not None:
+            return (self.limits[0][1] - self.limits[0][0], self.limits[1][1] - self.limits[1][0])
+
+"""Utils - could be moved to utils class"""
+def is_ordered_numbers(cls, limits2):
+    """
+    check limits2 is a numeric 2-tuple in increasing order
+    :param limits2:
+    :return: True tuple[1] > tuple[2]
+    """
+    return limits2 is not None and len(limits2) == 2 \
+           and is_number(limits2[0]) and is_number(limits2[1]) \
+           and limits2[1] > limits2[0]
+
+def is_number(s):
+    """
+    test if s is a number
+    :param s:
+    :return: True if float(s) succeeds
+    """
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
 
 class FloodFill:
     """creates a list of flood_filling pixels given a seed"""

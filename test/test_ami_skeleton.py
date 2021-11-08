@@ -107,7 +107,7 @@ class TestAmiSkeleton:
         """reads plot with 4 islands, extracts islands and calculates their bboxes"""
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
-        bboxes = ami_skeleton.create_bboxes_for_connected_components()
+        bboxes = ami_skeleton.create_bboxes_for_islands()
         assert len(bboxes) == 4
         assert bboxes == [((661.0, 863.0), (82.0, 102.0)),
                          ((391.0, 953.0), (117.0, 313.0)),
@@ -121,7 +121,7 @@ class TestAmiSkeleton:
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH3)
         min_box = (50, 50)
         # ami_skeleton.set_minimum_dimension(min_box)
-        bboxes = ami_skeleton.create_bboxes_for_connected_components()
+        bboxes = ami_skeleton.create_bboxes_for_islands()
         assert len(bboxes) == 417
 
         bboxes_small = [bbox for bbox in bboxes if AmiSkeleton.fits_within(bbox, min_box)]
@@ -157,7 +157,7 @@ class TestAmiSkeleton:
         image = io.imread(Resources.BIOSYNTH1_ARROWS)
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
-        bboxes = ami_skeleton.create_bboxes_for_connected_components()
+        bboxes = ami_skeleton.create_bboxes_for_islands()
         dd = 2  #  to overcome some of the antialiasing
         for bbox in bboxes:
             bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
@@ -170,7 +170,7 @@ class TestAmiSkeleton:
         image = io.imread(Resources.BIOSYNTH1)
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1)
-        bboxes = ami_skeleton.create_bboxes_for_connected_components()
+        bboxes = ami_skeleton.create_bboxes_for_islands()
         dd = 2  #  to overcome some of the antialiasing
         for bbox in bboxes:
             bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
@@ -186,7 +186,7 @@ class TestAmiSkeleton:
 
         cropped_image = ami_skeleton.create_grayscale_from_file(Resources.BIOSYNTH1_CROPPED)
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
-        bboxes_arrows = ami_skeleton.create_bboxes_for_connected_components()
+        bboxes_arrows = ami_skeleton.create_bboxes_for_islands()
         dd = 2  #  to overcome some of the antialiasing
         for bbox in bboxes_arrows:
             bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
