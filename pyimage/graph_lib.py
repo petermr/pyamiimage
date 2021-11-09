@@ -48,7 +48,7 @@ class AmiSkeleton:
 
     logger = logging.getLogger("ami_skeleton")
 
-    def __init__(self):
+    def __init__(self, plot_plot = False):
         self.skeleton = None
         self.binary = None
         self.nx_graph = None
@@ -58,6 +58,7 @@ class AmiSkeleton:
         self.image = None
         self.path = None
         self.new_binary = None
+        self.plot_plot = plot_plot
 
     def create_grayscale_from_file(self, path):
         """
@@ -120,7 +121,7 @@ class AmiSkeleton:
         tt = np.where(t_image > 0) # above threshold
         return t_image, tt
 
-    def binarize_skeletonize_sknw_nx_graph_plot(self, path):
+    def binarize_skeletonize_sknw_nx_graph_plot(self, path, plot_plot=False):
         """
         Creates skeleton and nx_graph and plots it
 
@@ -132,7 +133,8 @@ class AmiSkeleton:
         self.skeleton = self.create_white_skeleton_from_file(path)
         # build graph from skeleton
         self.nx_graph = sknw.build_sknw(self.skeleton)
-        self.plot_nx_graph()
+        if plot_plot:
+            self.plot_nx_graph()
         return self.skeleton
 
     def create_nx_graph_via_skeleton_sknw(self, path):
@@ -166,7 +168,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         self.plot_edges_nodes_and_title(title)
         return None
 
-    def plot_edges_nodes_and_title(self, title):
+    def plot_edges_nodes_and_title(self, title, plot_plot=False):
         """
         Requires nodes and edges to have been created
         :param title:
@@ -253,6 +255,8 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
 
         assert self.nx_graph is not None
         islands = self.get_ami_islands_from_nx_graph()
+        island0 = islands[0]
+        print (f"island 0 {island0} {island0.node_ids}")
         bboxes = []
         for island in islands:
             print ("island", island)
@@ -457,30 +461,29 @@ class AmiIsland:
         self.node_ids = None
         self.coords = None
 
-
     def get_bounding_box(self):
         bbox = None
 
-class Bbox:
-    def __init__(self, limits=None):
-        self.set_limits(limits)
-
-    def set_limits(self, limits):
-
-        if limits is not None:
-            assert len(limits) == 2 , "bbox limits should be a 2-tuple"
-            self.limits[0] = copy(limits[0])
-            assert is_ordered_numbers(limits[0]), f"{limits[0]} should be an ordered tuple"
-            self.limits[1] = copy(limits[1])
-            assert is_ordered_numbers(limits[1]), f"{limits[1]} should be an ordered tuple"
-
-    def get_width_height(self):
-        """
-
-        :return: tuple (width, height) or None
-        """
-        if self.limits is not None:
-            return (self.limits[0][1] - self.limits[0][0], self.limits[1][1] - self.limits[1][0])
+# class Bbox:
+#     def __init__(self, limits=None):
+#         self.set_limits(limits)
+#
+#     def set_limits(self, limits):
+#
+#         if limits is not None:
+#             assert len(limits) == 2 , "bbox limits should be a 2-tuple"
+#             self.limits[0] = copy(limits[0])
+#             assert is_ordered_numbers(limits[0]), f"{limits[0]} should be an ordered tuple"
+#             self.limits[1] = copy(limits[1])
+#             assert is_ordered_numbers(limits[1]), f"{limits[1]} should be an ordered tuple"
+#
+#     def get_width_height(self):
+#         """
+#
+#         :return: tuple (width, height) or None
+#         """
+#         if self.limits is not None:
+#             return (self.limits[0][1] - self.limits[0][0], self.limits[1][1] - self.limits[1][0])
 
 """Utils - could be moved to utils class"""
 def is_ordered_numbers(cls, limits2):

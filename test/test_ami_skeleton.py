@@ -11,6 +11,11 @@ from pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph, FloodFill
 
 
 class TestAmiSkeleton:
+
+    # def __init__(self):
+    #     self.plot_plot = True
+    plot_plot = False
+
     def test_basics_biosynth1_no_text(self):
         """Primarily for validating the image data which will be used elsewhere
         Uncomment for debug-like printing"""
@@ -68,11 +73,12 @@ class TestAmiSkeleton:
         skeleton = ami_skel.create_white_skeleton_from_file(Resources.BIOSYNTH1_ARROWS)
         # build graph from skeleton
         ami_skel.nx_graph = sknw.build_sknw(skeleton)
-        ami_skel.plot_nx_graph()
+        if self.plot_plot:
+            ami_skel.plot_nx_graph()
 
     def test_skeleton_to_graph_text(self):
         ami_skel = AmiSkeleton()
-        ami_skel.binarize_skeletonize_sknw_nx_graph_plot(Resources.BIOSYNTH1_TEXT)
+        ami_skel.binarize_skeletonize_sknw_nx_graph_plot(Resources.BIOSYNTH1_TEXT, self.plot_plot)
 
     def test_skeleton_to_graph_path1(self):
         AmiSkeleton().binarize_skeletonize_sknw_nx_graph_plot(Resources.BIOSYNTH1)

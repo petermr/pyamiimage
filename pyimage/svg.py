@@ -76,8 +76,8 @@ class SVGRect(AbsSVG):
     def set_bbox(self, bbox_tuple):
         assert bbox_tuple is not None
         assert len(bbox_tuple) == 2
-        self.set_float_attribute("x", tuple2[0])
-        self.set_float_attribute("y", tuple2[1])
+        self.set_float_attribute("x", bbox_tuple[0])
+        self.set_float_attribute("y", bbox_tuple[1])
 
 
 class SVGPath(AbsSVG):
@@ -143,54 +143,54 @@ class SVGTextBox(SVGG):
 class Bbox:
     """bounding box tuple2 of tuple2s
     """
-    def __init__(self, tuple22=None):
+    def __init__(self, xy_ranges=None):
         """
         Must have a valid bbox
-        :param tuple22:
+        :param xy_ranges:
         """
-        self.tuple22 = [(), ()]
-        if tuple22 is not None:
-            self.set_tuples(tuple22)
+        self.xy_ranges = [[], []]
+        if xy_ranges is not None:
+            self.set_ranges(xy_ranges)
 
-    def set_tuples(self, tuple22):
-        if tuple22 is None:
-            raise ValueError("no tuples given")
-        if len(tuple22) != 2:
-            raise ValueError("must be 2 tuples of tuples")
-        if len(tuple22[0]) != 2 or len(tuple22[1]) != 2:
-            raise ValueError("each child tuple must be a 2-tuple")
-        self.set_xrange(tuple22[0])
-        self.set_yrange(tuple22[1])
+    def set_ranges(self, xy_ranges):
+        if xy_ranges is None:
+            raise ValueError("no lists given")
+        if len(xy_ranges) != 2:
+            raise ValueError("must be 2 lists of lists")
+        if len(xy_ranges[0]) != 2 or len(xy_ranges[1]) != 2:
+            raise ValueError("each child list must be a 2-list")
+        self.set_xrange(xy_ranges[0])
+        self.set_yrange(xy_ranges[1])
 
-    def set_xrange(self, tuple2):
-        self.set_tuple(0, tuple2)
+    def set_xrange(self, range):
+        self.set_range(0, range)
 
     def get_xrange(self):
-        return self.tuple22[0]
+        return self.xy_ranges[0]
 
     def get_width(self):
         return self.get_xrange()[1] - self.get_xrange()[0] if len(self.get_xrange()) == 2 else None
 
     def set_yrange(self, tuple2):
-        self.set_tuple(1, tuple2)
+        self.set_range(1, tuple2)
 
     def get_yrange(self):
-        return self.tuple22[1]
+        return self.xy_ranges[1]
 
     def get_height(self):
         return self.get_yrange()[1] - self.get_yrange()[0] if len(self.get_yrange()) == 2 else None
 
-    def set_tuple(self, index, tuple2):
+    def set_range(self, index, range):
         if index != 0 and index != 1:
             raise ValueError(f"bad tuple index {index}")
-        val0 = float(tuple2[0])
-        val1 = float(tuple2[1])
+        val0 = float(range[0])
+        val1 = float(range[1])
         if val1 < val0:
             raise ValueError(f"ranges must be increasing {val0} !<= {val1}")
-        self.tuple22[index] = (val0, val1)
+        self.xy_ranges[index] = [val0, val1]
 
     def __str__(self):
-        return str(self.tuple22)
+        return str(self.xy_ranges)
 
     def intersect(self, bbox):
         """
@@ -226,6 +226,27 @@ class Bbox:
         print(range0, range1)
         if len(range0) == 2 and len(range1) == 2:
             range = (max(range0[0], range1[0]), min(range0[1], range1[1]))
+        return range
+
+    def add_coordinate(self, xy_tuple):
+        self.add_to_range(0, self.get_xrange(), xy_tuple[0])
+        self.add_to_range(1, self.get_yrange(), xy_tuple[1])
+
+    def add_to_range(self, index, range, coord):
+        """if coord outside range , expand range
+        :param range: x or y range
+        :param coord: x or y coord
+        :return: None (changes range)
+        """
+        if index != 0 and index != 1:
+            raise ValueError(f"bad index {index}")
+        if len(range) != 2:
+            range = [None, None]
+        if range[0] is None or coord < range[0]:
+            range[0] = coord
+        if range[1] is None or coord > range[1]:
+            range[1] = coord
+        self.xy_ranges[index] = range
         return range
 
 
