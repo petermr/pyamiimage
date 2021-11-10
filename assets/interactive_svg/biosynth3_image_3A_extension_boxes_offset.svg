@@ -30,11 +30,11 @@
     </g>
     <g title="reaction">
         <!-- ((194, 217), (188, 242)), -->
-        <rect x="194" y="188" width="23" height="54" fill="cyan" stroke="red" stroke-width="2" opacity="0.01">
+        <rect x="185" y="180" width="20" height="60" fill="cyan" stroke="red" stroke-width="2" opacity="0.01">
             <title>linoleic-&gt;13-HOO-linoleic</title>
         </rect>
         <!-- shorten y2 by length of arrowhead , i.e. 242 -10 -->
-        <line x1="206" x2="206" y1="188" y2="232" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+        <line x1="195" x2="195" y1="180" y2="225" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
             <title>linoleic-&gt;13-HOO-linoleic</title>
         </line>
     </g>
@@ -46,11 +46,11 @@
         <g title="reaction">
         <!--              ((194, 217), (298, 354)),
 , -->
-        <rect x="194" y="298" width="23" height="54" fill="cyan" stroke="red" stroke-width="2" opacity="0.2">
+        <rect x="185" y="285" width="20" height="60" fill="cyan" stroke="red" stroke-width="2" opacity="0.01">
             <title>reaction</title>
         </rect>
         <!-- shorten y2 by length of arrowhead , i.e. 242 -10 -->
-        <line x1="206" x2="206" y1="298" y2="354" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+        <line x1="195" x2="195" y1="285" y2="330" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
         </line>
         </g>
 
@@ -62,11 +62,11 @@
            <g title="reaction">
         <!--              ((193, 216), (410, 465)),
 , -->
-        <rect x="194" y="410" width="23" height="54" fill="cyan" stroke="red" stroke-width="2" opacity="0.2">
+        <rect x="210" y="390" width="20" height="60" fill="cyan" stroke="red" stroke-width="2" opacity="0.01">
             <title>reaction</title>
         </rect>
         <!-- shorten y2 by length of arrowhead , i.e. 242 -10 -->
-        <line x1="206" x2="206" y1="410" y2="465" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+        <line x1="220" x2="220" y1="390" y2="435" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
             <title></title>
         </line>
         </g>
@@ -87,7 +87,7 @@
         -->
                    <!-- move x -20 for clarity -->
         <!-- shorten y2 by length of arrowhead , i.e. 242 -10 -->
-        <line x1="186" x2="186" y1="410" y2="624" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+        <line x1="195" x2="195" y1="390" y2="600" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
         </line>
         </g>
 
@@ -97,19 +97,18 @@
             <text x="118" y="644" font-size="20" stroke="blue" font-family="sans-serif" on-click="">hex-3-enoic acid</text>
         </a>
     </g>
-        <line x1="166" x2="166" y1="410" y2="786" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+        <line x1="170" x2="170" y1="390" y2="770" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
         </line>
     <g>
         <a href="">
             <text x="153" y="808" font-size="20" stroke="black" font-family="sans-serif" on-click="">hex-3-enol</text>
         </a>
     </g>
-            <line x1="186" x2="186" y1="410" y2="624" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
-        </line>
+           
         <!--              ((197, 219), (849, 904))]
 -->
 
-        <line x1="206" x2="206" y1="849" y2="894" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+        <line x1="195" x2="195" y1="830" y2="880" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
         </line>
 
     <g>

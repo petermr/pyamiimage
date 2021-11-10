@@ -1,4 +1,4 @@
-"""graph classes and algorithms for managing pixel analyses"""
+    """graph classes and algorithms for managing pixel analyses"""
 
 from pyimage import graph_lib
 # import numpy

@@ -19,7 +19,26 @@ class Resources:
     assert BIOSYNTH2.exists(), f"file exists {BIOSYNTH2}"
     BIOSYNTH3 = Path(TEST_RESOURCE_DIR, "biosynth_path_3.png")
     assert BIOSYNTH3.exists(), f"file exists {BIOSYNTH3}"
+    BIOSYNTH4 = Path(TEST_RESOURCE_DIR, "biosynth_path_4.jpeg")
+    assert BIOSYNTH4.exists(), f"file exists {BIOSYNTH4}"
+    BIOSYNTH5 = Path(TEST_RESOURCE_DIR, "biosynth_path_5.jpeg")
+    assert BIOSYNTH5.exists(), f"file exists {BIOSYNTH5}"
+    BIOSYNTH6 = Path(TEST_RESOURCE_DIR, "biosynth_path_6.jpeg")
+    assert BIOSYNTH6.exists(), f"file exists {BIOSYNTH6}"
+    BIOSYNTH7 = Path(TEST_RESOURCE_DIR, "biosynth_path_7.jpeg")
+    assert BIOSYNTH7.exists(), f"file exists {BIOSYNTH7}"
+    BIOSYNTH8 = Path(TEST_RESOURCE_DIR, "biosynth_path_8.jpeg")
+    assert BIOSYNTH8.exists(), f"file exists {BIOSYNTH8}"
 
     BIOSYNTH3_HOCR = Path(TEST_RESOURCE_DIR, "tesseract_biosynth_path_3.hocr.html")
     assert BIOSYNTH3_HOCR.exists(), f"file exists {BIOSYNTH3_HOCR}"
-
+    BIOSYNTH4_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_4.hocr")
+    assert BIOSYNTH4_HOCR.exists(), f"file exists {BIOSYNTH4_HOCR}"
+    BIOSYNTH5_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_5.hocr")
+    assert BIOSYNTH5_HOCR.exists(), f"file exists {BIOSYNTH5_HOCR}"
+    BIOSYNTH6_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_6.hocr")
+    assert BIOSYNTH6_HOCR.exists(), f"file exists {BIOSYNTH6_HOCR}"
+    BIOSYNTH7_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_7.hocr")
+    assert BIOSYNTH7_HOCR.exists(), f"file exists {BIOSYNTH7_HOCR}"
+    BIOSYNTH8_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_8.hocr")
+    assert BIOSYNTH8_HOCR.exists(), f"file exists {BIOSYNTH8_HOCR}"

@@ -228,10 +228,29 @@ class TestAmiSkeleton:
         ami_skeleton = AmiSkeleton()
 
         biosynth_html = str(Resources.BIOSYNTH1_HOCR)
-        ami_skeleton.create_svg_from_hocr(biosynth_html)
+        ami_skeleton.create_svg_from_hocr(biosynth_html, "biosynth_1.svg")
 
     def test_hocr_to_svg_biosynth3(self):
         """creates textboxes for HOCR put and writes to temp/textbox"""
         ami_skeleton = AmiSkeleton()
 
-        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH3_HOCR))
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH3_HOCR), "biosynth_3.svg")
+
+    def test_hocr_to_svg_biosynth4to8(self):
+        """creates textboxes for HOCR put and writes to temp/textbox"""
+        ami_skeleton = AmiSkeleton()
+
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH4_HOCR), "biosynth_4.svg")
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH5_HOCR), "biosynth_5.svg") 
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH6_HOCR), "biosynth_6.svg") 
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH7_HOCR), "biosynth_7.svg") 
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH8_HOCR), "biosynth_8.svg")   
+
+    def test_flood_fill_many_components_biosynth4to8(self):
+        ami_skeleton = AmiSkeleton()
+        ami_skeleton.create_and_plot_all_components(Resources.BIOSYNTH4, min_size=[30, 30])
+        ami_skeleton.create_and_plot_all_components(Resources.BIOSYNTH5, min_size=[30, 30])
+        ami_skeleton.create_and_plot_all_components(Resources.BIOSYNTH6, min_size=[30, 30])
+        ami_skeleton.create_and_plot_all_components(Resources.BIOSYNTH7, min_size=[30, 30])
+        ami_skeleton.create_and_plot_all_components(Resources.BIOSYNTH8, min_size=[30, 30])
+        return

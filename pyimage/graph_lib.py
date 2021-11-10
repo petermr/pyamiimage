@@ -373,7 +373,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
             title_dict[kw] = val
         return title_dict
 
-    def create_svg_from_hocr(self, hocr_html):
+    def create_svg_from_hocr(self, hocr_html, output_file):
         """
 
         :param hocr_html:
@@ -395,7 +395,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
             svg.append(g)
         bb = etree.tostring(svg, encoding='utf-8', method='xml')
         s = bb.decode("utf-8")
-        path_svg = Path(Path(__file__).parent.parent, "temp", "textbox.svg")
+        path_svg = Path(Path(__file__).parent.parent, "temp", output_file)
         with open(path_svg, "w", encoding="UTF-8") as f:
             f.write(s)
             print(f"Wrote textboxes to {path_svg}")
