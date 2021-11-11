@@ -106,31 +106,6 @@ class ImageProcessor():
         skeleton = self.skeletonize(binary_image)
         self.show_image(skeleton)
 
-    def binarize_and_skeletonize_arrows(self):
-        TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
-        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
-        self.load_image(BIOSYNTH_PATH_IMAGE)
-
-        skeleton = self.invert_threshold_skeletonize()
-        return skeleton
-
-    def example_skeletonize_extract_subgraphs(self):
-        skeleton = self.binarize_and_skeletonize_arrows()
-        skeleton = skeleton.astype(np.uint16)
-        # print("skeleton values: ", skeleton)
-        print("skeleton type: ", type(skeleton))
-        print("skeleton value type: ", type(skeleton[0][0]))
-        print("skeleton shape:", skeleton.shape)
-
-        graph = AmiGraph.create_ami_graph(skeleton)
-        print("node_dict", graph)
-
-        fig, ax = plt.subplots()  # note we must use plt.subplots, not plt.subplot
-        # maxx, maxy = self.get_maxx_maxy_non_pythonic(node_dict, nodes)
-        # for edge in self.edges:
-        #     self.plot_line(node_dict, edge[0], edge[1], maxy)
-        # fig.savefig(Path(Path(__file__).parent.parent, "temp", "plotarrows.png"))
-
     def get_maxx_maxy_non_pythonic(self, node_dict, nodes):
         maxx = -999999
         maxy = -999999

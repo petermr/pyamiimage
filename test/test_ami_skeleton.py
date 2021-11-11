@@ -8,7 +8,8 @@ import numpy as np
 import networkx as nx
 import sknw
 from pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph, FloodFill
-
+from pyimage.preprocessing import ImageProcessor
+from pathlib import Path
 
 class TestAmiSkeleton:
 
@@ -113,7 +114,7 @@ class TestAmiSkeleton:
         """reads plot with 4 islands, extracts islands and calculates their bboxes"""
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
-        bboxes = ami_skeleton.create_bboxes_for_islands()
+        bboxes = ami_skeleton.create_islands()
         assert len(bboxes) == 4
         assert bboxes == [((661.0, 863.0), (82.0, 102.0)),
                          ((391.0, 953.0), (117.0, 313.0)),
@@ -127,7 +128,7 @@ class TestAmiSkeleton:
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH3)
         min_box = (50, 50)
         # ami_skeleton.set_minimum_dimension(min_box)
-        bboxes = ami_skeleton.create_bboxes_for_islands()
+        bboxes = ami_skeleton.create_islands()
         assert len(bboxes) == 417
 
         bboxes_small = [bbox for bbox in bboxes if AmiSkeleton.fits_within(bbox, min_box)]
@@ -163,7 +164,7 @@ class TestAmiSkeleton:
         image = io.imread(Resources.BIOSYNTH1_ARROWS)
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
-        bboxes = ami_skeleton.create_bboxes_for_islands()
+        bboxes = ami_skeleton.create_islands()
         dd = 2  #  to overcome some of the antialiasing
         for bbox in bboxes:
             bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
@@ -176,7 +177,7 @@ class TestAmiSkeleton:
         image = io.imread(Resources.BIOSYNTH1)
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1)
-        bboxes = ami_skeleton.create_bboxes_for_islands()
+        bboxes = ami_skeleton.create_islands()
         dd = 2  #  to overcome some of the antialiasing
         for bbox in bboxes:
             bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
@@ -192,7 +193,7 @@ class TestAmiSkeleton:
 
         cropped_image = ami_skeleton.create_grayscale_from_file(Resources.BIOSYNTH1_CROPPED)
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
-        bboxes_arrows = ami_skeleton.create_bboxes_for_islands()
+        bboxes_arrows = ami_skeleton.create_islands()
         dd = 2  #  to overcome some of the antialiasing
         for bbox in bboxes_arrows:
             bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
@@ -241,3 +242,32 @@ class TestAmiSkeleton:
         ami_skeleton = AmiSkeleton()
 
         ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH3_HOCR))
+
+# the only use so fgar of AmiGraph
+    def test_skeletonize_extract_subgraphs(self):
+        skeleton_image = self.binarize_and_skeletonize_arrows()
+        skeleton_image = skeleton_image.astype(np.uint16)
+        # print("skeleton values: ", skeleton)
+        print("skeleton type: ", type(skeleton_image))
+        print("skeleton value type: ", type(skeleton_image[0][0]))
+        print("skeleton shape:", skeleton_image.shape)
+
+        graph = AmiGraph.create_ami_graph(skeleton_image)
+        # print("node_dict", graph.node_dict["n0"])
+        print("node_dict", type(graph.node_dict))
+
+        fig, ax = plt.subplots()  # note we must use plt.subplots, not plt.subplot
+        # maxx, maxy = self.get_maxx_maxy_non_pythonic(node_dict, nodes)
+        # for edge in self.edges:
+        #     self.plot_line(node_dict, edge[0], edge[1], maxy)
+        # fig.savefig(Path(Path(__file__).parent.parent, "temp", "plotarrows.png"))
+
+    def binarize_and_skeletonize_arrows(self):
+        image_preprocessor = ImageProcessor()
+        TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
+        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
+        image_preprocessor.load_image(BIOSYNTH_PATH_IMAGE)
+
+        skeleton = image_preprocessor.invert_threshold_skeletonize()
+        return skeleton
+

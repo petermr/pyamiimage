@@ -10,7 +10,8 @@ from pathlib import Path
 from collections import deque
 from lxml.etree import Element, QName
 from lxml import etree
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+from pyimage.svg import Bbox
 
 
 class AmiSkeleton:
@@ -49,7 +50,7 @@ class AmiSkeleton:
     logger = logging.getLogger("ami_skeleton")
 
     def __init__(self, plot_plot = False):
-        self.skeleton = None
+        self.skeleton_image = None
         self.binary = None
         self.nx_graph = None
         self.edge_xy_list = []
@@ -83,8 +84,8 @@ class AmiSkeleton:
         assert path is not None
         path = Path(path)
         self.image = self.create_grayscale_from_file(path)
-        self.skeleton = self.create_white_skeleton_from_image(self.image)
-        return self.skeleton
+        self.skeleton_image = self.create_white_skeleton_from_image(self.image)
+        return self.skeleton_image
 
     def create_white_skeleton_from_image(self, image):
         """
@@ -95,8 +96,8 @@ class AmiSkeleton:
         """
         assert image is not None
         self.create_white_binary_from_image(image)
-        self.skeleton = morphology.skeletonize(self.binary)
-        return self.skeleton
+        self.skeleton_image = morphology.skeletonize(self.binary)
+        return self.skeleton_image
 
     def create_white_binary_from_image(self, image):
         """
@@ -130,12 +131,13 @@ class AmiSkeleton:
         """
         assert path is not None
         path = Path(path)
-        self.skeleton = self.create_white_skeleton_from_file(path)
+        self.skeleton_image = self.create_white_skeleton_from_file(path)
         # build graph from skeleton
-        self.nx_graph = sknw.build_sknw(self.skeleton)
+        self.nx_graph = sknw.build_sknw(self.skeleton_image)
+        print(self.nx_graph)
         if plot_plot:
             self.plot_nx_graph()
-        return self.skeleton
+        return self.skeleton_image
 
     def create_nx_graph_via_skeleton_sknw(self, path):
         """
@@ -145,9 +147,9 @@ class AmiSkeleton:
         """
         assert path is not None
         path = Path(path)
-        self.skeleton = self.create_white_skeleton_from_file(path)
+        self.skeleton_image = self.create_white_skeleton_from_file(path)
         # build graph from skeleton
-        self.nx_graph = sknw.build_sknw(self.skeleton)
+        self.nx_graph = sknw.build_sknw(self.skeleton_image)
         return self.nx_graph
 
     def plot_nx_graph(self, title="skeleton"):
@@ -194,21 +196,21 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         # draw edges by pts (s(tart),e(nd)) appear to be the nodes on each edge
         self.edge_xy_list = []
         for (s, e) in self.nx_graph.edges():
-            edge_xy = self.nx_graph[s][e]['pts']
+            edge_xy = self.nx_graph[s][e][self.NODE_PTS]
             self.edge_xy_list.append(edge_xy)
         return None
 
-    def extract_bbox_for_nodes(self, node_ids):
+    def extract_bbox_for_nodes(self, ami_island):
         """
         gets bounding box for a list of nodes in
 
         requires nodes to have been created
-        :param node_ids:
+        :param ami_island:
         :return: bounding box ((xmin, xmax), (ymin, ymax))
         """
-        assert node_ids is not None
-        assert type(node_ids) is set, f"expected set found {type(node_ids)}"
-        node_xy = self.extract_coords_for_nodes(node_ids)
+        assert ami_island is not None
+        assert type(ami_island) is AmiIsland, f"expected {AmiIsland} found {type(ami_island)}"
+        node_xy = self.extract_coords_for_nodes(ami_island)
         # print ("node_xy...", node_xy)
         xx = node_xy[:, 0]
         yy = node_xy[:, 1]
@@ -219,19 +221,19 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         bbox = Bbox(((xmin, xmax), (ymin, ymax)))
         return bbox
 
-    def extract_coords_for_nodes(self, node_ids):
+    def extract_coords_for_nodes(self, ami_island):
         """
         gets coordinates for a set of nx_graph nodes
         *** NOTE it seems the sknw output has y,x rather than x,y ***
 
-        :param node_ids: normally ints but I suppose could be other
+        :param ami_island: normally ints but I suppose could be other
         :return: node_xy as [npoints, 2] ndarray
         """
-        assert node_ids is not None
-        assert type(node_ids) is set, f"expected set found {type(node_ids)}"
-        npoints = len(node_ids)
+        assert ami_island is not None
+        assert type(ami_island) is AmiIsland, f"expected {AmiIsland} found {type(ami_island)}"
+        npoints = len(ami_island)
         node_xy = np.empty([0, 2], dtype=float)
-        for id in node_ids:
+        for id in ami_island:
             centroid = self.extract_coords_for_node(id)
             node_xy = np.append(node_xy, centroid)
         node_xy = np.reshape(node_xy, (npoints, 2))
@@ -248,21 +250,20 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
         return centroid
 
-    def create_bboxes_for_islands(self):
+    def create_islands(self):
         """
         :return: list of bboxes
         """
 
         assert self.nx_graph is not None
         islands = self.get_ami_islands_from_nx_graph()
-        island0 = islands[0]
-        print (f"island 0 {island0} {island0.node_ids}")
-        bboxes = []
-        for island in islands:
-            print ("island", island)
-            bbox = self.extract_bbox_for_nodes(island)
-            bboxes.append(bbox)
-        return bboxes
+        bboxes = [self.create_bbox_for_island(island) for island in islands]
+        return islands
+
+    def create_bbox_for_island(self, island):
+        bbox0 = self.extract_bbox_for_nodes(island)
+        bbox = Bbox(bbox0)
+        return bbox
 
     def get_ami_islands_from_nx_graph(self):
         """
@@ -317,7 +318,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         self.create_nx_graph_via_skeleton_sknw(path)
         self.get_nodes_and_edges_from_nx_graph()
         components = self.get_ami_islands_from_nx_graph()
-        bboxes = self.create_bboxes_for_islands()
+        bboxes = self.create_islands()
         for component, bbox in zip(components, bboxes):
             w, h = AmiSkeleton.get_width_height(bbox)
             if min_size[0] < w or min_size[1] < h:
@@ -592,7 +593,8 @@ class AmiGraph:
         self.ami_edge_dict = {}
         self.generate_nodes = generate_nodes
         self.nx_graph = None
-        self.edges = None
+        self.ami_edges = None
+        self.ami_nodes = None
         self.island_list = None
         self.node_dict = None
 
@@ -647,10 +649,10 @@ class AmiGraph:
     @classmethod
     def create_ami_graph(cls, skeleton_image):
         """Uses Sknw to create a graph object within a new AmiGraph"""
+        # currently only called in a test
         ami_graph = AmiGraph()
-        ami_graph.nx_graph, nodes, edges = sknw.build_sknw(skeleton_image)
-        ami_graph.read_nodes(nodes)
-        ami_graph.read_edges(edges)
+        nx_graph = sknw.build_sknw(skeleton_image)
+        ami_graph.read_nx_graph(nx_graph)
         return ami_graph
 
     def get_graph_info(self):
@@ -689,16 +691,49 @@ class AmiGraph:
             "\n edges: " + str(self.ami_edge_dict)
         return s
 
+    def read_nx_graph(self, nx_graph):
+        self.ami_edges = []
+        for (start, end) in nx_graph.edges():
+            points = nx_graph[start][end][AmiSkeleton.NODE_PTS]
+            ami_edge = AmiEdge()
+            ami_edge.read_nx_edge(points)
+            self.ami_edges.append(ami_edge)
+
+        # self.nodes_as_dicts = [nx_graph.node[ndidx] for ndidx in (nx_graph.nodes())]
+        # self.nodes_yx = [nx_graph.node[ndidx][AmiSkeleton.CENTROID] for ndidx in (nx_graph.nodes())]
+
+        self.ami_nodes = []
+        nodes = nx_graph.nodes()
+        for node_index in nodes:
+            node_dict = nodes[node_index]
+            ami_node = AmiNode()
+            ami_node.read_nx_node(node_dict)
+            self.ami_nodes.append(ami_node)
+
 
 class AmiNode:
+    """Node holds coordinates
+    ["o"] for centrois (AmiSkeleton.CENTROID)
+    ["pts"] for multiple points (AmiSkeleton.POINTS)
+    """
     def __init__(self):
         self.node_dict = {}
 
+    def read_nx_node(self, node_dict):
+        """read dict for node, contains coordinates
+        typically: 'o': array([ 82., 844.]), 'pts': array([[ 82, 844]], dtype=int16)}
+        dict ket
+        """
+        self.node_dict = copy.deepcopy(node_dict)
 
 class AmiEdge:
     def __init__(self):
-        pass
+        self.points = None
 
+    def read_nx_edge(self, points):
+        self.points = points
+        # points are in separate columns (y, x)
+        # print("coord", points[:, 1], points[:, 0], 'green')
 
 class AmiIsland:
     """A connected group of pixels"""

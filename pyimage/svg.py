@@ -1,13 +1,14 @@
 """Common SVG elements in lightweight code"""
 from lxml.etree import ElementTree, Element
 import lxml.etree
+from abc import abstractmethod, ABC
 
 """Seems that it's hard to subclass lxml so this is based on delegation.py
 None of the SVG libraries (svgwrite, Cairo) are good for creating subclassed
 elements. This is only the common object classes ... at the moment
 """
 SVG_NS = "http://www.w3.org/2000/svg"
-class AbsSVG():
+class AbsSVG(ABC):
     lxml.etree.register_namespace('svg', SVG_NS)
 
     def __init__(self, tag):
@@ -31,11 +32,16 @@ class AbsSVG():
     def set_float_attribute(self, name, val):
         self.set_attribute(name, str(float(val)))
 
+    @abstractmethod
+    def get_bounding_box(self):
+        return Bbox()
 
 class SVGSVG(AbsSVG):
     TAG = "svg"
     def __init__(self):
         super().__init__(self.TAG)
+        self.wrapper_by_lxml = {}  # dictionary of SVG class indexed by wrapped lxml
+        self.nxml = 0  # counter of lxml elements
 
 
 class SVGG(AbsSVG):
@@ -226,6 +232,13 @@ class Bbox:
         print(range0, range1)
         if len(range0) == 2 and len(range1) == 2:
             range = (max(range0[0], range1[0]), min(range0[1], range1[1]))
+        return range
+
+    def union_range(self, range0, range1):
+        """intersects 2 range tuples"""
+        range = []
+        if len(range0) == 2 and len(range1) == 2:
+            range = [min(range0[0], range1[0]), max(range0[1], range1[1])]
         return range
 
     def add_coordinate(self, xy_tuple):
