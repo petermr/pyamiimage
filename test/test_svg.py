@@ -1,5 +1,5 @@
 
-from pyimage.svg import SVGRect, SVGTitle, SVGText, SVGTextBox, SVGG, SVGSVG, Bbox
+from pyimage.svg import SVGRect, SVGTitle, SVGText, SVGTextBox, SVGG, SVGSVG, SVGCircle, SVGPath, BBox
 
 class TestSVG():
 
@@ -52,30 +52,37 @@ class TestSVG():
   <svg:rect height="50.0" width="100.0" x="200.0" y="300.0"/>
 </svg:svg>
 """
-
+# Circle
+    def test_circle(self):
+        circle = SVGCircle(xy=[10, 20], rad=5)
+        bbox = circle.get_or_create_bbox()
+        print("bbox ", bbox)
+        assert bbox is not None
+        assert circle.is_valid()
+        assert bbox.xy_ranges == [[5,15],[15,25]]
 # Bounding box Tests
 
     def test_create_empty_bbox(self):
-        bbox = Bbox()
+        bbox = BBox()
         assert bbox.xy_ranges == [[],[]]
 
     def test_create_bbox(self):
-        bbox = Bbox([[100,200], [300,400]])
+        bbox = BBox([[100, 200], [300, 400]])
         assert bbox.xy_ranges == [[100.0, 200.0], [300.0, 400.0]]
 
     def test_create_bad_bbox(self):
         try:
-            Bbox([[100,50], [300,400]])
+            BBox([[100, 50], [300, 400]])
         except ValueError as e:
             assert str(e) == "ranges must be increasing 100.0 !<= 50.0"
 
     def test_update_bbox(self):
-        bbox = Bbox([[100,200], [300,400]])
+        bbox = BBox([[100, 200], [300, 400]])
         bbox.set_xrange([10,20])
         assert bbox.xy_ranges == [[10.0, 20.0], [300.0, 400.0]]
 
     def test_update_bbox1(self):
-        bbox = Bbox()
+        bbox = BBox()
         assert bbox.xy_ranges == [[],[]]
         bbox.set_xrange((10,20))
         assert bbox.xy_ranges == [[10.0, 20.0], []]
@@ -83,7 +90,7 @@ class TestSVG():
         assert bbox.xy_ranges == [[10.0, 20.0], [30.0, 40.0]]
 
     def test_get_values(self):
-        bbox = Bbox()
+        bbox = BBox()
         assert bbox.get_width() is None
         assert bbox.get_height() is None
         assert bbox.get_xrange() == []
@@ -101,13 +108,13 @@ class TestSVG():
         assert bbox.get_height() == 40.
 
     def test_get_intersections(self):
-        bbox0 = Bbox([[10,20], [30,40]])
-        bbox1 = Bbox([[13,28], [27,38]])
+        bbox0 = BBox([[10, 20], [30, 40]])
+        bbox1 = BBox([[13, 28], [27, 38]])
         bbox01 = bbox0.intersect(bbox1)
         assert bbox01.xy_ranges == [[13., 20.], [30., 38.]]
 
     def test_add_points(self):
-        bbox = Bbox()
+        bbox = BBox()
         assert bbox.xy_ranges == [[], []]
         bbox.add_coordinate([1.,2.])
         assert bbox.xy_ranges == [[1., 1.], [2., 2.]]
@@ -115,4 +122,32 @@ class TestSVG():
         assert bbox.xy_ranges == [[1., 3.], [2., 4.]]
         bbox.add_coordinate([5., 3.])
         assert bbox.xy_ranges == [[1., 5.], [2., 4.]]
+
+    def test_bbox_update(self):
+        rect = SVGRect()
+        bbox = rect.get_or_create_bbox()
+        assert not bbox.is_valid()
+        rect.set_xy([1,2])
+        rect.set_width(5)
+        rect.set_height(10)
+        bbox = rect.get_or_create_bbox()
+        assert bbox is not None
+        assert bbox.is_valid()
+        assert bbox.xy_ranges == [[1,6], [2,12]]
+        rect.set_width(20)
+        bbox = rect.get_or_create_bbox()
+        assert bbox.is_valid()
+        assert bbox.xy_ranges == [[1,21], [2,12]]
+
+    def test_bbox_bad_values(self):
+        rect = SVGRect()
+        rect.set_xy([1,2])
+        rect.set_height(30)
+        rect.set_width(-20)
+        bbox = rect.get_or_create_bbox()
+        assert not bbox.is_valid()
+        rect.set_width(20)
+        bbox = rect.get_or_create_bbox()
+        assert bbox.is_valid()
+        assert bbox.xy_ranges == [[1,21], [2, 32]]
 

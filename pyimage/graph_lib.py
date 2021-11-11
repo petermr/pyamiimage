@@ -11,7 +11,7 @@ from collections import deque
 from lxml.etree import Element, QName
 from lxml import etree
 # import matplotlib.pyplot as plt
-from pyimage.svg import Bbox
+from pyimage.svg import BBox
 
 
 class AmiSkeleton:
@@ -218,7 +218,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         xmax = int(np.max(xx))
         ymin = int(np.min(yy))
         ymax = int(np.max(yy))
-        bbox = Bbox(((xmin, xmax), (ymin, ymax)))
+        bbox = BBox(((xmin, xmax), (ymin, ymax)))
         return bbox
 
     def extract_coords_for_nodes(self, ami_island):
@@ -262,7 +262,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
 
     def create_bbox_for_island(self, island):
         bbox0 = self.extract_bbox_for_nodes(island)
-        bbox = Bbox(bbox0)
+        bbox = BBox(bbox0)
         return bbox
 
     def get_ami_islands_from_nx_graph(self):

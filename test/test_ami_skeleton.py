@@ -243,18 +243,22 @@ class TestAmiSkeleton:
 
         ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH3_HOCR))
 
-# the only use so fgar of AmiGraph
-    def test_skeletonize_extract_subgraphs(self):
+# the only use so far of AmiGraph
+    def test_skeletonize(self):
         skeleton_image = self.binarize_and_skeletonize_arrows()
         skeleton_image = skeleton_image.astype(np.uint16)
-        # print("skeleton values: ", skeleton)
+        assert skeleton_image is not None
+        assert skeleton_image.shape == (315, 1512)
         print("skeleton type: ", type(skeleton_image))
-        print("skeleton value type: ", type(skeleton_image[0][0]))
-        print("skeleton shape:", skeleton_image.shape)
+        assert type(skeleton_image) is np.ndarray
+        assert type(skeleton_image[0][0]) is np.uint16
+        assert skeleton_image[0][0] == 0
 
-        graph = AmiGraph.create_ami_graph(skeleton_image)
-        # print("node_dict", graph.node_dict["n0"])
-        print("node_dict", type(graph.node_dict))
+    def test_skeletonize_extract_subgraphs(self):
+        skeleton_image = self.binarize_and_skeletonize_arrows().astype(np.uint16)
+        ami_graph = AmiGraph.create_ami_graph(skeleton_image)
+        assert type(ami_graph) is AmiGraph
+        print("node_dict", type(ami_graph.node_dict))
 
         fig, ax = plt.subplots()  # note we must use plt.subplots, not plt.subplot
         # maxx, maxy = self.get_maxx_maxy_non_pythonic(node_dict, nodes)
