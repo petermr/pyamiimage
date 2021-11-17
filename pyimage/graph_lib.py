@@ -11,6 +11,7 @@ from collections import deque
 from lxml.etree import Element, QName
 from lxml import etree
 import matplotlib.pyplot as plt
+import os
 
 
 class AmiSkeleton:
@@ -48,7 +49,7 @@ class AmiSkeleton:
 
     logger = logging.getLogger("ami_skeleton")
 
-    def __init__(self):
+    def __init__(self, title=None):
         self.skeleton = None
         self.binary = None
         self.nx_graph = None
@@ -58,6 +59,8 @@ class AmiSkeleton:
         self.image = None
         self.path = None
         self.new_binary = None
+        self.interactive = False
+        self.title = title
 
     def create_grayscale_from_file(self, path):
         """
@@ -178,7 +181,16 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         plt.plot(self.node_xy[:, 1], np.negative(self.node_xy[:, 0]), 'r.')
         # title and show
         plt.title(title)
-        plt.show()
+
+        path = Path(Path(__file__).parent.parent, "temp/figs")
+        if not path.exists():
+            path.mkdir()
+        fig = Path(path, f"{title}.png")
+        if fig.exists():
+            os.remove(fig)
+        plt.savefig(fig, format="png")
+        if self.interactive:
+            plt.show()
 
     def get_nodes_and_edges_from_nx_graph(self):
         """
@@ -292,7 +304,8 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         start_pixel = start_node[self.NODE_PTS][0]  # may be a list of xy for a complex node always pick first
         flooder = FloodFill()
         pixels = flooder.flood_fill(self.binary, start_pixel)
-        flooder.plot_used_pixels()
+        if self.interactive:
+            flooder.plot_used_pixels()
 
     def create_and_plot_all_components(self, path, min_size=None):
         """

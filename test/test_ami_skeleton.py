@@ -11,6 +11,7 @@ from pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph, FloodFill
 
 
 class TestAmiSkeleton:
+
     def test_basics_biosynth1_no_text(self):
         """Primarily for validating the image data which will be used elsewhere
         Uncomment for debug-like printing"""
@@ -50,7 +51,6 @@ class TestAmiSkeleton:
         nwhite = np.count_nonzero(binary)
         assert nwhite == 4492
         ax.imshow(binary, cmap="gray")
-
         return
 
     def test_skeletonize_biosynth1_no_text(self):
@@ -68,7 +68,7 @@ class TestAmiSkeleton:
         skeleton = ami_skel.create_white_skeleton_from_file(Resources.BIOSYNTH1_ARROWS)
         # build graph from skeleton
         ami_skel.nx_graph = sknw.build_sknw(skeleton)
-        ami_skel.plot_nx_graph()
+        ami_skel.plot_nx_graph(title="graph_arrows")
 
     def test_skeleton_to_graph_text(self):
         ami_skel = AmiSkeleton()
@@ -193,7 +193,8 @@ class TestAmiSkeleton:
             AmiGraph.set_bbox_pixels_to_color(bbox, cropped_image, color=127)
         fig, ax = plt.subplots()
         ax.imshow(cropped_image, cmap='gray')
-        plt.show()
+        if ami_skeleton.interactive:
+            plt.show()
         return
 
     def test_flood_fill_first_component(self):
@@ -215,7 +216,9 @@ class TestAmiSkeleton:
         return
 
     def test_flood_fill_many_components_biosynth3(self):
-        ami_skeleton = AmiSkeleton()
+        """EXAMPLE finds the 5 arrows"""
+        ami_skeleton = AmiSkeleton(title="biosynth3")
+        ami_skeleton.interactive = True
         path = Resources.BIOSYNTH3
         ami_skeleton.create_and_plot_all_components(path, min_size=[30, 30])
         return

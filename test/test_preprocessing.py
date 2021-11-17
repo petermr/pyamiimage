@@ -88,7 +88,7 @@ class TestImageCode():
 
     def test_interactive_show_image(self):
         """displays grayscale image and blocks on user """
-        interactive = True
+        interactive = False
         if interactive:
             # will block on user input
             assert self.image_processor.show_image(self.image_processor.image)
