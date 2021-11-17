@@ -1,6 +1,7 @@
 
 from pyimage.svg import SVGRect, SVGTitle, SVGText, SVGTextBox, SVGG, SVGSVG, SVGCircle, SVGPath, BBox
 
+
 class TestSVG():
 
     def test_good_attribute(self):
@@ -150,4 +151,5 @@ class TestSVG():
         bbox = rect.get_or_create_bbox()
         assert bbox.is_valid()
         assert bbox.xy_ranges == [[1,21], [2, 32]]
+
 

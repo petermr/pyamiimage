@@ -20,8 +20,8 @@ class Color(object):
         return f'{self.red:02x}' + f'{self.green:02x}' + f'{self.blue:02x}'
 
     def is_equal(self, col):
-#        print("l", len(col))
-        return len(col) == 3 and col[0]==self.red and col[1]==self.green and col[2]==self.blue
+        # print("l", len(col))
+        return len(col) == 3 and col[0] == self.red and col[1] == self.green and col[2] == self.blue
 
     def as_tuple(self):
-        return (self.red, self.green, self.blue)
+        return self.red, self.green, self.blue

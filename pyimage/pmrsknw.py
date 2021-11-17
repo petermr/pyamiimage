@@ -20,7 +20,8 @@ class PmrSknw:
         self.graph = None
         self.img = None
 
-    def calc_mask_values_of_neighbors(self, shape):
+    @classmethod
+    def calc_mask_values_of_neighbors(cls, shape):
         """not sure what this does yet
         I think it might take a region and create margins
         """
@@ -39,7 +40,8 @@ class PmrSknw:
         return neighbors
 
     # my mark
-    def mark(self, buf, nbs):  # mark the array use (0, 1, 2)
+    @classmethod
+    def mark(cls, buf, nbs):  # mark the array use (0, 1, 2)
         buf = buf.ravel()
         for p in range(len(buf)):
             if buf[p] == 0:
@@ -54,7 +56,8 @@ class PmrSknw:
                 buf[p] = 2
 
     # trans index to r, c...
-    def idx2rc(self, idx, acc):
+    @classmethod
+    def idx2rc(cls, idx, acc):
         rst = np.zeros((len(idx), len(acc)), dtype=np.int16)
         for i in range(len(idx)):
             for j in range(len(acc)):
@@ -166,7 +169,8 @@ class PmrSknw:
         return edges
 
     # use nodes and edges build a networkx graph
-    def build_nx_graph(self, nodes, edges, multi=False, full=True):
+    @classmethod
+    def build_nx_graph(cls, nodes, edges, multi=False, full=True):
         os = np.array([i.mean(axis=0) for i in nodes])
         if full:
             os = os.round().astype(np.uint16)
@@ -176,8 +180,8 @@ class PmrSknw:
         for s, e, pts in edges:
             if full:
                 pts[[0, -1]] = os[[s, e]]
-            l = np.linalg.norm(pts[1:] - pts[:-1], axis=1).sum()
-            nx_graph.add_edge(s, e, pts=pts, weight=l)
+            ll = np.linalg.norm(pts[1:] - pts[:-1], axis=1).sum()
+            nx_graph.add_edge(s, e, pts=pts, weight=ll)
         return nx_graph
 
     def mark_node(self, img):
@@ -234,7 +238,8 @@ class PmrSknw:
     # def example1(self):
     #     self.read_thinned_image_calculate_graph_and_plot(img)
 
-    def example2horse(self):
+    @classmethod
+    def example2horse(cls):
         # open and skeletonize
         img = data.horse()
         # ske = skeletonize(img).astype(np.uint16)

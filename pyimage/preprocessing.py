@@ -1,14 +1,11 @@
-from networkx.classes.function import subgraph
 import numpy as np
 from skimage import io
-from skimage import color
 from skimage.color.colorconv import rgb2gray
 import skimage
 from skimage import morphology
 from skimage import filters
 from pathlib import Path
 import matplotlib.pyplot as plt
-from pyimage.graph_lib import AmiGraph
 
 """
 The ImageProcessor class is current in development by PMR and Anuv for preprocessing images
@@ -21,9 +18,14 @@ of the repository exceeded 2 gigabytes
 The ImageLib module has been included in this repository for testing and reference 
 """
 
-class ImageProcessor():
-    # setting a sample image for default path
-    DEFAULT_PATH = "assets/purple_ocimum_basilicum.png"
+# setting a sample image for default path
+DEFAULT_PATH = "assets/purple_ocimum_basilicum.png"
+TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
+# BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")
+BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
+
+
+class ImageProcessor:
 
     def __init__(self) -> None:
         self.image = None
@@ -45,10 +47,10 @@ class ImageProcessor():
         """convert existing self.image to grayscale
         uses rgb2gray from skimage.color.colorconv
         """
-        self.image_gray = None
+        image_gray = None
         if self.image is not None:
-            self.image_gray = rgb2gray(self.image)
-        return self.image_gray
+            image_gray = rgb2gray(self.image)
+        return image_gray
 
     def invert(self, image):
         """Inverts the brightness values of the image"""
@@ -58,12 +60,13 @@ class ImageProcessor():
     def skeletonize(self, image):
         """Returns a skeleton of the image"""
         mask = morphology.skeletonize(image)
-        self.skeleton = np.zeros(self.image.shape)
-        self.skeleton[mask] = 1
+        skeleton = np.zeros(self.image.shape)
+        skeleton[mask] = 1
         # print("Skeleton Image: ", self.skeleton)
-        return self.skeleton
+        return skeleton
 
-    def threshold(self, image):
+    @classmethod
+    def threshold(cls, image):
         """"Returns a binary image using a threshold value"""
         threshold = filters.threshold_otsu(image)
         # self.binary_image = np.zeros(self.image.shape)
@@ -72,12 +75,13 @@ class ImageProcessor():
         # print("Threshold Mask: ", idx)
         # self.binary_image[idx] = 1
         # print("Binary Image: ", self.binary_image)
-        self.binary_image = np.where(image >= threshold, 1, 0)
-        return self.binary_image
+        binary_image = np.where(image >= threshold, 1, 0)
+        return binary_image
 
     def show_image(self, image):
         """
-        Shows self.image in a seperate window
+        Shows self.image in a separate window
+        :param image:
         """
         if self.image is None:
             self.load_image()
@@ -86,9 +90,6 @@ class ImageProcessor():
         return True
 
     def example1(self):
-        TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
-        # BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")
-        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
         print(BIOSYNTH_PATH_IMAGE)
         self.load_image(BIOSYNTH_PATH_IMAGE)
         # print(self.image)
@@ -106,7 +107,8 @@ class ImageProcessor():
         skeleton = self.skeletonize(binary_image)
         self.show_image(skeleton)
 
-    def get_maxx_maxy_non_pythonic(self, node_dict, nodes):
+    @classmethod
+    def get_maxx_maxy_non_pythonic(cls, node_dict, nodes):
         maxx = -999999
         maxy = -999999
         for node, i in enumerate(nodes):
@@ -119,13 +121,14 @@ class ImageProcessor():
                 maxy = y
         return maxx, maxy
 
-    def plot_line(self, node_dict, node0, node1, ymax):
+    @classmethod
+    def plot_line(cls, node_dict, node0, node1, ymax):
         # print("node", node0, type(node0))
         xy0 = node_dict[node0]
         xy1 = node_dict[node1]
         # print("xy0 xy1", xy0, xy1)
         # x and y are swapped
-        plt.plot([xy0[1], xy1[1]], [ymax - xy0[0], ymax - xy1[0]], marker = "")
+        plt.plot([xy0[1], xy1[1]], [ymax - xy0[0], ymax - xy1[0]], marker="")
         # print(type(node0))
 
     def invert_threshold_skeletonize(self, show=False):
@@ -151,6 +154,7 @@ class ImageProcessor():
             self.show_image(skeleton)
 
         return skeleton
+
 
 def main():
     image_processor = ImageProcessor()

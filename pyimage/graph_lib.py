@@ -49,7 +49,7 @@ class AmiSkeleton:
 
     logger = logging.getLogger("ami_skeleton")
 
-    def __init__(self, plot_plot = False):
+    def __init__(self, plot_plot=False):
         self.skeleton_image = None
         self.binary = None
         self.nx_graph = None
@@ -60,6 +60,9 @@ class AmiSkeleton:
         self.path = None
         self.new_binary = None
         self.plot_plot = plot_plot
+        self.islands = None
+        self.bboxes = None
+        self.thresh = None
 
     def create_grayscale_from_file(self, path):
         """
@@ -73,7 +76,7 @@ class AmiSkeleton:
         self.image = color.rgb2gray(io.imread(path))
         return self.image
 
-    def create_white_skeleton_from_file(self, path):
+    def create_white_skeleton_image_from_file(self, path):
         """
         the image may be inverted so the highlights are white
 
@@ -109,7 +112,8 @@ class AmiSkeleton:
         self.binary, self.thresh = self.create_thresholded_image_and_value(image)
         self.binary = np.invert(self.binary)
 
-    def create_thresholded_image_and_value(self, image):
+    @classmethod
+    def create_thresholded_image_and_value(cls, image):
         """
         Thresholded image and (attempt) to get threshold
         The thresholded image is OK but the threshold value may not yet work
@@ -119,7 +123,7 @@ class AmiSkeleton:
         """
 
         t_image = threshold(image)
-        tt = np.where(t_image > 0) # above threshold
+        tt = np.where(t_image > 0)  # above threshold
         return t_image, tt
 
     def binarize_skeletonize_sknw_nx_graph_plot(self, path, plot_plot=False):
@@ -127,11 +131,12 @@ class AmiSkeleton:
         Creates skeleton and nx_graph and plots it
 
         :param path:
+        :param plot_plot:
         :return: AmiSkeleton
         """
         assert path is not None
         path = Path(path)
-        self.skeleton_image = self.create_white_skeleton_from_file(path)
+        self.skeleton_image = self.create_white_skeleton_image_from_file(path)
         # build graph from skeleton
         self.nx_graph = sknw.build_sknw(self.skeleton_image)
         print(self.nx_graph)
@@ -147,7 +152,7 @@ class AmiSkeleton:
         """
         assert path is not None
         path = Path(path)
-        self.skeleton_image = self.create_white_skeleton_from_file(path)
+        self.skeleton_image = self.create_white_skeleton_image_from_file(path)
         # build graph from skeleton
         self.nx_graph = sknw.build_sknw(self.skeleton_image)
         return self.nx_graph
@@ -174,6 +179,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         Requires nodes and edges to have been created
         :param title:
+        :param plot_plot:
         :return:
         """
         for edge_xy in self.edge_xy_list:
@@ -182,7 +188,8 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         plt.plot(self.node_xy[:, 1], np.negative(self.node_xy[:, 0]), 'r.')
         # title and show
         plt.title(title)
-        plt.show()
+        if plot_plot:
+            plt.show()
 
     def get_nodes_and_edges_from_nx_graph(self):
         """
@@ -233,32 +240,33 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         assert type(ami_island) is AmiIsland, f"expected {AmiIsland} found {type(ami_island)}"
         npoints = len(ami_island)
         node_xy = np.empty([0, 2], dtype=float)
-        for id in ami_island:
-            centroid = self.extract_coords_for_node(id)
+        for isd in ami_island:
+            centroid = self.extract_coords_for_node(isd)
             node_xy = np.append(node_xy, centroid)
         node_xy = np.reshape(node_xy, (npoints, 2))
         return node_xy
 
-    def extract_coords_for_node(self, id):
+    def extract_coords_for_node(self, isd):
         """
         gets coords for a single node with given id
-        :param id: normally an int
+        :param isd: normally an int
         :return:
         """
-        node_data = self.nx_graph.nodes[id]
+        node_data = self.nx_graph.nodes[isd]
         centroid = node_data[AmiSkeleton.CENTROID]
         centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
         return centroid
 
     def create_islands(self):
         """
-        :return: list of bboxes
+        needs nx_graph to exist
+
+        :return: list of islands
         """
 
         assert self.nx_graph is not None
-        islands = self.get_ami_islands_from_nx_graph()
-        bboxes = [self.create_bbox_for_island(island) for island in islands]
-        return islands
+        self.islands = self.get_ami_islands_from_nx_graph()
+        return self.islands
 
     def create_bbox_for_island(self, island):
         bbox0 = self.extract_bbox_for_nodes(island)
@@ -276,7 +284,8 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         ami_islands = []
         for node_ids in nx.algorithms.components.connected_components(self.nx_graph):
             print("node_ids ", node_ids)
-            island = self.create_island(node_ids)
+            ami_island = AmiIsland.create_island(node_ids)
+            island = ami_island
             assert island is not None
             assert type(island) is AmiIsland
             ami_islands.append(island)
@@ -301,39 +310,12 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         start_node_index = list(component)[0]  # take first node
         start_node = self.nodes[start_node_index]
+        print("type start_node")
+        # TODO this may be a bug
         start_pixel = start_node[self.NODE_PTS][0]  # may be a list of xy for a complex node always pick first
         flooder = FloodFill()
-        pixels = flooder.flood_fill(self.binary, start_pixel)
+        flooder.flood_fill(self.binary, start_pixel)
         flooder.plot_used_pixels()
-
-    def create_and_plot_all_components(self, path, min_size=None):
-        """
-
-        :param path:
-        :param min_size:
-        :return:
-        """
-        if min_size is None:
-            min_size = [30,30]
-        self.create_nx_graph_via_skeleton_sknw(path)
-        self.get_nodes_and_edges_from_nx_graph()
-        components = self.get_ami_islands_from_nx_graph()
-        bboxes = self.create_islands()
-        for component, bbox in zip(components, bboxes):
-            w, h = AmiSkeleton.get_width_height(bbox)
-            if min_size[0] < w or min_size[1] < h:
-                self.plot_island(component)
-
-    def create_island(self, node_ids):
-        """
-        creates island deom node_ids
-        :param node_ids:
-        :return:
-        """
-        ami_island = AmiIsland()
-        ami_island.node_ids = node_ids
-        ami_island.coords = self.extract_coords_for_nodes(node_ids)
-        return ami_island
 
     @classmethod
     def get_width_height(cls, bbox):
@@ -347,7 +329,25 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         width = bbox[0][1] - bbox[0][0]
         height = bbox[1][1] - bbox[1][0]
-        return (width, height)
+        return width, height
+
+    def create_and_plot_all_components(self, path, min_size=None):
+        """
+
+        :param path:
+        :param min_size:
+        :return:
+        """
+        if min_size is None:
+            min_size = [30, 30]
+        self.create_nx_graph_via_skeleton_sknw(path)
+        self.get_nodes_and_edges_from_nx_graph()
+        components = self.get_ami_islands_from_nx_graph()
+        bboxes = self.create_islands()
+        for component, bbox in zip(components, bboxes):
+            w, h = AmiSkeleton.get_width_height(bbox)
+            if min_size[0] < w or min_size[1] < h:
+                self.plot_island(component)
 
     @classmethod
     def fits_within(cls, bbox, bbox_gauge):
@@ -404,7 +404,6 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         html = etree.parse(hocr_html)
         word_spans = html.findall("//{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']")
-        E_SVG = 'svg'
         svg = Element(QName(XMLNamespaces.svg, self.E_SVG), nsmap={
             self.E_SVG: XMLNamespaces.svg,
             self.A_XLINK: XMLNamespaces.xlink,
@@ -452,9 +451,11 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
 
         return g
 
+
 class XMLNamespaces:
     svg = "http://www.w3.org/2000/svg"
     xlink = "http://www.w3.org/1999/xlink"
+
 
 class AmiIsland:
     def __init__(self):
@@ -462,9 +463,20 @@ class AmiIsland:
         self.node_ids = None
         self.coords = None
 
-    def get_bounding_box(self):
-        bbox = None
+    @classmethod
+    def create_island(cls, node_ids):
+        """
+        create from a list of node_ids (maybe from sknw)
+        :param node_ids:
+        :return:
+        """
+        ami_island = AmiIsland()
+        ami_island.node_ids = node_ids
+        return ami_island
 
+    # def get_bounding_box(self):
+    #     bbox = None
+    #
 # class Bbox:
 #     def __init__(self, limits=None):
 #         self.set_limits(limits)
@@ -486,16 +498,20 @@ class AmiIsland:
 #         if self.limits is not None:
 #             return (self.limits[0][1] - self.limits[0][0], self.limits[1][1] - self.limits[1][0])
 
+
 """Utils - could be moved to utils class"""
-def is_ordered_numbers(cls, limits2):
+
+
+def is_ordered_numbers(limits2):
     """
     check limits2 is a numeric 2-tuple in increasing order
     :param limits2:
     :return: True tuple[1] > tuple[2]
     """
     return limits2 is not None and len(limits2) == 2 \
-           and is_number(limits2[0]) and is_number(limits2[1]) \
-           and limits2[1] > limits2[0]
+        and is_number(limits2[0]) and is_number(limits2[1]) \
+        and limits2[1] > limits2[0]
+
 
 def is_number(s):
     """
@@ -509,6 +525,7 @@ def is_number(s):
     except ValueError:
         return False
 
+
 class FloodFill:
     """creates a list of flood_filling pixels given a seed"""
 
@@ -521,6 +538,7 @@ class FloodFill:
         """
 
         :param binary_image: Not altered
+        :param start_pixel:
         :return: (filled image, set of filling pixels)
         """
         # self.binary = self.binary.astype(int)
@@ -531,18 +549,18 @@ class FloodFill:
         return self.filling_pixels
 
     def get_filling_pixels(self):
-        new_image = np.copy(self.binary)
+        # new_image = np.copy(self.binary)
         xy = self.start_pixel
         xy_deque = deque()
         xy_deque.append(xy)
         filling_pixels = set()
         while xy_deque:
             xy = xy_deque.popleft()
-            self.binary[xy[0], xy[1]] = 0 # unset pixel
+            self.binary[xy[0], xy[1]] = 0  # unset pixel
             neighbours_list = self.get_neighbours(xy)
             for neighbour in neighbours_list:
-                neighbour_xy = (neighbour[0], neighbour[1]) # is this necessary??
-                if not neighbour_xy in filling_pixels:
+                neighbour_xy = (neighbour[0], neighbour[1])  # is this necessary??
+                if neighbour_xy not in filling_pixels:
                     filling_pixels.add(neighbour_xy)
                     xy_deque.append(neighbour_xy)
                 else:
@@ -550,8 +568,8 @@ class FloodFill:
         return filling_pixels
 
     def get_neighbours(self, xy):
-        i = xy[0]
-        j = xy[1]
+        # i = xy[0]
+        # j = xy[1]
         w = 3
         h = 3
         neighbours = []
@@ -612,7 +630,7 @@ class AmiGraph:
         :fail_on_duplicate: if true fail if key already exists
         """
         if raw_node is not None:
-            ami_node = AmiNode()
+            # ami_node = AmiNode()
             key = raw_node.key if type(raw_node) is dict else str(raw_node)
             key = "n" + str(key)
             if key in self.ami_node_dict and fail_on_duplicate:
@@ -625,24 +643,26 @@ class AmiGraph:
             self.logger.warning("node cannot be None")
 
     def read_edges(self, edges):
-        self.edges = edges
+        # self.ami_edges = edges
         if len(self.ami_node_dict.keys()) == 0 and self.generate_nodes:
             self.generate_nodes_from_edges()
             print("after node generation", str(self))
-        for i, edge in enumerate(self.edges):
+        for i, edge in enumerate(edges):
             idx = "e" + str(i)
             self.add_edge(edge, idx)
 
     def add_edge(self, raw_edge, idx, fail_on_duplicate=True):
+        if fail_on_duplicate and self.ami_edge_dict[idx] is not None:
+            raise ValueError("duplicate edge")
+
         if raw_edge is None:
             raise AmiGraphError("cannot add edge=None")
-        # node0 =
         edge1 = ("n" + str(raw_edge[0]), "n" + str(raw_edge[1]))
         self.ami_edge_dict[idx] = edge1
 
     def generate_nodes_from_edges(self):
-        if self.edges is not None:
-            for edge in self.edges:
+        if self.ami_edges is not None:
+            for edge in self.ami_edges:
                 self.add_raw_node(edge[0])
                 self.add_raw_node(edge[1])
 
@@ -673,18 +693,18 @@ class AmiGraph:
         self.node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
 
     @classmethod
-    def set_bbox_pixels_to_color(cls, bbox, image, color=255):
+    def set_bbox_pixels_to_color(cls, bbox, image, colorx=255):
         """sets all pixels in box to uniform color
 
         :param bbox:
         :param image:
+        :param colorx:
         :return: modified image
         """
         xx = bbox[0]
         yy = bbox[1]
-        image[xx[0]:xx[1], yy[0]:yy[1]] = color
+        image[xx[0]:xx[1], yy[0]:yy[1]] = colorx
         return image
-
 
     def __str__(self):
         s = "nodes: " + str(self.ami_node_dict) + \
@@ -726,6 +746,7 @@ class AmiNode:
         """
         self.node_dict = copy.deepcopy(node_dict)
 
+
 class AmiEdge:
     def __init__(self):
         self.points = None
@@ -734,11 +755,6 @@ class AmiEdge:
         self.points = points
         # points are in separate columns (y, x)
         # print("coord", points[:, 1], points[:, 0], 'green')
-
-class AmiIsland:
-    """A connected group of pixels"""
-    def __init__(self):
-        self.nodes = None
 
 
 class AmiGraphError(Exception):
@@ -762,6 +778,6 @@ if __name__ == '__main__':
         [0, 0, 0, 1, 0, 0, 0, 0, 0]])
 
     # sknw.example1()
-    sknw.example2horse()  # works
+    # sknw.example2horse()  # works
     # sknw.example3() # needs flipping White to black
     # sknw.example4() # needs flipping White to black

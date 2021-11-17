@@ -62,7 +62,7 @@ class TestAmiSkeleton:
     def test_skeletonize_biosynth1_no_text(self):
         file = Resources.BIOSYNTH1_ARROWS
         assert file.exists()
-        skeleton = AmiSkeleton().create_white_skeleton_from_file(file)
+        skeleton = AmiSkeleton().create_white_skeleton_image_from_file(file)
         assert np.count_nonzero(skeleton) == 1378
         # will be white on gray
         plt.imshow(skeleton, cmap="gray")
@@ -71,7 +71,7 @@ class TestAmiSkeleton:
     def test_skeleton_to_graph_arrows1(self):
         """creates nodes and edges for already clipped """
         ami_skel = AmiSkeleton()
-        skeleton = ami_skel.create_white_skeleton_from_file(Resources.BIOSYNTH1_ARROWS)
+        skeleton = ami_skel.create_white_skeleton_image_from_file(Resources.BIOSYNTH1_ARROWS)
         # build graph from skeleton
         ami_skel.nx_graph = sknw.build_sknw(skeleton)
         if self.plot_plot:
@@ -114,12 +114,18 @@ class TestAmiSkeleton:
         """reads plot with 4 islands, extracts islands and calculates their bboxes"""
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
-        bboxes = ami_skeleton.create_islands()
+        bboxes = self.create_bboxes_for_islands(ami_skeleton)
+
         assert len(bboxes) == 4
         assert bboxes == [((661.0, 863.0), (82.0, 102.0)),
                          ((391.0, 953.0), (117.0, 313.0)),
                          ((991.0, 1064.0), (148.0, 236.0)),
                          ((992.0, 1009.0), (252.0, 294.0))]
+
+    def create_bboxes_for_islands(self, ami_skeleton):
+        islands = ami_skeleton.create_islands()
+        self.bboxes = [self.create_bbox_for_island(island) for island in islands]
+        return self.bboxes
 
     def test_create_bounding_boxes_from_node_list_with_size_filter_biosynth3(self):
         """filters out small components by bbox_gauge"""

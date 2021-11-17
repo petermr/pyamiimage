@@ -2,13 +2,14 @@
 from lxml.etree import ElementTree, Element
 import lxml.etree
 from abc import abstractmethod, ABC
-from numbers import Number
 
 """Seems that it's hard to subclass lxml so this is based on delegation.py
 None of the SVG libraries (svgwrite, Cairo) are good for creating subclassed
 elements. This is only the common object classes ... at the moment
 """
 SVG_NS = "http://www.w3.org/2000/svg"
+
+
 class AbsSVG(ABC):
     lxml.etree.register_namespace('svg', SVG_NS)
 
@@ -58,8 +59,10 @@ class AbsSVG(ABC):
             self.calculate_bbox()
         return self.bbox
 
+
 class SVGSVG(AbsSVG):
     TAG = "svg"
+
     def __init__(self):
         super().__init__(self.TAG)
         self.wrapper_by_lxml = {}  # dictionary of SVG class indexed by wrapped lxml
@@ -72,6 +75,7 @@ class SVGSVG(AbsSVG):
 
 class SVGG(AbsSVG):
     TAG = "g"
+
     def __init__(self):
         super().__init__(self.TAG)
 
@@ -126,16 +130,16 @@ class SVGRect(AbsSVG):
     def is_valid(self):
         try:
             float(self.width) >= 0 and float(self.height) >= 0 and \
-            float(self.xy[0]) and float(self.xy[1])
+                float(self.xy[0]) and float(self.xy[1])
             return True
-        except:
+        except ValueError:
             return False
 
     def set_invalid(self):
         self.bbox = BBox()
 
     def calculate_bbox(self):
-        if self.xy and self.width and self.height and not self.bbox.is_valid() :
+        if self.xy and self.width and self.height and not self.bbox.is_valid():
             self.bbox.set_xrange([self.xy[0], self.xy[0] + self.width])
             self.bbox.set_yrange([self.xy[1], self.xy[1] + self.height])
 
@@ -143,8 +147,10 @@ class SVGRect(AbsSVG):
         if self.is_valid():
             pass
 
+
 class SVGCircle(AbsSVG):
     TAG = "circle"
+
     def __init__(self, xy=None, rad=None):
         super().__init__(self.TAG)
         self.bbox = BBox()
@@ -155,7 +161,7 @@ class SVGCircle(AbsSVG):
         try:
             xrange = [self.xy[0] - self.rad, self.xy[0] + self.rad]  
             yrange = [self.xy[1] - self.rad, self.xy[1] + self.rad]  
-        except:
+        except ValueError:
             xrange = None
             yrange = None
         self.bbox = BBox.create_from_ranges(xrange, yrange)
@@ -164,7 +170,7 @@ class SVGCircle(AbsSVG):
         try:
             float(self.rad) >= 0 and float(self.xy[0]) and float(self.xy[1])
             return True
-        except:
+        except Exception:
             return False
 
     def set_rad(self, rad):
@@ -176,6 +182,7 @@ class SVGCircle(AbsSVG):
 
 class SVGPath(AbsSVG):
     TAG = "path"
+
     def __init__(self):
         super().__init__(self.TAG)
         self.box = BBox()
@@ -186,20 +193,28 @@ class SVGPath(AbsSVG):
 
 class SVGLine(AbsSVG):
     TAG = "line"
+
     def __init__(self, xy1, xy2):
         super().__init__(self.TAG)
         self.box = BBox()
         self.xy1 = xy1
         self.xy2 = xy2
 
+    def calculate_bbox(self):
+        raise NotImplementedError("code not written")
+
 
 class SVGText(AbsSVG):
     TAG = "text"
+
     def __init__(self, xy=None, text=None):
         super().__init__(self.TAG)
         self.box = BBox()
         self.xy = xy
         self.text = text
+
+    def calculate_bbox(self):
+        raise NotImplementedError("code not written")
 
 
 class SVGTitle(AbsSVG):
@@ -217,7 +232,9 @@ class SVGTitle(AbsSVG):
             self.set_attribute("title", titl)
 
     def get_bounding_box(self):
+        """overrides"""
         return None
+
 
 class SVGTextBox(SVGG):
     """This will contain text and a shape (for drawing)"""
@@ -243,6 +260,10 @@ class SVGTextBox(SVGG):
         if svg_shape is not None:
             assert type(svg_shape) is SVGShape
             self.svgg.append(svg_shape)
+
+    def calculate_bbox(self):
+        raise NotImplementedError("code not written, ")
+
 
 class BBox:
     """bounding box tuple2 of tuple2s
@@ -324,41 +345,44 @@ class BBox:
             bbox1 = BBox((xrange, yrange))
         return bbox1
 
-    def intersect_range(self, range0, range1):
+    @classmethod
+    def intersect_range(cls, range0, range1):
         """intersects 2 range tuples"""
-        range = ()
+        rrange = ()
         print(range0, range1)
         if len(range0) == 2 and len(range1) == 2:
-            range = (max(range0[0], range1[0]), min(range0[1], range1[1]))
-        return range
+            rrange = (max(range0[0], range1[0]), min(range0[1], range1[1]))
+        return rrange
 
-    def union_range(self, range0, range1):
+    @classmethod
+    def union_range(cls, range0, range1):
         """intersects 2 range tuples"""
-        range = []
+        rrange = []
         if len(range0) == 2 and len(range1) == 2:
-            range = [min(range0[0], range1[0]), max(range0[1], range1[1])]
-        return range
+            rrange = [min(range0[0], range1[0]), max(range0[1], range1[1])]
+        return rrange
 
     def add_coordinate(self, xy_tuple):
         self.add_to_range(0, self.get_xrange(), xy_tuple[0])
         self.add_to_range(1, self.get_yrange(), xy_tuple[1])
 
-    def add_to_range(self, index, range, coord):
+    def add_to_range(self, index, rrange, coord):
         """if coord outside range , expand range
-        :param range: x or y range
+        :param index:
+        :param rrange: x or y range
         :param coord: x or y coord
         :return: None (changes range)
         """
         if index != 0 and index != 1:
             raise ValueError(f"bad index {index}")
-        if len(range) != 2:
-            range = [None, None]
-        if range[0] is None or coord < range[0]:
-            range[0] = coord
-        if range[1] is None or coord > range[1]:
-            range[1] = coord
-        self.xy_ranges[index] = range
-        return range
+        if len(rrange) != 2:
+            rrange = [None, None]
+        if rrange[0] is None or coord < rrange[0]:
+            rrange[0] = coord
+        if rrange[1] is None or coord > rrange[1]:
+            rrange[1] = coord
+        self.xy_ranges[index] = rrange
+        return rrange
 
     @classmethod
     def create_box(cls, xy, width, height):
@@ -373,6 +397,7 @@ class BBox:
         xrange = float(xy[0]) + float(width)
         yrange = float(xy[1]) + float(height)
         bbox = BBox.create_from_ranges(xrange, yrange)
+        return bbox
 
     @classmethod
     def create_from_ranges(cls, xr, yr):
@@ -395,9 +420,9 @@ class BBox:
         if self.xy_ranges is None or len(self.xy_ranges) != 2:
             return False
         try:
-            self.get_width() >= 0 or self.get_height() >= 0
-            return True
-        except:
+            ok = self.get_width() >= 0 or self.get_height() >= 0
+            return ok
+        except Exception:
             return False
 
     def set_invalid(self):
@@ -412,6 +437,7 @@ def overlap(start1, end1, start2, end2):
     return max(max((end2-start1), 0) - max((end2-end1), 0) - max((start2-start1), 0), 0)
 I couldn't find this online anywhere so I came up with this and I'm posting here."""
 
+
 class AmiArrow(SVGG):
     """
     <g>
@@ -422,21 +448,24 @@ class AmiArrow(SVGG):
         super().__init__()
         self.line = None
 
+    def calculate_bbox(self):
+        raise NotImplementedError("code not written")
 
 
-# class SVGShape(AbsSVG):
-#     """suoperclass of shapes"""
-#     TAG = "shape"
-#     def __init__(self):
-#         super().__init__(self.TAG)
-#
-#     def get_bounding_box(self)
-#         raise NotImplementedError("SVGShape needs a bbox routine")
-#
+class SVGShape(AbsSVG):
+    """suoperclass of shapes"""
+    TAG = "shape"
+
+    def __init__(self):
+        super().__init__(self.TAG)
+
+    def calculate_bbox(self):
+        raise NotImplementedError("SVGShape needs a bbox routine")
+
 
 def is_valid_xy(xy):
     try:
         len(xy) == 2 and float(xy[0]) and float(xy[1])
         return True
-    except:
+    except Exception:
         return False
