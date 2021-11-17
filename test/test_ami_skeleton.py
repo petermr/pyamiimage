@@ -219,6 +219,7 @@ class TestAmiSkeleton:
         """EXAMPLE finds the 5 arrows"""
         ami_skeleton = AmiSkeleton(title="biosynth3")
         ami_skeleton.interactive = True
+        ami_skeleton.interactive = False
         path = Resources.BIOSYNTH3
         ami_skeleton.create_and_plot_all_components(path, min_size=[30, 30])
         return
