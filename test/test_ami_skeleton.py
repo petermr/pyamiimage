@@ -170,11 +170,13 @@ class TestAmiSkeleton:
         image = io.imread(Resources.BIOSYNTH1_ARROWS)
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
-        bboxes = ami_skeleton.create_islands()
-        dd = 2  #  to overcome some of the antialiasing
-        for bbox in bboxes:
-            bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
-            AmiGraph.set_bbox_pixels_to_color(bbox, image)
+        islands = ami_skeleton.create_islands()
+        print("island", islands[0])
+        margin = 2  #  to overcome some of the antialiasing
+        for island in islands:
+            raw_bbox = island.get_raw_box()
+            sub_image = ((raw_bbox[0][0]-margin, raw_bbox[0][1]+margin), (raw_bbox[1][0]-margin, raw_bbox[1][1]+margin))
+            AmiGraph.set_bbox_pixels_to_color(sub_image, image)
         fig, ax = plt.subplots()
         ax.imshow(image, cmap='gray')
         return
@@ -184,13 +186,16 @@ class TestAmiSkeleton:
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1)
         bboxes = ami_skeleton.create_islands()
-        dd = 2  #  to overcome some of the antialiasing
+        margin = 2  #  to overcome some of the antialiasing
         for bbox in bboxes:
-            bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
-            AmiGraph.set_bbox_pixels_to_color(bbox, image, color=160)
+            self.set_bbox_to_color(bbox, margin, image)
         fig, ax = plt.subplots()
         ax.imshow(image, cmap='gray')
         return
+
+    def set_bbox_to_color(self, bbox, dd, image):
+        margined_bbox = ((bbox[0][0] - dd, bbox[0][1] + dd), (bbox[1][0] - dd, bbox[1][1] + dd))
+        AmiGraph.set_bbox_pixels_to_color(margined_bbox, image, color=160)
 
     def test_remove_pixels_in_arrow_bounding_boxes_from_islands_text1(self):
         ami_skeleton = AmiSkeleton()

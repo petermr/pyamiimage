@@ -474,9 +474,32 @@ class AmiIsland:
         ami_island.node_ids = node_ids
         return ami_island
 
-    # def get_bounding_box(self):
-    #     bbox = None
-    #
+    def __str__(self):
+        s = f"nodes: {self.node_ids}; \n" + \
+            f"coords: {self.coords}\n" + \
+            f"skeleton {self.ami_skeleton}\n"
+
+        if self.ami_skeleton is not None:
+            s = s + \
+            f"skeleton_image {self.ami_skeleton.skeleton_image}\n" + \
+            f"binary {self.ami_skeleton.binary}\n" + \
+            f"nx_graph {self.ami_skeleton.nx_graph}\n" + \
+            f"edge xy {self.ami_skeleton.edge_xy_list}\n"+ \
+            f"node_xy {self.ami_skeleton.node_xy}\n" + \
+            f"nodes {self.ami_skeleton.nodes}\n" + \
+            f"image {self.ami_skeleton.image}\n" + \
+            f"path {self.ami_skeleton.path}\n" + \
+            f"binary {self.ami_skeleton.new_binary}\n" + \
+            f"plot_plot {self.ami_skeleton.plot_plot}\n" + \
+            f"islands {self.ami_skeleton.islands}\n" + \
+            f"boxes {self.ami_skeleton.bboxes}\n" + \
+            f"thresh {self.ami_skeleton.thresh}\n"
+        return s
+
+    def get_raw_box(self):
+        bbox = None
+        return bbox
+
 # class Bbox:
 #     def __init__(self, limits=None):
 #         self.set_limits(limits)
@@ -597,7 +620,13 @@ class FloodFill:
             used_image[pixel[0], pixel[1]] = 1
         return used_image
 
+    def get_raw_box(self):
+        """
+        gets raw bounding box dimensions as an array of arrays.
+        will make this into BoundingBox soon
 
+        :return:
+        """
 class AmiGraph:
     """holds AmiNodes and AmiEdges
     may also hold subgraphs
