@@ -7,7 +7,9 @@ import skimage.segmentation as seg
 from skimage.filters import threshold_otsu, gaussian
 from skimage.color import rgb2gray
 from skimage.segmentation import active_contour
-import time
+from pathlib import Path
+from PIL import Image
+
 # https://scikit-image.org/docs/dev/user_guide/tutorial_segmentation.html
 # https://scikit-image.org/docs/dev/auto_examples/edges/plot_active_contours.html
 
@@ -362,6 +364,120 @@ class ImageLib():
 
 #        fig.tight_layout()
         plt.show()
+
+class Quantizer:
+    """colour quantizer for pixel images
+
+    a tortous journey to flattem images to a small set of colours
+    finally arriving at FASTOCTREE and convert()
+    """
+    OCTREE = "octree"
+
+    def __init__(self, input_dir, root=None, num_colors=8, method=None):
+        """   """
+        assert input_dir is not None and input_dir.exists(), "input dir must be an existing directory"
+        self.input_dir = input_dir
+        self.root = root
+        self.num_colors = num_colors
+        self.method = method
+
+
+    def create_and_write_color_streams(self, pil_img, num_colors=8, out_dir=None, out_form="png", out_root=None,
+                                       method=OCTREE, kmeans=8, dither=None):
+        """
+        Separates colours and flattens them.
+        The default method does this by histogram (I think). It is terrible for JPEGs
+        The octree separates by colour distance. recommended
+
+        :param pil_img:
+        :param num_colors:
+        :param out_dir:
+        :param out_form:
+        :param out_root:
+        :param method: if none uses octree
+                        else if method == "octree" uses PIL.Image.FASTOCTREE
+                        else uses given method
+
+        :param kmeans: default 8
+        :param dither: used in quantize, def = None, option  PIL.Image.FLOYDSTEINBERG
+
+        :return:
+        """
+        if method is not None:
+            self.method = method
+        if self.method:
+            if self.method == self.OCTREE:
+                self.method = Image.FASTOCTREE
+            img_out = pil_img.quantize(colors=self.num_colors, method=self.method, kmeans=kmeans, dither=dither)
+        else:
+            img_out = pil_img.convert('P', palette=Image.ADAPTIVE, colors=self.num_colors)
+        img_out.save(Path(out_dir, "palette_rgb"+"." + out_form), out_form)
+        palette = img_out.getpalette()
+        palette_image = np.array(img_out)
+        rgb_palette = np.reshape(palette, (-1, 3))
+        count_rgb_list = img_out.getcolors(self.num_colors)
+        print(f"colours {len(count_rgb_list)}")  # ca 48 non-zer0
+        for count_rgb in count_rgb_list:
+            rgb = rgb_palette[count_rgb[1]]
+            hx = rgb2hex(rgb)
+            print(f"{count_rgb[0]} {hx} {rgb_palette[count_rgb[1]]}")
+
+        self.create_monochrome_images_of_color_streams( palette_image, out_dir, out_form)
+
+    def create_monochrome_images_of_color_streams(self, img_array, out_dir, out_form="png"):
+        for color in range(self.num_colors):
+            if out_dir:
+                out_path = Path(out_dir, "p" + str(color) + "." + out_form)
+                img1 = np.where(img_array == color, True, False)
+                img1 = np.where(img_array == color, color, 254)
+
+                plt.imsave(out_path, img1)
+                # arry = img1.tolist()
+                # print(arry)
+                # img_pil = Image.fromarray(arry)
+                # img_pil = Image.fromarray(img_array)
+                # img_pil.save(out_path)
+                # img_rgb = img_pil.convert('RGB')
+                # img2 = np.where(img1 != 254, np, 0)
+                # print(f"non zero {np.count_nonzero(img2)}")
+                # print(f"{color} {img1}")
+                # print(f"out_path {out_path}")
+                # img_rgb.save(out_path)
+
+
+    def extract_color_streams(self):
+        in_path = None
+        suffixes = ["png", "jpeg", "jpg"]
+        for suffix in suffixes:
+            in_path = Path(self.input_dir, self.root + "." + suffix)
+            if in_path.exists():
+                break
+        if in_path is None:
+            print(f"cannot find images with root {self.root}")
+            return
+        out_dir = self.make_out_dir(self.input_dir, self.root)
+        img = Image.open(in_path)
+        self.create_and_write_color_streams(img, num_colors=8, out_dir=out_dir)
+
+    def make_out_dir(self, in_dir, root):
+        out_root = Path(in_dir, root)
+        if not out_root.exists():
+            out_root.mkdir()
+        return out_root
+
+def rgb2hex(rgb):
+    """convert rgb 3-array to 8 char hex string
+    :param rgb: 3-array of ints
+    :return: "hhhhhh" string does NOT prepend "0x"
+    """
+    assert len(rgb) == 3
+    assert type(rgb[0]) is np.int64, f"found {type(rgb[0])} {rgb[0]}, in rgb"
+    assert rgb[0] >= 0 and rgb[0] <= 255, f"found {rgb[0]}, in rgb"
+    s = ""
+    for r in rgb:
+        h = hex(r)[2:] if r >= 16 else "0" + hex(r)[2:]
+        s += h
+    return s
 
 def main():
     print("started image_lib")
