@@ -78,6 +78,21 @@ Returns A new image
     def test_green_battery(self):
         Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/resources"), method="octree", root="green").extract_color_streams()
 
+    def test_example_anuv_pathways(self):
+        roots = [
+            "biosynth_path_1",
+            "biosynth_path_2",
+            "biosynth_path_3",
+            "biosynth_path_4",
+            "biosynth_path_5",
+            "biosynth_path_6",
+            "biosynth_path_7",
+            "biosynth_path_8",
+        ]
+        for root in roots:
+            print(f"\n=====root: {root}=====")
+            Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/resources"), method="octree", root=root).extract_color_streams()
+
     # -------- Utility --------
     @classmethod
     def get_py4ami_dir(cls):

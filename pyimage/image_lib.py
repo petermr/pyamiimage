@@ -380,6 +380,7 @@ class Quantizer:
         self.root = root
         self.num_colors = num_colors
         self.method = method
+        self.palette_dict = None
 
 
     def create_and_write_color_streams(self, pil_img, num_colors=8, out_dir=None, out_form="png", out_root=None,
@@ -411,38 +412,69 @@ class Quantizer:
             img_out = pil_img.quantize(colors=self.num_colors, method=self.method, kmeans=kmeans, dither=dither)
         else:
             img_out = pil_img.convert('P', palette=Image.ADAPTIVE, colors=self.num_colors)
-        img_out.save(Path(out_dir, "palette_rgb"+"." + out_form), out_form)
-        palette = img_out.getpalette()
-        palette_image = np.array(img_out)
+        print(f"\nform {img_out.format}, size {img_out.size}, mode {img_out.mode}")
+        img_out.save(Path(out_dir, "palette"+"." + out_form), out_form)
+        img_rgb = img_out.convert("RGB")
+        img_rgb.save(Path(out_dir, "rgb"+"." + out_form), out_form)
+        # [146 209  80]
+        rgb_array = np.array(img_rgb)
+        single_chan = self.replace_single_color(rgb_array,
+                                                old_col=[146, 209, 80],
+                                                new_col=[255, 0, 0],
+                                                back_col = [220, 255, 255])
+        plt.imsave(Path(out_dir, "single" + "." + out_form), single_chan)
+        self.palette_dict = self.create_palette(img_out)
+        print("palette", self.palette_dict)
+        self.create_monochrome_images_of_color_streams(np.array(img_out), out_dir, out_form)
+        image_by_hx = self.create_monochrome_images_from_rgb(np.array(img_out))
+        print("image by hex", image_by_hx)
+
+    def create_palette(self, img):
+        """
+        extract palette for "P" image
+        index on hexstring
+        :param img:
+        :return: dict of counts with 6-char hex index
+        """
+        palette_dict = {}
+        palette = img.getpalette()
         rgb_palette = np.reshape(palette, (-1, 3))
-        count_rgb_list = img_out.getcolors(self.num_colors)
+        count_rgb_list = img.getcolors(self.num_colors)
         print(f"colours {len(count_rgb_list)}")  # ca 48 non-zer0
         for count_rgb in count_rgb_list:
             rgb = rgb_palette[count_rgb[1]]
             hx = rgb2hex(rgb)
-            print(f"{count_rgb[0]} {hx} {rgb_palette[count_rgb[1]]}")
+            # print(f"{count_rgb[0]} {hx} {rgb}")
+            count = count_rgb[0]
+            if count != 0:
+                palette_dict[hx] = count
+        return palette_dict
 
-        self.create_monochrome_images_of_color_streams( palette_image, out_dir, out_form)
+    def replace_single_color(self, rgb_array, old_col, new_col, back_col=[0., 0., 0.]):
+        single_chan = np.where(rgb_array == old_col, new_col, back_col)
+        single_chan = np.multiply(single_chan, 1.0 / 255.)
+        return single_chan
 
     def create_monochrome_images_of_color_streams(self, img_array, out_dir, out_form="png"):
-        for color in range(self.num_colors):
+        for palette_index in range(self.num_colors):
             if out_dir:
-                out_path = Path(out_dir, "p" + str(color) + "." + out_form)
-                img1 = np.where(img_array == color, True, False)
-                img1 = np.where(img_array == color, color, 254)
-
+                out_path = Path(out_dir, "p" + str(palette_index) + "." + out_form)
+                # img1 = np.where(img_array == color, True, False)
+                img1 = np.where(img_array == palette_index, palette_index, 254)
                 plt.imsave(out_path, img1)
-                # arry = img1.tolist()
-                # print(arry)
-                # img_pil = Image.fromarray(arry)
-                # img_pil = Image.fromarray(img_array)
-                # img_pil.save(out_path)
-                # img_rgb = img_pil.convert('RGB')
-                # img2 = np.where(img1 != 254, np, 0)
-                # print(f"non zero {np.count_nonzero(img2)}")
-                # print(f"{color} {img1}")
-                # print(f"out_path {out_path}")
-                # img_rgb.save(out_path)
+
+    def create_monochrome_images_from_rgb(self, rgb_array, back_col=[0., 110., 220.,]):
+        new_array_dict = {}
+        print("RGB ", rgb_array.shape)
+        for hex_col in self.palette_dict:
+            rgb = hex2rgb(hex_col)
+            rgbx = [float(rgb[0]), float(rgb[1]), float(rgb[2])]
+            new_array = None
+            # new_array = np.where(int(rgb_array) == rgb, rgbx, back_col)
+            # print("NP COUNT", np.count_nonzero(new_array))
+            # print ("rgb shape...", new_array.shape)
+            new_array_dict[rgb2hex(rgb)] = new_array
+        return new_array_dict
 
 
     def extract_color_streams(self):
@@ -471,13 +503,28 @@ def rgb2hex(rgb):
     :return: "hhhhhh" string does NOT prepend "0x"
     """
     assert len(rgb) == 3
-    assert type(rgb[0]) is np.int64, f"found {type(rgb[0])} {rgb[0]}, in rgb"
+    # assert type(rgb[0]) is int, f"found {type(rgb[0])} {rgb[0]}, in rgb"
     assert rgb[0] >= 0 and rgb[0] <= 255, f"found {rgb[0]}, in rgb"
     s = ""
     for r in rgb:
         h = hex(r)[2:] if r >= 16 else "0" + hex(r)[2:]
         s += h
     return s
+
+def hex2rgb(hx):
+    """
+    transform 6-digit hex number into [r,g,b] integers
+
+    :param hx:
+    :return:
+    """
+    assert len(hx) == 6
+    rgb = []
+    for r in range(3):
+        ss = "0x" + hx[2 * r : 2 * r + 2]
+        rr = int(ss, 16)
+        rgb.append(rr)
+    return rgb
 
 def main():
     print("started image_lib")
