@@ -329,7 +329,7 @@ class TestAmiSkeleton:
         skeleton_image = self.binarize_and_skeletonize_arrows().astype(np.uint16)
         assert type(skeleton_image) is np.ndarray
         ami_graph = AmiGraph.create_ami_graph(skeleton_image)
-        print(ami_graph)
+        print(f"ami_graph {ami_graph}")
         assert type(ami_graph) is AmiGraph
         print("node_dict", type(ami_graph.node_dict), ami_graph.node_dict)
 
@@ -358,5 +358,3 @@ class TestAmiSkeleton:
         islands = ami_skeleton.create_islands()
         self.bboxes = [self.create_bbox_for_island(island) for island in islands]
         return self.bboxes
-
-

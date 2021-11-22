@@ -461,7 +461,8 @@ class AmiIsland:
     def __init__(self):
         self.ami_skeleton = None
         self.node_ids = None
-        self.coords = None
+        self.nodes = []
+        self.coords_xy = None
 
     @classmethod
     def create_island(cls, node_ids, skeleton=None):
@@ -477,8 +478,9 @@ class AmiIsland:
 
     def __str__(self):
         s = f"nodes: {self.node_ids}; \n" + \
-            f"coords: {self.coords}\n" + \
-            f"skeleton {self.ami_skeleton}\n"
+            f"coords: {self.get_or_create_coords()}\n" + \
+            "\n"
+            # f"skeleton {self.ami_skeleton}\n" + \
 
         # if self.ami_skeleton is not None:
         #     s = s + \
@@ -502,26 +504,19 @@ class AmiIsland:
         bbox = None
         return bbox
 
-# class Bbox:
-#     def __init__(self, limits=None):
-#         self.set_limits(limits)
-#
-#     def set_limits(self, limits):
-#
-#         if limits is not None:
-#             assert len(limits) == 2 , "bbox limits should be a 2-tuple"
-#             self.limits[0] = copy(limits[0])
-#             assert is_ordered_numbers(limits[0]), f"{limits[0]} should be an ordered tuple"
-#             self.limits[1] = copy(limits[1])
-#             assert is_ordered_numbers(limits[1]), f"{limits[1]} should be an ordered tuple"
-#
-#     def get_width_height(self):
-#         """
-#
-#         :return: tuple (width, height) or None
-#         """
-#         if self.limits is not None:
-#             return (self.limits[0][1] - self.limits[0][0], self.limits[1][1] - self.limits[1][0])
+    def get_or_create_coords(self):
+        if self.coords_xy is None:
+            self.get_or_create_nodes()
+            self.coords_xy = []
+            for node in self.nodes:
+                coord_xy = node.get_coord_xy()
+                self.coords_xy.append(coord_xy)
+
+    def get_or_create_nodes(self):
+        if self.nodes is None and self.node_ids is not None:
+            self.nodes = []
+            for node_id in self.node_ids:
+                print(f"TODO resolve node from {node_id}")
 
 
 """Utils - could be moved to utils class"""
@@ -706,14 +701,14 @@ class AmiGraph:
         nx_graph = sknw.build_sknw(nd_skeleton)
         print("nx_graph", nx_graph)
         ami_graph.read_nx_graph(nx_graph)
-        ami_graph.ingest_graph_info()
+        print(f"***ami_graph\n {ami_graph}\n")
         return ami_graph
 
     def ingest_graph_info(self):
         if self.nx_graph is None:
             self.logger.warning("Null graph")
             return
-        print("graph", self.nx_graph)
+        # print("graph", self.nx_graph)
         nx_island_list = list(nx.connected_components(self.nx_graph))
         if nx_island_list is None or len(nx_island_list) == 0:
             self.logger.warning("No islands")
@@ -780,9 +775,9 @@ class AmiGraph:
     def read_nx_graph(self, nx_graph):
         self.ami_edges = []
         for (start, end) in nx_graph.edges():
-            points = nx_graph[start][end][AmiSkeleton.NODE_PTS]
+            points_xy = nx_graph[start][end][AmiSkeleton.NODE_PTS]
             ami_edge = AmiEdge()
-            ami_edge.read_nx_edge(points)
+            ami_edge.read_nx_edge(points_xy)
             self.ami_edges.append(ami_edge)
 
         # self.nodes_as_dicts = [nx_graph.node[ndidx] for ndidx in (nx_graph.nodes())]
@@ -793,10 +788,13 @@ class AmiGraph:
         for node_index in nodes:
             node_dict = nodes[node_index]
             ami_node = AmiNode()
+            ami_node.set_centroid_yx(nx_graph.nodes[node_index][AmiSkeleton.CENTROID])
             ami_node.read_nx_node(node_dict)
             self.ami_nodes.append(ami_node)
 
         self.nx_graph = nx_graph
+
+        self.ingest_graph_info()
         return
 
 class AmiNode:
@@ -806,6 +804,8 @@ class AmiNode:
     """
     def __init__(self):
         self.node_dict = {}
+        self.coords = None
+        self.centroid = None
 
     def read_nx_node(self, node_dict):
         """read dict for node, contains coordinates
@@ -814,6 +814,18 @@ class AmiNode:
         """
         self.node_dict = copy.deepcopy(node_dict)
 
+    def set_centroid_yx(self, point_yx):
+        """
+        set point in y,x, format
+        :param point_yx:
+        :return:
+        """
+        self.centroid = [point_yx[1], point_yx[0]] # note coords reverse in sknw
+        return
+
+    def __str__(self):
+        s = f"centroid {self.centroid}"
+        return s
 
 class AmiEdge:
     def __init__(self):
