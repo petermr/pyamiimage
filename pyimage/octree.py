@@ -4,8 +4,8 @@
 import imageio
 from pathlib import Path
 
-from pyimage.ColorModule import Color
-from pyimage.image_lib import ImageLib
+from ..pyimage.ColorModule import Color
+from ..pyimage.image_lib import ImageLib
 from PIL import Image
 
 class OctreeNode(object):

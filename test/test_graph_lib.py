@@ -1,5 +1,6 @@
 """graph classes and algorithms for managing pixel analyses"""
 
+from ..pyimage import graph_lib
 # import numpy
 from pathlib import Path
 from skimage import io

@@ -1,6 +1,6 @@
-from .pyimage import tesseract_hocr
+from ..pyimage import tesseract_hocr
 
-from test.resources import Resources
+from ..test.resources import Resources
 from skimage import io
 from matplotlib import pyplot as plt
 from pathlib import Path

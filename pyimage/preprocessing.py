@@ -8,7 +8,8 @@ from skimage import morphology
 from skimage import filters
 from pathlib import Path
 import matplotlib.pyplot as plt
-from pyimage.graph_lib import AmiGraph
+
+from ..pyimage.graph_lib import AmiGraph
 
 """
 The ImageProcessor class is current in development by PMR and Anuv for preprocessing images
