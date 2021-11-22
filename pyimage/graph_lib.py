@@ -10,7 +10,7 @@ from pathlib import Path
 from collections import deque
 from lxml.etree import Element, QName
 from lxml import etree
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from pyimage.svg import BBox
 
 
@@ -126,7 +126,7 @@ class AmiSkeleton:
         tt = np.where(t_image > 0)  # above threshold
         return t_image, tt
 
-    def binarize_skeletonize_sknw_nx_graph_plot(self, path, plot_plot=False):
+    def binarize_skeletonize_sknw_nx_graph_plot(self, path, plot_plot=True):
         """
         Creates skeleton and nx_graph and plots it
 
@@ -175,7 +175,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         self.plot_edges_nodes_and_title(title)
         return None
 
-    def plot_edges_nodes_and_title(self, title, plot_plot=False):
+    def plot_edges_nodes_and_title(self, title, plot_plot=True):
         """
         Requires nodes and edges to have been created
         :param title:
@@ -464,7 +464,7 @@ class AmiIsland:
         self.coords = None
 
     @classmethod
-    def create_island(cls, node_ids):
+    def create_island(cls, node_ids, skeleton=None):
         """
         create from a list of node_ids (maybe from sknw)
         :param node_ids:
@@ -472,6 +472,7 @@ class AmiIsland:
         """
         ami_island = AmiIsland()
         ami_island.node_ids = node_ids
+        ami_island.ami_skeleton = skeleton
         return ami_island
 
     def __str__(self):
@@ -479,21 +480,22 @@ class AmiIsland:
             f"coords: {self.coords}\n" + \
             f"skeleton {self.ami_skeleton}\n"
 
-        if self.ami_skeleton is not None:
-            s = s + \
-            f"skeleton_image {self.ami_skeleton.skeleton_image}\n" + \
-            f"binary {self.ami_skeleton.binary}\n" + \
-            f"nx_graph {self.ami_skeleton.nx_graph}\n" + \
-            f"edge xy {self.ami_skeleton.edge_xy_list}\n"+ \
-            f"node_xy {self.ami_skeleton.node_xy}\n" + \
-            f"nodes {self.ami_skeleton.nodes}\n" + \
-            f"image {self.ami_skeleton.image}\n" + \
-            f"path {self.ami_skeleton.path}\n" + \
-            f"binary {self.ami_skeleton.new_binary}\n" + \
-            f"plot_plot {self.ami_skeleton.plot_plot}\n" + \
-            f"islands {self.ami_skeleton.islands}\n" + \
-            f"boxes {self.ami_skeleton.bboxes}\n" + \
-            f"thresh {self.ami_skeleton.thresh}\n"
+        # if self.ami_skeleton is not None:
+        #     s = s + \
+        #     f"skeleton_image {self.ami_skeleton.skeleton_image}\n" + \
+        #     f"binary {self.ami_skeleton.binary}\n" + \
+        #     f"nx_graph {self.ami_skeleton.nx_graph}\n" + \
+        #     f"edge xy {self.ami_skeleton.edge_xy_list}\n"+ \
+        #     f"node_xy {self.ami_skeleton.node_xy}\n" + \
+        #     f"nodes {self.ami_skeleton.nodes}\n" + \
+        #     f"image {self.ami_skeleton.image}\n" + \
+        #     f"path {self.ami_skeleton.path}\n" + \
+        #     f"binary {self.ami_skeleton.new_binary}\n" + \
+        #     f"plot_plot {self.ami_skeleton.plot_plot}\n" + \
+        #     f"islands {self.ami_skeleton.islands}\n" + \
+        #     f"boxes {self.ami_skeleton.bboxes}\n" + \
+        #     f"thresh {self.ami_skeleton.thresh}\n"
+
         return s
 
     def get_raw_box(self):
@@ -634,7 +636,7 @@ class AmiGraph:
 
     logger = logging.getLogger("ami_graph")
 
-    def __init__(self, generate_nodes=True):
+    def __init__(self, generate_nodes=True, nd_skeleton=None):
         """create fro nodes and edges"""
         self.ami_node_dict = {}
         self.ami_edge_dict = {}
@@ -642,8 +644,9 @@ class AmiGraph:
         self.nx_graph = None
         self.ami_edges = None
         self.ami_nodes = None
-        self.island_list = None
+        self.ami_island_list = None
         self.node_dict = None
+        self.nd_skeleton = nd_skeleton
 
     def read_nodes(self, nodes):
         """create a list of AmiNodes """
@@ -681,7 +684,7 @@ class AmiGraph:
             self.add_edge(edge, idx)
 
     def add_edge(self, raw_edge, idx, fail_on_duplicate=True):
-        if fail_on_duplicate and self.ami_edge_dict[idx] is not None:
+        if fail_on_duplicate and idx in self.ami_edge_dict.keys():
             raise ValueError("duplicate edge")
 
         if raw_edge is None:
@@ -696,30 +699,64 @@ class AmiGraph:
                 self.add_raw_node(edge[1])
 
     @classmethod
-    def create_ami_graph(cls, skeleton_image):
+    def create_ami_graph(cls, nd_skeleton):
         """Uses Sknw to create a graph object within a new AmiGraph"""
         # currently only called in a test
-        ami_graph = AmiGraph()
-        nx_graph = sknw.build_sknw(skeleton_image)
+        ami_graph = AmiGraph(nd_skeleton=nd_skeleton)
+        nx_graph = sknw.build_sknw(nd_skeleton)
+        print("nx_graph", nx_graph)
         ami_graph.read_nx_graph(nx_graph)
+        ami_graph.ingest_graph_info()
         return ami_graph
 
-    def get_graph_info(self):
+    def ingest_graph_info(self):
         if self.nx_graph is None:
             self.logger.warning("Null graph")
             return
         print("graph", self.nx_graph)
-        self.island_list = list(nx.connected_components(self.nx_graph))
-        print("islands", self.island_list)
+        nx_island_list = list(nx.connected_components(self.nx_graph))
+        if nx_island_list is None or len(nx_island_list) == 0:
+            self.logger.warning("No islands")
+            return
+
+        self.assert_nx_island_info(nx_island_list)
+        nx_edgelist = self.get_edge_list_through_mininum_spanning_tree()
+        self.debug_edges_and_nodes(nx_edgelist, debug_count=7)
+        self.nodes = self.nx_graph.nodes
+        self.node_dict = {i: (self.nodes[node]["o"][0], self.nodes[node]["o"][1]) for i, node in enumerate(self.nodes)}
+
+        self.ami_island_list = []
+        for nx_island in nx_island_list:
+            ami_island = AmiIsland.create_island(nx_island, skeleton=self.nd_skeleton)
+            print(f"ami_island {ami_island}")
+            self.ami_island_list.append(ami_island)
+
+        return
+
+    def assert_nx_island_info(self, nx_island_list):
+        nx_island0 = nx_island_list[0]
+        assert type(nx_island0) is set
+        assert len(nx_island0) > 0
+        elem0 = list(nx_island0)[0]
+        assert type(elem0) is int, f"island elem are {type(elem0)}"
+        print("islands", self.ami_island_list)
+
+    def debug_edges_and_nodes(self, nx_edgelist, debug_count=5):
+        start_node = 0
+        end_node = 1
+        pts_index = 2
+        for edge in nx_edgelist[:debug_count]:
+            pts_ = edge[pts_index]['pts']
+            print(edge[start_node], edge[end_node], "pts in edge", len(pts_))
+        edgelist_pts_ = nx_edgelist[0][2]['pts']
+        for step in edgelist_pts_[:debug_count]:
+            print("step", step)
+
+    def get_edge_list_through_mininum_spanning_tree(self):
         mst = tree.maximum_spanning_edges(self.nx_graph, algorithm="kruskal", data=True)
         # mst = tree.minimum_spanning_tree(graph, algorithm="kruskal")
         nx_edgelist = list(mst)
-        for edge in nx_edgelist:
-            print(edge[0], edge[1], "pts in edge", len(edge[2]['pts']))
-        for step in nx_edgelist[0][2]['pts']:
-            print("step", step)
-        nodes = self.nx_graph.nodes
-        self.node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
+        return nx_edgelist
 
     @classmethod
     def set_bbox_pixels_to_color(cls, bbox, image, colorx=255):
@@ -759,6 +796,8 @@ class AmiGraph:
             ami_node.read_nx_node(node_dict)
             self.ami_nodes.append(ami_node)
 
+        self.nx_graph = nx_graph
+        return
 
 class AmiNode:
     """Node holds coordinates
