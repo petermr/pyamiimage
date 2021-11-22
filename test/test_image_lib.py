@@ -1,6 +1,6 @@
 # tests existing routines in image_lib
 
-from pyimage.image_lib import ImageLib
+from ..pyimage.image_lib import ImageLib
 import numpy
 
 """

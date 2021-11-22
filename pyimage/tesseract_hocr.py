@@ -2,7 +2,7 @@ import pytesseract
 from pathlib import Path
 from lxml import etree as et
 import numpy as np
-from pyimage.preprocessing import ImageProcessor
+from ..pyimage.preprocessing import ImageProcessor
 try:
     from pyami.py4ami import wikimedia
 except:

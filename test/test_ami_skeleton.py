@@ -1,13 +1,13 @@
 """Integration of image processing, binarization, skeletonization and netwprk analysis"""
 from skan.pre import threshold
 
-from test.resources import Resources
+from ..test.resources import Resources
 from skimage import filters, color, io, data, draw
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 import sknw
-from pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph, FloodFill
+from ..pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph, FloodFill
 
 
 class TestAmiSkeleton:
