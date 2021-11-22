@@ -635,6 +635,7 @@ class AmiNode:
 
 
 class AmiEdge:
+    """contains an edge represented by 2 nodes"""
     def __init__(self):
         pass
 
