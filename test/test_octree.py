@@ -69,8 +69,9 @@ Returns A new image
             "13068_2019_1355_Fig4_HTML",
             "fmicb-09-02460-g001",
             "pone.0054762.g004",
+            "emss-81481-f001",
             ]
-        quantizer = Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/alex_pico/"))
+        quantizer = Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/alex_pico/"), num_colors=16)
         for root in roots:
             quantizer.root = root
             quantizer.extract_color_streams()
