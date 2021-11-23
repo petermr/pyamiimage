@@ -1,0 +1,219 @@
+<svg xmlns="http://www.w3.org/2000/svg" height="972" width="1020">
+    <!-- edited in bboxes for arrows
+                 ((194, 217), (188, 242)),
+             ((194, 217), (298, 354)),
+             ((87, 219), (385, 786)),
+             ((193, 216), (410, 465)),
+             ((197, 219), (849, 904))]
+-->
+    <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7"
+        refX="0" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" stroke-width="1"/>
+        </marker>
+    </defs>
+
+    <g>
+        <a href="#">
+            <text x="201" y="45" font-size="28" stroke="black" font-family="sans-serif" on-click="">Straight chain ester biosynthesis from fatty acids</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="88" y="100" font-size="24" stroke="black" font-family="sans-serif" on-click="">Compounds</text>
+        </a>
+    </g>
+    <g>
+        <a href="https://www.wikidata.org/wiki/Q407426">
+            <text x="142" y="157" font-size="20" stroke="blue" font-family="sans-serif" on-click="">linoleic acid</text>
+        </a>
+    </g>
+    <g title="reaction">
+        <!-- ((194, 217), (188, 242)), -->
+        <rect x="185" y="180" width="20" height="60" fill="cyan" stroke="red" stroke-width="2" opacity="0.01">
+            <title>linoleic-&gt;13-HOO-linoleic</title>
+        </rect>
+        <!-- shorten y2 by length of arrowhead , i.e. 242 -10 -->
+        <line x1="195" x2="195" y1="180" y2="225" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+            <title>linoleic-&gt;13-HOO-linoleic</title>
+        </line>
+    </g>
+    <g>
+        <a href="#">
+            <text x="49" y="265" font-size="20" stroke="black" font-family="sans-serif" on-click="">13 hydroperoxide linoleic acid</text>
+        </a>
+    </g>
+        <g title="reaction">
+        <!--              ((194, 217), (298, 354)),
+, -->
+        <rect x="185" y="285" width="20" height="60" fill="cyan" stroke="red" stroke-width="2" opacity="0.01">
+            <title>reaction</title>
+        </rect>
+        <!-- shorten y2 by length of arrowhead , i.e. 242 -10 -->
+        <line x1="195" x2="195" y1="285" y2="330" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+        </line>
+        </g>
+
+    <g>
+        <a href="#">
+            <text x="150" y="373" font-size="20" stroke="black" font-family="sans-serif" on-click="">hex-3-enal</text>
+        </a>
+    </g>
+           <g title="reaction">
+        <!--              ((193, 216), (410, 465)),
+, -->
+        <rect x="210" y="390" width="20" height="60" fill="cyan" stroke="red" stroke-width="2" opacity="0.01">
+            <title>reaction</title>
+        </rect>
+        <!-- shorten y2 by length of arrowhead , i.e. 242 -10 -->
+        <line x1="220" x2="220" y1="390" y2="435" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+            <title></title>
+        </line>
+        </g>
+
+    <g>
+        <a href="#">
+            <text x="151" y="486" font-size="20" stroke="black" font-family="sans-serif" on-click="">hex-2-enal</text>
+        </a>
+    </g>
+               <g title="reaction">
+                   <!-- manually edited
+                  (             ((87, 219), (385, 786)),
+-->
+                   <!-- remove bbox -->
+<!--        <rect x="194" y="410" width="23" height="54" fill="cyan" stroke="red" stroke-width="2" opacity="0.2">
+            <title>reaction</title>
+        </rect>
+        -->
+                   <!-- move x -20 for clarity -->
+        <!-- shorten y2 by length of arrowhead , i.e. 242 -10 -->
+        <line x1="195" x2="195" y1="390" y2="600" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+        </line>
+        </g>
+
+
+    <g>
+        <a href="https://www.wikidata.org/wiki/Q27121592">
+            <text x="118" y="644" font-size="20" stroke="blue" font-family="sans-serif" on-click="">hex-3-enoic acid</text>
+        </a>
+    </g>
+        <line x1="170" x2="170" y1="390" y2="770" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+        </line>
+    <g>
+        <a href="">
+            <text x="153" y="808" font-size="20" stroke="black" font-family="sans-serif" on-click="">hex-3-enol</text>
+        </a>
+    </g>
+           
+        <!--              ((197, 219), (849, 904))]
+-->
+
+        <line x1="195" x2="195" y1="830" y2="880" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
+        </line>
+
+    <g>
+        <a href="https://www.wikidata.org/wiki/Q81984400">
+            <text x="112" y="923" font-size="20" stroke="blue" font-family="sans-serif" on-click="">hex-3-enyl acetate</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="407" y="103" font-size="24" stroke="black" font-family="sans-serif" on-click="">Enzyme</text>
+        </a>
+    </g>
+    <g>
+        <a href="https://www.wikidata.org/wiki/Q1827455">
+            <text x="390" y="191" font-size="20" stroke="blue" font-family="sans-serif" on-click="">lipoxygenase</text>
+        </a>
+    </g>
+    <g>
+        <a href="https://www.genome.jp/entry/1.13.11.12">
+            <text x="391" y="228" font-size="20" stroke="blue" font-family="sans-serif" on-click="">EC 1.13.11.12</text>
+        </a>
+    </g>
+    <g>
+        <a href="https://www.wikidata.org/wiki/Q48840062">
+            <text x="393" y="303" font-size="20" stroke="blue" font-family="sans-serif" on-click="">hydroperoxide lyase</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="394" y="333" font-size="20" stroke="black" font-family="sans-serif" on-click="">[CYT P450 74B]</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="394" y="415" font-size="20" stroke="black" font-family="sans-serif" on-click="">hydroperoxide isomerase</text>
+        </a>
+    </g>
+    <g>
+        <a href="https://www.genome.jp/entry/4.2.1.92">
+            <text x="392" y="451" font-size="20" stroke="blue" font-family="sans-serif" on-click="">EC 4.2.1.92</text>
+        </a>
+    </g>
+    <g>
+        <a href="https://www.wikidata.org/wiki/Q1116043">
+            <text x="394" y="569" font-size="20" stroke="blue" font-family="sans-serif" on-click="">aldehyde dehydrogenase</text>
+        </a>
+    </g>
+    <g>
+        <a href="https://www.genome.jp/entry/1.2.1.3">
+            <text x="393" y="605" font-size="20" stroke="blue" font-family="sans-serif" on-click="">EC 1.2.1.3</text>
+        </a>
+    </g>
+    <g>
+        <a href="https://www.wikidata.org/wiki/Q410754">
+            <text x="392" y="738" font-size="20" stroke="blue" font-family="sans-serif" on-click="">alcohol dehydrogenase</text>
+        </a>
+    </g>
+    <g>
+        <a href="https://www.genome.jp/entry/1.1.1.1">
+            <text x="391" y="777" font-size="20" stroke="blue" font-family="sans-serif" on-click="">EC 1.1.1.1</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="392" y="854" font-size="20" stroke="black" font-family="sans-serif" on-click="">alcohol acyl transferase</text>
+        </a>
+    </g>
+    <g>
+        <a href="https://www.genome.jp/entry/2.3.1.84">
+            <text x="391" y="892" font-size="20" stroke="blue" font-family="sans-serif" on-click="">EC 2.3.1.84</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="823" y="101" font-size="24" stroke="black" font-family="sans-serif" on-click="">ESTs</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="817" y="189" font-size="20" stroke="black" font-family="sans-serif" on-click="">(41,34,17,165)</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="817" y="304" font-size="20" stroke="black" font-family="sans-serif" on-click="">(4,1,3,29)</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="819" y="415" font-size="20" stroke="black" font-family="sans-serif" on-click="">(3,1,2,9)</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="819" y="568" font-size="20" stroke="black" font-family="sans-serif" on-click="">(27,10,17,143)</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="817" y="740" font-size="20" stroke="black" font-family="sans-serif" on-click="">(37,19,18,153)</text>
+        </a>
+    </g>
+    <g>
+        <a href="#">
+            <text x="817" y="853" font-size="20" stroke="black" font-family="sans-serif" on-click="">(3,1,2,10)</text>
+        </a>
+    </g>
+</svg>

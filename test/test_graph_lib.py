@@ -1,12 +1,12 @@
 """graph classes and algorithms for managing pixel analyses"""
 
-from pyimage import graph_lib
+from ..pyimage import graph_lib
 # import numpy
 from pathlib import Path
 from skimage import io
-from pyimage.graph_lib import AmiGraph, AmiNode, AmiEdge, AmiGraphError
 
 import unittest
+from ..pyimage.graph_lib import AmiGraph, AmiNode, AmiEdge, AmiGraphError
 """
 These tests are designed to test the preprocessing module
 containing the graph_lib module 

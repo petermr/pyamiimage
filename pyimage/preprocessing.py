@@ -1,3 +1,4 @@
+from networkx.classes.function import subgraph
 import numpy as np
 from skimage import io
 from skimage.color.colorconv import rgb2gray
@@ -6,6 +7,8 @@ from skimage import morphology
 from skimage import filters
 from pathlib import Path
 import matplotlib.pyplot as plt
+
+from ..pyimage.graph_lib import AmiGraph
 
 """
 The ImageProcessor class is current in development by PMR and Anuv for preprocessing images
@@ -47,10 +50,10 @@ class ImageProcessor:
         """convert existing self.image to grayscale
         uses rgb2gray from skimage.color.colorconv
         """
-        image_gray = None
+        self.image_gray = None
         if self.image is not None:
-            image_gray = rgb2gray(self.image)
-        return image_gray
+            self.image_gray = rgb2gray(self.image)
+        return self.image_gray
 
     def invert(self, image):
         """Inverts the brightness values of the image"""
@@ -60,10 +63,10 @@ class ImageProcessor:
     def skeletonize(self, image):
         """Returns a skeleton of the image"""
         mask = morphology.skeletonize(image)
-        skeleton = np.zeros(self.image.shape)
-        skeleton[mask] = 1
+        self.skeleton = np.zeros(self.image.shape)
+        self.skeleton[mask] = 1
         # print("Skeleton Image: ", self.skeleton)
-        return skeleton
+        return self.skeleton
 
     @classmethod
     def threshold(cls, image):
@@ -90,6 +93,9 @@ class ImageProcessor:
         return True
 
     def example1(self):
+        TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
+        # BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")
+        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
         print(BIOSYNTH_PATH_IMAGE)
         self.load_image(BIOSYNTH_PATH_IMAGE)
         # print(self.image)
@@ -107,8 +113,32 @@ class ImageProcessor:
         skeleton = self.skeletonize(binary_image)
         self.show_image(skeleton)
 
-    @classmethod
-    def get_maxx_maxy_non_pythonic(cls, node_dict, nodes):
+    def binarize_and_skeletonize_arrows(self):
+        TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
+        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
+        self.load_image(BIOSYNTH_PATH_IMAGE)
+
+        skeleton = self.invert_threshold_skeletonize()
+        return skeleton
+
+    def example_skeletonize_extract_subgraphs(self):
+        skeleton = self.binarize_and_skeletonize_arrows()
+        skeleton = skeleton.astype(np.uint16)
+        # print("skeleton values: ", skeleton)
+        print("skeleton type: ", type(skeleton))
+        print("skeleton value type: ", type(skeleton[0][0]))
+        print("skeleton shape:", skeleton.shape)
+
+        graph = AmiGraph.create_ami_graph(skeleton)
+        print("node_dict", graph)
+
+        fig, ax = plt.subplots()  # note we must use plt.subplots, not plt.subplot
+        # maxx, maxy = self.get_maxx_maxy_non_pythonic(node_dict, nodes)
+        # for edge in self.edges:
+        #     self.plot_line(node_dict, edge[0], edge[1], maxy)
+        # fig.savefig(Path(Path(__file__).parent.parent, "temp", "plotarrows.png"))
+
+    def get_maxx_maxy_non_pythonic(self, node_dict, nodes):
         maxx = -999999
         maxy = -999999
         for node, i in enumerate(nodes):

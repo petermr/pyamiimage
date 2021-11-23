@@ -1,14 +1,16 @@
 """Integration of image processing, binarization, skeletonization and netwprk analysis"""
 from skan.pre import threshold
 
-from test.resources import Resources
+from ..test.resources import Resources
 from skimage import filters, color, io, data, draw
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 import sknw
-from pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph, FloodFill
-from pyimage.preprocessing import ImageProcessor
+from ..pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph, FloodFill
+
+from ..pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph, FloodFill
+from ..pyimage.preprocessing import ImageProcessor
 from pathlib import Path
 import unittest
 
@@ -265,7 +267,8 @@ class TestAmiSkeleton:
             AmiGraph.set_bbox_pixels_to_color(bbox, cropped_image, color=127)
         fig, ax = plt.subplots()
         ax.imshow(cropped_image, cmap='gray')
-        plt.show()
+        if ami_skeleton.interactive:
+            plt.show()
         return
 
     @unittest.skipIf(skip_not_iterable, "'AmiIsland' object is not iterable")
@@ -291,7 +294,10 @@ class TestAmiSkeleton:
 
     @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
     def test_flood_fill_many_components_biosynth3(self):
-        ami_skeleton = AmiSkeleton()
+        """EXAMPLE finds the 5 arrows"""
+        ami_skeleton = AmiSkeleton(title="biosynth3")
+        ami_skeleton.interactive = True
+        ami_skeleton.interactive = False
         path = Resources.BIOSYNTH3
         ami_skeleton.create_and_plot_all_components(path, min_size=[30, 30])
         return
@@ -305,13 +311,17 @@ class TestAmiSkeleton:
         ami_skeleton = AmiSkeleton()
 
         biosynth_html = str(Resources.BIOSYNTH1_HOCR)
-        ami_skeleton.create_svg_from_hocr(biosynth_html)
+        ami_skeleton.create_svg_from_hocr(biosynth_html, "biosynth_1.svg")
 
     def test_hocr_to_svg_biosynth3(self):
         """creates textboxes for HOCR put and writes to temp/textbox"""
         ami_skeleton = AmiSkeleton()
 
-        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH3_HOCR))
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH3_HOCR), "biosynth_3.svg")
+
+    def test_hocr_to_svg_biosynth4to8(self):
+        """creates textboxes for HOCR put and writes to temp/textbox"""
+        ami_skeleton = AmiSkeleton()
 
 # the only use so far of AmiGraph
     def test_skeletonize(self):
@@ -329,7 +339,7 @@ class TestAmiSkeleton:
         skeleton_image = self.binarize_and_skeletonize_arrows().astype(np.uint16)
         assert type(skeleton_image) is np.ndarray
         ami_graph = AmiGraph.create_ami_graph(skeleton_image)
-        print(f"ami_graph {ami_graph}")
+        print(f"ami_graph: {ami_graph}")
         assert type(ami_graph) is AmiGraph
         print("node_dict", type(ami_graph.node_dict), ami_graph.node_dict)
 
@@ -358,3 +368,18 @@ class TestAmiSkeleton:
         islands = ami_skeleton.create_islands()
         self.bboxes = [self.create_bbox_for_island(island) for island in islands]
         return self.bboxes
+
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH4_HOCR), "biosynth_4.svg")
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH5_HOCR), "biosynth_5.svg")
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH6_HOCR), "biosynth_6.svg")
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH7_HOCR), "biosynth_7.svg")
+        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH8_HOCR), "biosynth_8.svg")
+
+    def test_flood_fill_many_components_biosynth4to8(self):
+        ami_skeleton = AmiSkeleton()
+        ami_skeleton.create_and_plot_all_components(Resources.BIOSYNTH4, min_size=[30, 30])
+        ami_skeleton.create_and_plot_all_components(Resources.BIOSYNTH5, min_size=[30, 30])
+        ami_skeleton.create_and_plot_all_components(Resources.BIOSYNTH6, min_size=[30, 30])
+        ami_skeleton.create_and_plot_all_components(Resources.BIOSYNTH7, min_size=[30, 30])
+        ami_skeleton.create_and_plot_all_components(Resources.BIOSYNTH8, min_size=[30, 30])
+        return

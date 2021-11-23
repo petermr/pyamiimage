@@ -1,8 +1,9 @@
-from pyimage import tesseract_hocr
+from ..pyimage import tesseract_hocr
 
-from test.resources import Resources
+from ..test.resources import Resources
 from skimage import io
 from matplotlib import pyplot as plt
+from pathlib import Path
 import numpy as np
 from skan.pre import threshold
 
@@ -14,23 +15,23 @@ These tests are for Test Driven Development
 """
 
 class TestTesseractHOCR():
-    def __init__(self) -> None:
-        self.path = Resources.BIOSYNTH3
-        self.hocr = tesseract_hocr.hocr_from_image_path(self.path)
-        self.root = tesseract_hocr.parse_hocr_string(self.hocr)
         
     def setup_method(self, method):
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
         """
         self.path = Resources.BIOSYNTH3
-        self.hocr = tesseract_hocr.hocr_from_image_path(self.path)
-        self.root = tesseract_hocr.parse_hocr_string(self.hocr)
+        self.ocr = tesseract_hocr.TesseractOCR()
+        self.hocr = self.ocr.hocr_from_image_path(self.path)
+        self.root = self.ocr.parse_hocr_string(self.hocr)
 
     def teardown_method(self, method):
         """teardown any state that was previously setup with a setup_method
         call."""
-        pass
+        self.path = None
+        self.ocr = None
+        self.hocr = None
+        self.root = None
 
     def test_basics_biosynth3(self):
         """Primarily for validating the image data which will be used elsewhere
@@ -79,35 +80,52 @@ class TestTesseractHOCR():
         return
 
     def test_pretty_print_html(self):
-        tesseract_hocr.pretty_print_html(self.root)
+        self.ocr.pretty_print_hocr(self.root)
 
     def test_extract_bbox_from_hocr(self):
-        bbox, words = tesseract_hocr.extract_bbox_from_hocr(self.root)
+        bbox, words = self.ocr.extract_bbox_from_hocr(self.root)
         print("Words: ", words)
 
     def test_find_phrases(self):
-        phrases, bbox_for_phrases = tesseract_hocr.find_phrases(self.root)
+        phrases, bbox_for_phrases = self.ocr.find_phrases(self.root)
         print("Phrases:", phrases)
         print("Bounding Boxes for phrases:", bbox_for_phrases)
         assert phrases is not None
         assert len(phrases) == 29
         assert len(bbox_for_phrases) == 29
 
+
     def test_phrase_wikidata_search(self):
         path = Resources.BIOSYNTH3
-        hocr = tesseract_hocr.hocr_from_image_path(path)
-        root = tesseract_hocr.parse_hocr_string(hocr)
-        phrases, bbox_for_phrases = tesseract_hocr.find_phrases(root)
-        qitems, desc = tesseract_hocr.wikidata_lookup(phrases)    
-        print("qitems: ", qitems)
-        print("desc: ", desc)    
+        hocr = self.ocr.hocr_from_image_path(path)
+        root = self.ocr.parse_hocr_string(hocr)
+        phrases, bbox_for_phrases = self.ocr.find_phrases(root)
+        try:
+            qitems, desc = self.ocr.wikidata_lookup(phrases)
+            print("qitems: ", qitems)
+            print("desc: ", desc)
+        except:
+            print("Wikidata lookup not working")
 
-def main():
-    tester = TestTesseractHOCR()
-    tester.test_pretty_print_html()
-    tester.test_extract_bbox_from_hocr()
-    tester.test_find_phrases()
-    # tester.test_phrase_wikidata_search()
 
-if __name__ == '__main__':
-    main()
+    def test_output_phrases_to_file(self):
+        sample_phrases = ["test phrase", "more test phrase", "one more"]
+        file = self.ocr.output_phrases_to_file(sample_phrases, 'test_file.txt')
+        phrases = []
+        with open(file, 'r') as f:
+            phrases = f.read().split('\n')
+        phrases.pop(-1) # remove empty string associated with last \n
+        assert file.exists()
+        assert phrases == sample_phrases
+
+    def test_extract_bbox_from_hocr(self):
+        test_hocr_file = Path(Path(__file__).parent, 'resources/tesseract_biosynth_path_3.hocr.html')
+        root = self.ocr.read_hocr_file(test_hocr_file)
+        bboxes, words = self.ocr.extract_bbox_from_hocr(root)
+        assert len(bboxes) == 60
+
+    def test_extract_bbox_from_image(self):
+        image_path = Path(Path(__file__).parent, 'resources/biosynth_path_3.png')
+        bboxes, words = self.ocr.extract_bbox_from_image(image_path)
+        assert len(bboxes) == 60
+        

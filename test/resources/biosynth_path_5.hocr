@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <title></title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+  <meta name='ocr-system' content='tesseract 5.0.0-beta-20210916-12-g19cc9' />
+  <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word ocrp_wconf'/>
+ </head>
+ <body>
+  <div class='ocr_page' id='page_1' title='image "biosynth_path_5.jpeg"; bbox 0 0 1280 1213; ppageno 0'>
+   <div class='ocr_carea' id='block_1_1' title="bbox 401 4 758 35">
+    <p class='ocr_par' id='par_1_1' lang='eng' title="bbox 401 4 758 35">
+     <span class='ocr_line' id='line_1_1' title="bbox 401 4 758 35; baseline 0 0; x_size 36.372093; x_descenders 5.3720932; x_ascenders 10">
+      <span class='ocrx_word' id='word_1_1' title='bbox 401 4 540 35; x_wconf 96'>Sorbitol</span>
+      <span class='ocrx_word' id='word_1_2' title='bbox 552 4 758 35; x_wconf 96'>metabolism</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_2' title="bbox 4 76 1276 1091">
+    <p class='ocr_par' id='par_1_2' lang='eng' title="bbox 4 76 1276 1091">
+     <span class='ocr_line' id='line_1_2' title="bbox 43 76 1178 125; baseline -0.003 -13; x_size 40; x_descenders 9; x_ascenders 10">
+      <span class='ocrx_word' id='word_1_3' title='bbox 43 77 254 125; x_wconf 96'>Compounds</span>
+      <span class='ocrx_word' id='word_1_4' title='bbox 477 76 620 124; x_wconf 96'>Enzyme</span>
+      <span class='ocrx_word' id='word_1_5' title='bbox 1088 79 1178 110; x_wconf 96'>ESTs</span>
+     </span>
+     <span class='ocr_line' id='line_1_3' title="bbox 137 212 172 252; baseline 0 0; x_size 50.907089; x_descenders 10.907088; x_ascenders 13.347044">
+      <span class='ocrx_word' id='word_1_6' title='bbox 137 212 172 252; x_wconf 45'>Vv</span>
+     </span>
+     <span class='ocr_line' id='line_1_4' title="bbox 4 277 299 310; baseline 0 -7; x_size 33; x_descenders 7; x_ascenders 8">
+      <span class='ocrx_word' id='word_1_7' title='bbox 4 277 113 310; x_wconf 93'>glucose</span>
+      <span class='ocrx_word' id='word_1_8' title='bbox 124 277 299 310; x_wconf 92'>6-phosphate</span>
+     </span>
+     <span class='ocr_line' id='line_1_5' title="bbox 137 322 1255 407; baseline 0.001 -56; x_size 32.956844; x_descenders 6.9568458; x_ascenders 9">
+      <span class='ocrx_word' id='word_1_9' title='bbox 137 322 172 407; x_wconf 55'>\</span>
+      <span class='ocrx_word' id='word_1_10' title='bbox 464 324 555 351; x_wconf 93'>aldose</span>
+      <span class='ocrx_word' id='word_1_11' title='bbox 567 324 742 358; x_wconf 92'>6-phosphate</span>
+      <span class='ocrx_word' id='word_1_12' title='bbox 752 325 888 351; x_wconf 96'>reductase</span>
+      <span class='ocrx_word' id='word_1_13' title='bbox 1080 326 1255 359; x_wconf 91'>(11,6,5,177)</span>
+     </span>
+     <span class='ocr_line' id='line_1_6' title="bbox 464 380 654 406; baseline 0 -1; x_size 35.005051; x_descenders 7.5; x_ascenders 9.1777782">
+      <span class='ocrx_word' id='word_1_14' title='bbox 464 380 508 406; x_wconf 93'>EC</span>
+      <span class='ocrx_word' id='word_1_15' title='bbox 523 380 654 405; x_wconf 92'>1.1.1.200</span>
+     </span>
+     <span class='ocr_line' id='line_1_7' title="bbox 8 429 304 462; baseline 0 -7; x_size 34; x_descenders 8; x_ascenders 8">
+      <span class='ocrx_word' id='word_1_16' title='bbox 8 429 117 455; x_wconf 92'>sorbitol</span>
+      <span class='ocrx_word' id='word_1_17' title='bbox 128 429 304 462; x_wconf 92'>6-phosphate</span>
+     </span>
+     <span class='ocr_line' id='line_1_8' title="bbox 464 481 1205 514; baseline 0 -7; x_size 33; x_descenders 7; x_ascenders 9">
+      <span class='ocrx_word' id='word_1_18' title='bbox 464 481 573 507; x_wconf 93'>sorbitol</span>
+      <span class='ocrx_word' id='word_1_19' title='bbox 584 481 790 514; x_wconf 92'>6-phosphatase</span>
+      <span class='ocrx_word' id='word_1_20' title='bbox 1179 481 1205 500; x_wconf 91'>-*</span>
+     </span>
+     <span class='ocr_line' id='line_1_9' title="bbox 137 480 638 565; baseline 0 -7; x_size 35.005051; x_descenders 7.5; x_ascenders 9.1777782">
+      <span class='ocrx_word' id='word_1_21' title='bbox 137 480 172 565; x_wconf 45'>|</span>
+      <span class='ocrx_word' id='word_1_22' title='bbox 466 533 511 558; x_wconf 93'>EC</span>
+      <span class='ocrx_word' id='word_1_23' title='bbox 523 533 638 558; x_wconf 92'>3.1.3.50</span>
+     </span>
+     <span class='ocr_line' id='line_1_10' title="bbox 100 587 208 613; baseline 0 0; x_size 33.366074; x_descenders 7.3660717; x_ascenders 8">
+      <span class='ocrx_word' id='word_1_24' title='bbox 100 587 208 613; x_wconf 96'>sorbitol</span>
+     </span>
+     <span class='ocr_line' id='line_1_11' title="bbox 150 658 153 714; baseline 0 0; x_size 71.269928; x_descenders 15.269924; x_ascenders 18.685862">
+      <span class='ocrx_word' id='word_1_25' title='bbox 150 658 153 714; x_wconf 53'>|</span>
+     </span>
+     <span class='ocr_line' id='line_1_12' title="bbox 150 725 1255 760; baseline 0.003 -10; x_size 34; x_descenders 8; x_ascenders 8">
+      <span class='ocrx_word' id='word_1_26' title='bbox 150 725 153 758; x_wconf 85'>i</span>
+      <span class='ocrx_word' id='word_1_27' title='bbox 467 725 575 751; x_wconf 96'>sorbitol</span>
+      <span class='ocrx_word' id='word_1_28' title='bbox 585 729 756 759; x_wconf 96'>transporters</span>
+      <span class='ocrx_word' id='word_1_29' title='bbox 1080 727 1255 760; x_wconf 88'>(18,7,11,97)</span>
+     </span>
+     <span class='ocr_line' id='line_1_13' title="bbox 150 769 153 781; baseline 0 0; x_size 35.005051; x_descenders 7.5; x_ascenders 9.1777782">
+      <span class='ocrx_word' id='word_1_30' title='bbox 150 769 153 781; x_wconf 59'>1</span>
+     </span>
+     <span class='ocr_line' id='line_1_14' title="bbox 134 836 169 861; baseline 0 0; x_size 35.005051; x_descenders 7.5; x_ascenders 9.1777782">
+      <span class='ocrx_word' id='word_1_31' title='bbox 134 836 169 861; x_wconf 69'>Vv</span>
+     </span>
+     <span class='ocr_line' id='line_1_15' title="bbox 100 902 209 928; baseline 0 0; x_size 33.366074; x_descenders 7.3660717; x_ascenders 8">
+      <span class='ocrx_word' id='word_1_32' title='bbox 100 902 209 928; x_wconf 96'>sorbitol</span>
+     </span>
+     <span class='ocr_line' id='line_1_16' title="bbox 137 952 1276 1037; baseline -0.002 -50; x_size 34; x_descenders 7; x_ascenders 9">
+      <span class='ocrx_word' id='word_1_33' title='bbox 137 952 172 1037; x_wconf 56'>\</span>
+      <span class='ocrx_word' id='word_1_34' title='bbox 467 960 576 987; x_wconf 96'>sorbitol</span>
+      <span class='ocrx_word' id='word_1_35' title='bbox 587 960 803 994; x_wconf 96'>dehydrogenase</span>
+      <span class='ocrx_word' id='word_1_36' title='bbox 1082 959 1276 992; x_wconf 87'>(23,15,8,299)</span>
+     </span>
+     <span class='ocr_line' id='line_1_17' title="bbox 465 1014 637 1039; baseline 0 0; x_size 35.005051; x_descenders 7.5; x_ascenders 9.1777782">
+      <span class='ocrx_word' id='word_1_37' title='bbox 465 1014 510 1039; x_wconf 93'>EC</span>
+      <span class='ocrx_word' id='word_1_38' title='bbox 524 1014 637 1039; x_wconf 90'>1.1.1.14</span>
+     </span>
+     <span class='ocr_line' id='line_1_18' title="bbox 98 1064 213 1091; baseline 0 0; x_size 34.366074; x_descenders 7.3660717; x_ascenders 9">
+      <span class='ocrx_word' id='word_1_39' title='bbox 98 1064 213 1091; x_wconf 95'>fructose</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_3' title="bbox 137 1125 172 1209">
+    <p class='ocr_par' id='par_1_3' lang='eng' title="bbox 137 1125 172 1209">
+     <span class='ocr_line' id='line_1_19' title="bbox 153 1125 156 1136; baseline 0 0; x_size 27; x_descenders 6; x_ascenders 9">
+      <span class='ocrx_word' id='word_1_40' title='bbox 153 1125 156 1136; x_wconf 12'>\</span>
+     </span>
+     <span class='ocr_line' id='line_1_20' title="bbox 153 1147 156 1158; baseline 0 0; x_size 27; x_descenders 6; x_ascenders 9">
+      <span class='ocrx_word' id='word_1_41' title='bbox 153 1147 156 1158; x_wconf 0'>f</span>
+     </span>
+     <span class='ocr_line' id='line_1_21' title="bbox 153 1169 156 1181; baseline 0 0; x_size 27; x_descenders 6; x_ascenders 9">
+      <span class='ocrx_word' id='word_1_42' title='bbox 153 1169 156 1181; x_wconf 12'>f</span>
+     </span>
+     <span class='ocr_line' id='line_1_22' title="bbox 137 1188 172 1209; baseline 0 0; x_size 27; x_descenders 6; x_ascenders 9">
+      <span class='ocrx_word' id='word_1_43' title='bbox 137 1188 172 1209; x_wconf 42'>VY</span>
+     </span>
+    </p>
+   </div>
+  </div>
+ </body>
+</html>

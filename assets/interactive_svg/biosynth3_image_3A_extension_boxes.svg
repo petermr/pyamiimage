@@ -35,7 +35,7 @@
         </rect>
         <!-- shorten y2 by length of arrowhead , i.e. 242 -10 -->
         <line x1="206" x2="206" y1="188" y2="232" stroke="green" stroke-width="2" marker-end="url(#arrowhead)">
-            <title>linoleic-13-HOO-linoleic</title>
+            <title>linoleic-&gt;13-HOO-linoleic</title>
         </line>
     </g>
     <g>

@@ -12,6 +12,7 @@ from lxml.etree import Element, QName
 from lxml import etree
 import matplotlib.pyplot as plt
 from pyimage.svg import BBox
+import os
 
 
 class AmiSkeleton:
@@ -59,6 +60,8 @@ class AmiSkeleton:
         self.image = None
         self.path = None
         self.new_binary = None
+        self.interactive = False
+        self.title = title
         self.plot_plot = plot_plot
         self.islands = None
         self.bboxes = None
@@ -191,6 +194,16 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         if plot_plot:
             plt.show()
 
+        path = Path(Path(__file__).parent.parent, "temp/figs")
+        if not path.exists():
+            path.mkdir()
+        fig = Path(path, f"{title}.png")
+        if fig.exists():
+            os.remove(fig)
+        plt.savefig(fig, format="png")
+        if self.interactive:
+            plt.show()
+
     def get_nodes_and_edges_from_nx_graph(self):
         """
         creates nodes and edges from graph
@@ -246,13 +259,13 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         node_xy = np.reshape(node_xy, (npoints, 2))
         return node_xy
 
-    def extract_coords_for_node(self, isd):
+    def extract_coords_for_node(self, id):
         """
         gets coords for a single node with given id
-        :param isd: normally an int
+        :param id: normally an int
         :return:
         """
-        node_data = self.nx_graph.nodes[isd]
+        node_data = self.nx_graph.nodes[id]
         centroid = node_data[AmiSkeleton.CENTROID]
         centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
         return centroid
@@ -310,12 +323,11 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         start_node_index = list(component)[0]  # take first node
         start_node = self.nodes[start_node_index]
-        print("type start_node")
-        # TODO this may be a bug
         start_pixel = start_node[self.NODE_PTS][0]  # may be a list of xy for a complex node always pick first
         flooder = FloodFill()
-        flooder.flood_fill(self.binary, start_pixel)
-        flooder.plot_used_pixels()
+        pixels = flooder.flood_fill(self.binary, start_pixel)
+        if self.interactive:
+            flooder.plot_used_pixels()
 
     @classmethod
     def get_width_height(cls, bbox):
@@ -768,8 +780,8 @@ class AmiGraph:
         return image
 
     def __str__(self):
-        s = "nodes: " + str(self.ami_node_dict) + \
-            "\n edges: " + str(self.ami_edge_dict)
+        s = "nodes: " + str(self.ami_nodes) + \
+            "\n edges: " + str(self.ami_edges)
         return s
 
     def read_nx_graph(self, nx_graph):
@@ -823,6 +835,10 @@ class AmiNode:
         self.centroid = [point_yx[1], point_yx[0]] # note coords reverse in sknw
         return
 
+    def __repr__(self):
+        s = str(self.coords) + "\n" + str(self.centroid)
+        return s
+
     def __str__(self):
         s = f"centroid {self.centroid}"
         return s
@@ -830,11 +846,27 @@ class AmiNode:
 class AmiEdge:
     def __init__(self):
         self.points = None
+        self.bbox = None
 
     def read_nx_edge(self, points):
         self.points = points
         # points are in separate columns (y, x)
         # print("coord", points[:, 1], points[:, 0], 'green')
+
+    def __repr__(self):
+        s = ""
+        if self.points is not None:
+            s = f"ami edge pts: {self.points[0]} .. {len(str(self.points))} .. {self.points[-1]}"
+        return s
+
+    def get_or_create_bbox(self):
+        if self.bbox is None and self.points is not None:
+            self.bbox = BBox()
+            for point in self.points:
+                self.bbox.add_point(point)
+
+        return self.bbox
+
 
 
 class AmiGraphError(Exception):

@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <title></title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+  <meta name='ocr-system' content='tesseract 5.0.0-beta-20210916-12-g19cc9' />
+  <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word ocrp_wconf'/>
+ </head>
+ <body>
+  <div class='ocr_page' id='page_1' title='image "biosynth_path_8.jpeg"; bbox 0 0 935 1280; ppageno 0'>
+   <div class='ocr_carea' id='block_1_1' title="bbox 153 3 804 32">
+    <p class='ocr_par' id='par_1_1' lang='eng' title="bbox 153 3 804 32">
+     <span class='ocr_line' id='line_1_1' title="bbox 153 3 804 32; baseline 0 -7; x_size 29; x_descenders 7; x_ascenders 7">
+      <span class='ocrx_word' id='word_1_1' title='bbox 153 3 280 32; x_wconf 91'>Terpenoid</span>
+      <span class='ocrx_word' id='word_1_2' title='bbox 287 3 442 32; x_wconf 96'>biosynthesis</span>
+      <span class='ocrx_word' id='word_1_3' title='bbox 452 3 490 25; x_wconf 96'>via</span>
+      <span class='ocrx_word' id='word_1_4' title='bbox 498 3 536 25; x_wconf 96'>the</span>
+      <span class='ocrx_word' id='word_1_5' title='bbox 545 3 689 25; x_wconf 96'>mevalonate</span>
+      <span class='ocrx_word' id='word_1_6' title='bbox 698 3 804 32; x_wconf 96'>pathway</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_2' title="bbox 58 63 209 92">
+    <p class='ocr_par' id='par_1_2' lang='eng' title="bbox 58 63 209 92">
+     <span class='ocr_line' id='line_1_2' title="bbox 58 63 209 92; baseline 0 -7; x_size 29; x_descenders 7; x_ascenders 7">
+      <span class='ocrx_word' id='word_1_7' title='bbox 58 63 209 92; x_wconf 96'>Compounds</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_3' title="bbox 367 63 469 91">
+    <p class='ocr_par' id='par_1_3' lang='eng' title="bbox 367 63 469 91">
+     <span class='ocr_line' id='line_1_3' title="bbox 367 63 469 91; baseline 0 -6; x_size 28; x_descenders 6; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_8' title='bbox 367 63 469 91; x_wconf 96'>Enzyme</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_4' title="bbox 815 57 880 80">
+    <p class='ocr_par' id='par_1_4' lang='eng' title="bbox 815 57 880 80">
+     <span class='ocr_line' id='line_1_4' title="bbox 815 57 880 80; baseline 0.015 -1; x_size 27.647058; x_descenders 5.647059; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_9' title='bbox 815 57 880 80; x_wconf 96'>ESTs</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_5' title="bbox 75 126 188 141">
+    <p class='ocr_par' id='par_1_5' lang='eng' title="bbox 75 126 188 141">
+     <span class='ocr_line' id='line_1_5' title="bbox 75 126 188 141; baseline 0.009 -1; x_size 16; x_descenders 4; x_ascenders 4">
+      <span class='ocrx_word' id='word_1_10' title='bbox 75 126 188 141; x_wconf 95'>mevalonate</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_6' title="bbox 362 152 543 170">
+    <p class='ocr_par' id='par_1_6' lang='eng' title="bbox 362 152 543 170">
+     <span class='ocr_line' id='line_1_6' title="bbox 362 152 543 170; baseline 0 0; x_size 23.279999; x_descenders 5.2799997; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_11' title='bbox 362 152 474 170; x_wconf 96'>mevalonate</span>
+      <span class='ocrx_word' id='word_1_12' title='bbox 481 152 543 170; x_wconf 96'>kinase</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_7' title="bbox 814 152 896 175">
+    <p class='ocr_par' id='par_1_7' lang='eng' title="bbox 814 152 896 175">
+     <span class='ocr_line' id='line_1_7' title="bbox 814 152 896 175; baseline 0 -1; x_size 28.799999; x_descenders 7.1999998; x_ascenders 7.1999998">
+      <span class='ocrx_word' id='word_1_13' title='bbox 814 152 896 175; x_wconf 86'>(3,3,0,3)</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_8' title="bbox 121 195 144 210">
+    <p class='ocr_par' id='par_1_8' lang='eng' title="bbox 121 195 144 210">
+     <span class='ocr_line' id='line_1_8' title="bbox 121 195 144 210; baseline 0 0; x_size 20.666666; x_descenders 5.1666665; x_ascenders 5.1666665">
+      <span class='ocrx_word' id='word_1_14' title='bbox 121 195 144 210; x_wconf 81'>Vv</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_9' title="bbox 362 187 478 205">
+    <p class='ocr_par' id='par_1_9' lang='eng' title="bbox 362 187 478 205">
+     <span class='ocr_line' id='line_1_9' title="bbox 362 187 478 205; baseline 0.009 -1; x_size 24.166666; x_descenders 6.0416665; x_ascenders 6.0416665">
+      <span class='ocrx_word' id='word_1_15' title='bbox 362 187 392 205; x_wconf 92'>EC</span>
+      <span class='ocrx_word' id='word_1_16' title='bbox 400 187 478 205; x_wconf 91'>2.7.1.36</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_10' title="bbox 24 226 240 249">
+    <p class='ocr_par' id='par_1_10' lang='eng' title="bbox 24 226 240 249">
+     <span class='ocr_line' id='line_1_10' title="bbox 24 226 240 249; baseline 0 -5; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_17' title='bbox 24 226 240 249; x_wconf 91'>5-phosphomevalonate</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_11' title="bbox 362 260 627 283">
+    <p class='ocr_par' id='par_1_11' lang='eng' title="bbox 362 260 627 283">
+     <span class='ocr_line' id='line_1_11' title="bbox 362 260 627 283; baseline 0 -5; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_18' title='bbox 362 260 558 283; x_wconf 91'>phosphomevalonate</span>
+      <span class='ocrx_word' id='word_1_19' title='bbox 565 260 627 278; x_wconf 96'>kinase</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_12' title="bbox 812 261 894 284">
+    <p class='ocr_par' id='par_1_12' lang='eng' title="bbox 812 261 894 284">
+     <span class='ocr_line' id='line_1_12' title="bbox 812 261 894 284; baseline 0.012 -1; x_size 29; x_descenders 7.25; x_ascenders 7.25">
+      <span class='ocrx_word' id='word_1_20' title='bbox 812 261 894 284; x_wconf 89'>(1,0,1,4)</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_13' title="bbox 121 299 144 314">
+    <p class='ocr_par' id='par_1_13' lang='eng' title="bbox 121 299 144 314">
+     <span class='ocr_line' id='line_1_13' title="bbox 121 299 144 314; baseline 0 0; x_size 20.666666; x_descenders 5.1666665; x_ascenders 5.1666665">
+      <span class='ocrx_word' id='word_1_21' title='bbox 121 299 144 314; x_wconf 76'>Vv</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_14' title="bbox 362 298 466 315">
+    <p class='ocr_par' id='par_1_14' lang='eng' title="bbox 362 298 466 315">
+     <span class='ocr_line' id='line_1_14' title="bbox 362 298 466 315; baseline 0 0; x_size 23.333334; x_descenders 5.8333335; x_ascenders 5.8333335">
+      <span class='ocrx_word' id='word_1_22' title='bbox 362 298 392 315; x_wconf 92'>EC</span>
+      <span class='ocrx_word' id='word_1_23' title='bbox 400 298 466 315; x_wconf 92'>2.7.4.2</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_15' title="bbox 17 329 247 351">
+    <p class='ocr_par' id='par_1_15' lang='eng' title="bbox 17 329 247 351">
+     <span class='ocr_line' id='line_1_15' title="bbox 17 329 247 351; baseline 0 -5; x_size 22; x_descenders 5; x_ascenders 5">
+      <span class='ocrx_word' id='word_1_24' title='bbox 17 329 247 351; x_wconf 92'>5-diphosphomevalorate</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_16' title="bbox 363 362 747 385">
+    <p class='ocr_par' id='par_1_16' lang='eng' title="bbox 363 362 747 385">
+     <span class='ocr_line' id='line_1_16' title="bbox 363 362 747 385; baseline 0 -5; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_25' title='bbox 363 362 476 380; x_wconf 95'>mevalonate</span>
+      <span class='ocrx_word' id='word_1_26' title='bbox 483 362 600 385; x_wconf 96'>diphosphate</span>
+      <span class='ocrx_word' id='word_1_27' title='bbox 608 362 747 385; x_wconf 96'>decarboxylase</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_17' title="bbox 813 362 908 385">
+    <p class='ocr_par' id='par_1_17' lang='eng' title="bbox 813 362 908 385">
+     <span class='ocr_line' id='line_1_17' title="bbox 813 362 908 385; baseline 0 -5; x_size 33.25; x_descenders 5.5; x_ascenders 9.25">
+      <span class='ocrx_word' id='word_1_28' title='bbox 813 362 908 385; x_wconf 85'>(4,2,2,17)</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_18' title="bbox 121 406 144 421">
+    <p class='ocr_par' id='par_1_18' lang='eng' title="bbox 121 406 144 421">
+     <span class='ocr_line' id='line_1_18' title="bbox 121 406 144 421; baseline 0 0; x_size 20.666666; x_descenders 5.1666665; x_ascenders 5.1666665">
+      <span class='ocrx_word' id='word_1_29' title='bbox 121 406 144 421; x_wconf 80'>Vv</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_19' title="bbox 362 397 477 414">
+    <p class='ocr_par' id='par_1_19' lang='eng' title="bbox 362 397 477 414">
+     <span class='ocr_line' id='line_1_19' title="bbox 362 397 477 414; baseline 0 0; x_size 23.333334; x_descenders 5.8333335; x_ascenders 5.8333335">
+      <span class='ocrx_word' id='word_1_30' title='bbox 362 397 392 414; x_wconf 93'>EC</span>
+      <span class='ocrx_word' id='word_1_31' title='bbox 399 397 477 414; x_wconf 87'>4.1.1.33</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_20' title="bbox 13 436 250 459">
+    <p class='ocr_par' id='par_1_20' lang='eng' title="bbox 13 436 250 459">
+     <span class='ocr_line' id='line_1_20' title="bbox 13 436 250 459; baseline -0.004 -5; x_size 23; x_descenders 5; x_ascenders 5">
+      <span class='ocrx_word' id='word_1_32' title='bbox 13 436 125 459; x_wconf 82'>isopenteny]</span>
+      <span class='ocrx_word' id='word_1_33' title='bbox 132 436 250 458; x_wconf 96'>diphosphate</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_21' title="bbox 360 475 577 498">
+    <p class='ocr_par' id='par_1_21' lang='eng' title="bbox 360 475 577 498">
+     <span class='ocr_line' id='line_1_21' title="bbox 360 475 577 498; baseline 0 -5; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_34' title='bbox 360 475 486 498; x_wconf 93'>polyisoprene</span>
+      <span class='ocrx_word' id='word_1_35' title='bbox 494 475 577 498; x_wconf 96'>synthase</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_22' title="bbox 812 470 906 492">
+    <p class='ocr_par' id='par_1_22' lang='eng' title="bbox 812 470 906 492">
+     <span class='ocr_line' id='line_1_22' title="bbox 812 470 906 492; baseline 0 -1; x_size 28.666666; x_descenders 7.1666665; x_ascenders 7.1666665">
+      <span class='ocrx_word' id='word_1_36' title='bbox 812 470 906 492; x_wconf 91'>(4,1,3,22)</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_23' title="bbox 115 469 144 526">
+    <p class='ocr_par' id='par_1_23' lang='eng' title="bbox 115 469 144 526">
+     <span class='ocr_line' id='line_1_23' title="bbox 115 469 144 526; baseline 0 0; x_size 76.666664; x_descenders 19.166666; x_ascenders 19.166666">
+      <span class='ocrx_word' id='word_1_37' title='bbox 115 469 144 526; x_wconf 45'>{</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_24' title="bbox 363 505 466 523">
+    <p class='ocr_par' id='par_1_24' lang='eng' title="bbox 363 505 466 523">
+     <span class='ocr_line' id='line_1_24' title="bbox 363 505 466 523; baseline 0 0; x_size 24.333334; x_descenders 6.0833335; x_ascenders 6.0833335">
+      <span class='ocrx_word' id='word_1_38' title='bbox 363 505 393 523; x_wconf 95'>EC</span>
+      <span class='ocrx_word' id='word_1_39' title='bbox 401 505 466 523; x_wconf 95'>5.3.3.2</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_25' title="bbox 4 544 259 567">
+    <p class='ocr_par' id='par_1_25' lang='eng' title="bbox 4 544 259 567">
+     <span class='ocr_line' id='line_1_25' title="bbox 4 544 259 567; baseline 0 -5; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_40' title='bbox 4 544 127 567; x_wconf 83'>dimethylallyl</span>
+      <span class='ocrx_word' id='word_1_41' title='bbox 141 544 259 567; x_wconf 97'>diphosphate</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_26' title="bbox 364 585 740 608">
+    <p class='ocr_par' id='par_1_26' lang='eng' title="bbox 364 585 740 608">
+     <span class='ocr_line' id='line_1_26' title="bbox 364 585 740 608; baseline 0 -5; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_42' title='bbox 364 585 579 608; x_wconf 89'>isopentyl-diphosphate</span>
+      <span class='ocrx_word' id='word_1_43' title='bbox 587 585 740 603; x_wconf 91'>delta-isomerase</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_27' title="bbox 812 586 931 609">
+    <p class='ocr_par' id='par_1_27' lang='eng' title="bbox 812 586 931 609">
+     <span class='ocr_line' id='line_1_27' title="bbox 812 586 931 609; baseline 0 -5; x_size 31.75; x_descenders 5.5; x_ascenders 8.75">
+      <span class='ocrx_word' id='word_1_44' title='bbox 812 586 931 609; x_wconf 92'>(12,3,9,103)</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_28' title="bbox 118 619 142 635">
+    <p class='ocr_par' id='par_1_28' lang='eng' title="bbox 118 619 142 635">
+     <span class='ocr_line' id='line_1_28' title="bbox 118 619 142 635; baseline 0 0; x_size 22; x_descenders 5.5; x_ascenders 5.5">
+      <span class='ocrx_word' id='word_1_45' title='bbox 118 619 142 635; x_wconf 70'>Vv</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_29' title="bbox 363 622 467 640">
+    <p class='ocr_par' id='par_1_29' lang='eng' title="bbox 363 622 467 640">
+     <span class='ocr_line' id='line_1_29' title="bbox 363 622 467 640; baseline 0 0; x_size 24; x_descenders 6; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_46' title='bbox 363 622 393 640; x_wconf 88'>EC</span>
+      <span class='ocrx_word' id='word_1_47' title='bbox 400 622 467 640; x_wconf 86'>2.5.1.x</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_30' title="bbox 31 660 428 685">
+    <p class='ocr_par' id='par_1_30' lang='eng' title="bbox 31 660 428 685">
+     <span class='ocr_line' id='line_1_30' title="bbox 31 660 428 685; baseline -0.008 -6; x_size 22; x_descenders 5; x_ascenders 5">
+      <span class='ocrx_word' id='word_1_48' title='bbox 31 662 104 685; x_wconf 77'>geranyl</span>
+      <span class='ocrx_word' id='word_1_49' title='bbox 111 662 229 685; x_wconf 93'>diphosphate</span>
+      <span class='ocrx_word' id='word_1_50' title='bbox 237 662 271 685; x_wconf 82'>—&gt;</span>
+      <span class='ocrx_word' id='word_1_51' title='bbox 277 660 428 682; x_wconf 96'>[monoterpenes]</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_31' title="bbox 363 697 580 720">
+    <p class='ocr_par' id='par_1_31' lang='eng' title="bbox 363 697 580 720">
+     <span class='ocr_line' id='line_1_31' title="bbox 363 697 580 720; baseline 0 -5; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_52' title='bbox 363 697 489 720; x_wconf 93'>polyisoprene</span>
+      <span class='ocrx_word' id='word_1_53' title='bbox 497 697 580 720; x_wconf 96'>synthase</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_32' title="bbox 813 696 932 719">
+    <p class='ocr_par' id='par_1_32' lang='eng' title="bbox 813 696 932 719">
+     <span class='ocr_line' id='line_1_32' title="bbox 813 696 932 719; baseline 0 -5; x_size 31.75; x_descenders 5.5; x_ascenders 8.75">
+      <span class='ocrx_word' id='word_1_54' title='bbox 813 696 932 719; x_wconf 89'>(12,3,9,103)</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_33' title="bbox 363 733 467 751">
+    <p class='ocr_par' id='par_1_33' lang='eng' title="bbox 363 733 467 751">
+     <span class='ocr_line' id='line_1_33' title="bbox 363 733 467 751; baseline -0.01 0; x_size 23.111111; x_descenders 5.7777777; x_ascenders 5.7777777">
+      <span class='ocrx_word' id='word_1_55' title='bbox 363 733 393 751; x_wconf 89'>EC</span>
+      <span class='ocrx_word' id='word_1_56' title='bbox 400 733 467 751; x_wconf 85'>2.5.1.x</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_34' title="bbox 118 738 142 753">
+    <p class='ocr_par' id='par_1_34' lang='eng' title="bbox 118 738 142 753">
+     <span class='ocr_line' id='line_1_34' title="bbox 118 738 142 753; baseline 0 0; x_size 20.666666; x_descenders 5.1666665; x_ascenders 5.1666665">
+      <span class='ocrx_word' id='word_1_57' title='bbox 118 738 142 753; x_wconf 82'>Vv</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_35' title="bbox 28 770 434 796">
+    <p class='ocr_par' id='par_1_35' lang='eng' title="bbox 28 770 434 796">
+     <span class='ocr_line' id='line_1_35' title="bbox 28 770 434 796; baseline -0.002 -7; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_58' title='bbox 28 772 106 794; x_wconf 75'>farnesyl</span>
+      <span class='ocrx_word' id='word_1_59' title='bbox 113 772 231 794; x_wconf 96'>diphosphate</span>
+      <span class='ocrx_word' id='word_1_60' title='bbox 250 772 262 796; x_wconf 64'>&gt;</span>
+      <span class='ocrx_word' id='word_1_61' title='bbox 277 770 434 793; x_wconf 88'>[sesquiterpenes]</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_36' title="bbox 363 803 581 826">
+    <p class='ocr_par' id='par_1_36' lang='eng' title="bbox 363 803 581 826">
+     <span class='ocr_line' id='line_1_36' title="bbox 363 803 581 826; baseline 0 -5; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_62' title='bbox 363 803 490 826; x_wconf 91'>polyisoprene</span>
+      <span class='ocrx_word' id='word_1_63' title='bbox 498 803 581 826; x_wconf 96'>synthase</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_37' title="bbox 812 802 931 824">
+    <p class='ocr_par' id='par_1_37' lang='eng' title="bbox 812 802 931 824">
+     <span class='ocr_line' id='line_1_37' title="bbox 812 802 931 824; baseline 0.008 -5; x_size 24.133333; x_descenders 6.0333333; x_ascenders 6.0333333">
+      <span class='ocrx_word' id='word_1_64' title='bbox 812 802 931 824; x_wconf 92'>(12,3,9,103)</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_38' title="bbox 119 847 142 862">
+    <p class='ocr_par' id='par_1_38' lang='eng' title="bbox 119 847 142 862">
+     <span class='ocr_line' id='line_1_38' title="bbox 119 847 142 862; baseline 0 0; x_size 20.666666; x_descenders 5.1666665; x_ascenders 5.1666665">
+      <span class='ocrx_word' id='word_1_65' title='bbox 119 847 142 862; x_wconf 81'>Vv</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_39' title="bbox 363 837 467 854">
+    <p class='ocr_par' id='par_1_39' lang='eng' title="bbox 363 837 467 854">
+     <span class='ocr_line' id='line_1_39' title="bbox 363 837 467 854; baseline 0 0; x_size 23.200001; x_descenders 5.8000002; x_ascenders 5.8000002">
+      <span class='ocrx_word' id='word_1_66' title='bbox 363 837 393 854; x_wconf 88'>EC</span>
+      <span class='ocrx_word' id='word_1_67' title='bbox 401 837 467 854; x_wconf 88'>2.5.1.x</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_40' title="bbox 54 877 200 900">
+    <p class='ocr_par' id='par_1_40' lang='eng' title="bbox 54 877 200 900">
+     <span class='ocr_line' id='line_1_40' title="bbox 54 877 200 900; baseline -0.007 -5; x_size 23; x_descenders 6; x_ascenders 4">
+      <span class='ocrx_word' id='word_1_68' title='bbox 54 877 200 900; x_wconf 90'>geranylgeranyl</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_41' title="bbox 235 875 391 899">
+    <p class='ocr_par' id='par_1_41' lang='eng' title="bbox 235 875 391 899">
+     <span class='ocr_line' id='line_1_41' title="bbox 235 875 391 899; baseline 0 -5; x_size 24; x_descenders 5; x_ascenders 7">
+      <span class='ocrx_word' id='word_1_69' title='bbox 235 875 269 898; x_wconf 79'>—&gt;</span>
+      <span class='ocrx_word' id='word_1_70' title='bbox 277 877 391 899; x_wconf 96'>[diterpenes]</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_42' title="bbox 54 906 171 929">
+    <p class='ocr_par' id='par_1_42' lang='eng' title="bbox 54 906 171 929">
+     <span class='ocr_line' id='line_1_42' title="bbox 54 906 171 929; baseline 0 -5; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_71' title='bbox 54 906 171 929; x_wconf 96'>diphosphate</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_43' title="bbox 364 961 540 984">
+    <p class='ocr_par' id='par_1_43' lang='eng' title="bbox 364 961 540 984">
+     <span class='ocr_line' id='line_1_43' title="bbox 364 961 540 984; baseline 0 -5; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_72' title='bbox 364 961 449 984; x_wconf 96'>squalene</span>
+      <span class='ocrx_word' id='word_1_73' title='bbox 457 961 540 984; x_wconf 96'>synthase</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_44' title="bbox 811 960 906 983">
+    <p class='ocr_par' id='par_1_44' lang='eng' title="bbox 811 960 906 983">
+     <span class='ocr_line' id='line_1_44' title="bbox 811 960 906 983; baseline 0 0; x_size 30.444445; x_descenders 7.6111112; x_ascenders 7.6111112">
+      <span class='ocrx_word' id='word_1_74' title='bbox 811 960 906 983; x_wconf 91'>(4,0,4,26)</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_45' title="bbox 121 1011 144 1026">
+    <p class='ocr_par' id='par_1_45' lang='eng' title="bbox 121 1011 144 1026">
+     <span class='ocr_line' id='line_1_45' title="bbox 121 1011 144 1026; baseline 0 0; x_size 20.666666; x_descenders 5.1666665; x_ascenders 5.1666665">
+      <span class='ocrx_word' id='word_1_75' title='bbox 121 1011 144 1026; x_wconf 77'>Vv</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_46' title="bbox 363 999 477 1017">
+    <p class='ocr_par' id='par_1_46' lang='eng' title="bbox 363 999 477 1017">
+     <span class='ocr_line' id='line_1_46' title="bbox 363 999 477 1017; baseline -0.009 0; x_size 23.6; x_descenders 5.9000001; x_ascenders 5.9000001">
+      <span class='ocrx_word' id='word_1_76' title='bbox 363 999 393 1017; x_wconf 91'>EC</span>
+      <span class='ocrx_word' id='word_1_77' title='bbox 401 999 477 1017; x_wconf 90'>2.5.1.21</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_47' title="bbox 90 1041 175 1063">
+    <p class='ocr_par' id='par_1_47' lang='eng' title="bbox 90 1041 175 1063">
+     <span class='ocr_line' id='line_1_47' title="bbox 90 1041 175 1063; baseline 0 -5; x_size 22; x_descenders 5; x_ascenders 5">
+      <span class='ocrx_word' id='word_1_78' title='bbox 90 1041 175 1063; x_wconf 96'>squalene</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_48' title="bbox 235 1040 396 1064">
+    <p class='ocr_par' id='par_1_48' lang='eng' title="bbox 235 1040 396 1064">
+     <span class='ocr_line' id='line_1_48' title="bbox 235 1040 396 1064; baseline 0 -6; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_79' title='bbox 235 1041 269 1064; x_wconf 89'>—&gt;</span>
+      <span class='ocrx_word' id='word_1_80' title='bbox 279 1040 396 1063; x_wconf 90'>[triterpenes]</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_49' title="bbox 364 1061 603 1084">
+    <p class='ocr_par' id='par_1_49' lang='eng' title="bbox 364 1061 603 1084">
+     <span class='ocr_line' id='line_1_49' title="bbox 364 1061 603 1084; baseline 0 -5; x_size 24.25; x_descenders 5.5; x_ascenders 6.25">
+      <span class='ocrx_word' id='word_1_81' title='bbox 364 1061 449 1084; x_wconf 93'>squalene</span>
+      <span class='ocrx_word' id='word_1_82' title='bbox 456 1067 603 1084; x_wconf 92'>monoxygenase</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_50' title="bbox 811 1061 918 1083">
+    <p class='ocr_par' id='par_1_50' lang='eng' title="bbox 811 1061 918 1083">
+     <span class='ocr_line' id='line_1_50' title="bbox 811 1061 918 1083; baseline 0 -5; x_size 31.75; x_descenders 5.5; x_ascenders 8.75">
+      <span class='ocrx_word' id='word_1_83' title='bbox 811 1061 918 1083; x_wconf 90'>(13,7,6,38)</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_51' title="bbox 121 1111 144 1126">
+    <p class='ocr_par' id='par_1_51' lang='eng' title="bbox 121 1111 144 1126">
+     <span class='ocr_line' id='line_1_51' title="bbox 121 1111 144 1126; baseline 0 0; x_size 20.666666; x_descenders 5.1666665; x_ascenders 5.1666665">
+      <span class='ocrx_word' id='word_1_84' title='bbox 121 1111 144 1126; x_wconf 75'>Vv</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_52' title="bbox 363 1100 492 1117">
+    <p class='ocr_par' id='par_1_52' lang='eng' title="bbox 363 1100 492 1117">
+     <span class='ocr_line' id='line_1_52' title="bbox 363 1100 492 1117; baseline 0 0; x_size 23.333334; x_descenders 5.8333335; x_ascenders 5.8333335">
+      <span class='ocrx_word' id='word_1_85' title='bbox 363 1100 393 1117; x_wconf 93'>EC</span>
+      <span class='ocrx_word' id='word_1_86' title='bbox 403 1100 492 1117; x_wconf 91'>1.14.99.7</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_53' title="bbox 100 1137 163 1155">
+    <p class='ocr_par' id='par_1_53' lang='eng' title="bbox 100 1137 163 1155">
+     <span class='ocr_line' id='line_1_53' title="bbox 100 1137 163 1155; baseline 0 0; x_size 23.296295; x_descenders 5.2962961; x_ascenders 5">
+      <span class='ocrx_word' id='word_1_87' title='bbox 100 1137 163 1155; x_wconf 96'>sterols</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_54' title="bbox 364 1193 544 1215">
+    <p class='ocr_par' id='par_1_54' lang='eng' title="bbox 364 1193 544 1215">
+     <span class='ocr_line' id='line_1_54' title="bbox 364 1193 544 1215; baseline 0 -5; x_size 22; x_descenders 5; x_ascenders 5">
+      <span class='ocrx_word' id='word_1_88' title='bbox 364 1193 453 1215; x_wconf 92'>phytoene</span>
+      <span class='ocrx_word' id='word_1_89' title='bbox 461 1193 544 1215; x_wconf 96'>synthase</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_55' title="bbox 812 1194 906 1216">
+    <p class='ocr_par' id='par_1_55' lang='eng' title="bbox 812 1194 906 1216">
+     <span class='ocr_line' id='line_1_55' title="bbox 812 1194 906 1216; baseline 0 -1; x_size 28.666666; x_descenders 7.1666665; x_ascenders 7.1666665">
+      <span class='ocrx_word' id='word_1_90' title='bbox 812 1194 906 1216; x_wconf 90'>(4,2,2,18)</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_56' title="bbox 120 1235 143 1250">
+    <p class='ocr_par' id='par_1_56' lang='eng' title="bbox 120 1235 143 1250">
+     <span class='ocr_line' id='line_1_56' title="bbox 120 1235 143 1250; baseline 0 0; x_size 20.666666; x_descenders 5.1666665; x_ascenders 5.1666665">
+      <span class='ocrx_word' id='word_1_91' title='bbox 120 1235 143 1250; x_wconf 73'>Vv</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_57' title="bbox 363 1231 479 1248">
+    <p class='ocr_par' id='par_1_57' lang='eng' title="bbox 363 1231 479 1248">
+     <span class='ocr_line' id='line_1_57' title="bbox 363 1231 479 1248; baseline 0 0; x_size 23.333334; x_descenders 5.8333335; x_ascenders 5.8333335">
+      <span class='ocrx_word' id='word_1_92' title='bbox 363 1231 393 1248; x_wconf 89'>EC</span>
+      <span class='ocrx_word' id='word_1_93' title='bbox 401 1231 479 1248; x_wconf 89'>2.5.1.32</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_58' title="bbox 82 1254 172 1277">
+    <p class='ocr_par' id='par_1_58' lang='eng' title="bbox 82 1254 172 1277">
+     <span class='ocr_line' id='line_1_58' title="bbox 82 1254 172 1277; baseline 0 -5; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_94' title='bbox 82 1254 172 1277; x_wconf 92'>phytoene</span>
+     </span>
+    </p>
+   </div>
+   <div class='ocr_carea' id='block_1_59' title="bbox 235 1253 402 1277">
+    <p class='ocr_par' id='par_1_59' lang='eng' title="bbox 235 1253 402 1277">
+     <span class='ocr_line' id='line_1_59' title="bbox 235 1253 402 1277; baseline 0 -6; x_size 23; x_descenders 5; x_ascenders 6">
+      <span class='ocrx_word' id='word_1_95' title='bbox 235 1254 269 1277; x_wconf 87'>—&gt;</span>
+      <span class='ocrx_word' id='word_1_96' title='bbox 276 1253 402 1276; x_wconf 96'>[carotenoids]</span>
+     </span>
+    </p>
+   </div>
+  </div>
+ </body>
+</html>

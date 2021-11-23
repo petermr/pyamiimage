@@ -1,4 +1,4 @@
-from pyimage.preprocessing import ImageProcessor
+from ..pyimage.preprocessing import ImageProcessor
 import pytest
 import numpy
 from pathlib import Path

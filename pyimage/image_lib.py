@@ -7,23 +7,22 @@ import skimage.segmentation as seg
 from skimage.filters import threshold_otsu, gaussian
 from skimage.color import rgb2gray
 from skimage.segmentation import active_contour
+from pathlib import Path
+from PIL import Image
 
 # https://scikit-image.org/docs/dev/user_guide/tutorial_segmentation.html
 # https://scikit-image.org/docs/dev/auto_examples/edges/plot_active_contours.html
 
-from skimage.morphology import skeletonize, thin
+from skimage.morphology import medial_axis, skeletonize, thin
 
 """Code copied from earlier PMR ImageLib
 being gradually converted into ImageProcessor
 """
-
-
-class ImageLib:
+class ImageLib():
     def __init__(self):
         self.image = None
         self.path = "assets/purple_ocimum_basilicum.png"
         # self.old_init()
-        self.text = None
 
     def old_init(self):
         # should not be run on init
@@ -31,7 +30,7 @@ class ImageLib:
         self.image = io.imread('../../images/green.png')
         self.image = rgb2gray(self.image)
         self.image = 255 - self.image
-        # thresh = threshold_otsu(self.image)
+        thresh = threshold_otsu(self.image)
         thresh = 40
         binary = self.image > thresh
         self.image = binary
@@ -43,15 +42,15 @@ class ImageLib:
         self.image = io.imread(path)
 
     @classmethod
-    def image_show(cls, image, nrows=1, ncols=1):
+    def image_show(cls, image, nrows=1, ncols=1, cmap='gray'):
         print("image shape", image.shape)
         fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(14, 14))
         ax.imshow(image, cmap='gray')
         ax.axis('off')
         return fig, ax
 
-    @classmethod
-    def circle_points(cls, resolution, center, radius):
+
+    def circle_points(self, resolution, center, radius):
         """
         Generate points defining a circle on an image.
         """
@@ -72,7 +71,7 @@ class ImageLib:
 #        plt.imshow(image)
 
         self.image = io.imread('../../images/green.png')
-        plt.imshow(self.image)
+        plt.imshow(self.image);
         io.imsave('../../outputs/misc1/green.png', self.image)
 
 #        images = io.ImageCollection('../images/*.png:../images/*.jpg')
@@ -92,25 +91,25 @@ class ImageLib:
 
         fig, ax = plt.subplots(1, 1)
         ax.hist(self.text.ravel(), bins=32, range=[0, 256])
-        ax.set_xlim(0, 256)
+        ax.set_xlim(0, 256);
 
         text_segmented = self.text > 50
-        self.image_show(text_segmented)
+        self.image_show(text_segmented);
 
-        text_segmented = self.text > 70
-        self.image_show(text_segmented)
+        text_segmented = self.text>70
+        self.image_show(text_segmented);
 
-        text_segmented = self.text > 120
-        self.image_show(text_segmented)
+        text_segmented = self.text>120
+        self.image_show(text_segmented);
 
-        text_threshold = filters.threshold_otsu(self.text)  # try several methods
-        self.image_show(self.text > text_threshold)
+        text_threshold = filters.threshold_otsu(self.text)  # Hit tab with the cursor after the underscore, try several methods
+        self.image_show(self.text > text_threshold);
 
-        text_threshold = filters.threshold_li(self.text)  # try several methods
-        self.image_show(self.text > text_threshold)
+        text_threshold = filters.threshold_li(self.text)  # Hit tab with the cursor after the underscore, try several methods
+        self.image_show(self.text > text_threshold);
 
         text_threshold = filters.threshold_local(self.text, block_size=51, offset=10)
-        self.image_show(self.text > text_threshold)
+        self.image_show(self.text > text_threshold);
         print("end image_show")
 
     def supervised(self):
@@ -119,10 +118,11 @@ class ImageLib:
 #        self.image = io.imread('girl.jpg')
         self.image = data.astronaut()
 
-        plt.imshow(self.image)
+        plt.imshow(self.image);
 
-        image_gray = color.rgb2gray(self.image)
-        self.image_show(image_gray)
+        self.image_gray = color.rgb2gray(self.image)
+        self.image_show(self.image_gray);
+
 
         # Exclude last point because a closed path should not have duplicate points
         points = self.circle_points(200, [80, 250], 80)[:-1]
@@ -130,35 +130,34 @@ class ImageLib:
         fig, ax = self.image_show(self.image)
         ax.plot(points[:, 0], points[:, 1], '--r', lw=3)
 
-        snake = seg.active_contour(image_gray, points)
+        snake = seg.active_contour(self.image_gray, points)
         fig, ax = self.image_show(self.image)
         ax.plot(points[:, 0], points[:, 1], '--r', lw=3)
-        ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
+        ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3);
 
-        snake = seg.active_contour(image_gray, points, alpha=0.06, beta=0.3)
+        snake = seg.active_contour(self.image_gray, points, alpha=0.06, beta=0.3)
         fig, ax = self.image_show(self.image)
         ax.plot(points[:, 0], points[:, 1], '--r', lw=3)
-        ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
+        ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3);
 
-        image_labels = np.zeros(image_gray.shape, dtype=np.uint8)
+        image_labels = np.zeros(self.image_gray.shape, dtype=np.uint8)
         indices = draw.circle_perimeter(80, 250, 20)  # from here
         image_labels[indices] = 1
         image_labels[points[:, 1].astype(np.int), points[:, 0].astype(np.int)] = 2
-        self.image_show(image_labels)
+        self.image_show(image_labels);
 
-        image_segmented = seg.random_walker(image_gray, image_labels)
+        image_segmented = seg.random_walker(self.image_gray, image_labels)
         # Check our results
-        fig, ax = self.image_show(image_gray)
-        ax.imshow(image_segmented == 1, alpha=0.3)
+        fig, ax = self.image_show(self.image_gray)
+        ax.imshow(image_segmented == 1, alpha=0.3);
 
-        image_segmented = seg.random_walker(image_gray, image_labels, beta=3000)
+        image_segmented = seg.random_walker(self.image_gray, image_labels, beta=3000)
         # Check our results
-        fig, ax = self.image_show(image_gray)
-        ax.imshow(image_segmented == 1, alpha=0.3)
+        fig, ax = self.image_show(self.image_gray)
+        ax.imshow(image_segmented == 1, alpha=0.3);
         print("end supervised")
 
-    @classmethod
-    def snake1(cls):
+    def snake1(self):
 
         img = data.astronaut()
         img = rgb2gray(img)
@@ -180,8 +179,7 @@ class ImageLib:
 
         plt.show()
 
-    @classmethod
-    def snake2(cls):
+    def snake2(self):
         img = data.text()
 
         r = np.linspace(136, 50, 100)
@@ -200,24 +198,22 @@ class ImageLib:
 
         plt.show()
 # unsupervised
-
     def unsupervised(self):
         print("start unsupervised")
-        image_slic = seg.slic(self.image, n_segments=155)
-        self.image_show(color.label2rgb(image_slic, self.image, kind='avg'))
+        image_slic = seg.slic(self.image,n_segments=155)
+        self.image_show(color.label2rgb(image_slic, self.image, kind='avg'));
 
         image_felzenszwalb = seg.felzenszwalb(self.image)
-        self.image_show(image_felzenszwalb)
+        self.image_show(image_felzenszwalb);
 
         np.unique(image_felzenszwalb).size
 
         image_felzenszwalb_colored = color.label2rgb(image_felzenszwalb, self.image, kind='avg')
-        self.image_show(image_felzenszwalb_colored)
+        self.image_show(image_felzenszwalb_colored);
         print("end unsupervised")
 
-# thin
-    @classmethod
-    def thin(cls):
+#thin
+    def thin(self):
         print("start thin")
 
         from skimage.morphology import skeletonize
@@ -245,11 +241,11 @@ class ImageLib:
 
         fig.tight_layout()
         plt.show()
-        print("end thin")
+        print ("end thin")
 
-    @classmethod
-    def skel1(cls):
-        print("start skel1")
+
+    def skel1(self):
+        print ("start skel1")
         blobs = data.binary_blobs(200, blob_size_fraction=.2,
                                   volume_fraction=.35, seed=1)
 
@@ -273,10 +269,10 @@ class ImageLib:
 
         fig.tight_layout()
         plt.show()
-        print("end skel1")
+        print ("end skel1")
 
     def skel2(self):
-        print("start skel2")
+        print ("start skel2")
         skeleton = skeletonize(self.image)
         thinned = thin(self.image)
         thinned_partial = thin(self.image, max_iter=25)
@@ -302,22 +298,20 @@ class ImageLib:
 
         fig.tight_layout()
         plt.show()
-        print("end skel2")
+        print ("end skel2")
 
-    @classmethod
-    def segment(cls):
+    def segment(self):
         print("start segment")
         coins = data.coins()
-        _, hist_centers = histogram(coins)
+        hist, hist_centers = histogram(coins)
         print("end segment")
 
-    @classmethod
-    def medial(cls):
+    def medial(self):
         from skimage.morphology import medial_axis, skeletonize
 
         # Generate the data
-        _ = data.binary_blobs(200, blob_size_fraction=.2,
-                              volume_fraction=.35, seed=1)
+        img = data.binary_blobs(200, blob_size_fraction=.2,
+                                  volume_fraction=.35, seed=1)
         """
         img = io.imread('../../images/PMC5453356.png')
         img = img > 20
@@ -334,7 +328,7 @@ class ImageLib:
 
         # Compare with other skeletonization algorithms
         skeleton = skeletonize(img)
-        _ = skeletonize(img, method='lee')
+        skeleton_lee = skeletonize(img, method='lee')
 
         # Distance to the background for pixels of the skeleton
         dist_on_skel = distance * skel
@@ -354,6 +348,7 @@ class ImageLib:
 
         dist_on_skel = dist_on_skel > 5.0
 
+
         ax[2].imshow(skeleton, cmap=plt.cm.gray)
         ax[2].set_title('skeletonize')
         ax[2].axis('off')
@@ -370,6 +365,166 @@ class ImageLib:
 #        fig.tight_layout()
         plt.show()
 
+class Quantizer:
+    """colour quantizer for pixel images
+
+    a tortous journey to flattem images to a small set of colours
+    finally arriving at FASTOCTREE and convert()
+    """
+    OCTREE = "octree"
+
+    def __init__(self, input_dir, root=None, num_colors=8, method=None):
+        """   """
+        assert input_dir is not None and input_dir.exists(), "input dir must be an existing directory"
+        self.input_dir = input_dir
+        self.root = root
+        self.num_colors = num_colors
+        self.method = method
+        self.palette_dict = None
+
+
+    def create_and_write_color_streams(self, pil_img, num_colors=8, out_dir=None, out_form="png", out_root=None,
+                                       method=OCTREE, kmeans=8, dither=None):
+        """
+        Separates colours and flattens them.
+        The default method does this by histogram (I think). It is terrible for JPEGs
+        The octree separates by colour distance. recommended
+
+        :param pil_img:
+        :param num_colors:
+        :param out_dir:
+        :param out_form:
+        :param out_root:
+        :param method: if none uses octree
+                        else if method == "octree" uses PIL.Image.FASTOCTREE
+                        else uses given method
+
+        :param kmeans: default 8
+        :param dither: used in quantize, def = None, option  PIL.Image.FLOYDSTEINBERG
+
+        :return:
+        """
+        if method is not None:
+            self.method = method
+        if self.method:
+            if self.method == self.OCTREE:
+                self.method = Image.FASTOCTREE
+            img_out = pil_img.quantize(colors=self.num_colors, method=self.method, kmeans=kmeans, dither=dither)
+        else:
+            img_out = pil_img.convert('P', palette=Image.ADAPTIVE, colors=self.num_colors)
+        print(f"\nform {img_out.format}, size {img_out.size}, mode {img_out.mode}")
+        img_out.save(Path(out_dir, "palette"+"." + out_form), out_form)
+        img_rgb = img_out.convert("RGB")
+        img_rgb.save(Path(out_dir, "rgb"+"." + out_form), out_form)
+        # [146 209  80]
+        rgb_array = np.array(img_rgb)
+        single_chan = self.replace_single_color(rgb_array,
+                                                old_col=[146, 209, 80],
+                                                new_col=[255, 0, 0],
+                                                back_col = [220, 255, 255])
+        plt.imsave(Path(out_dir, "single" + "." + out_form), single_chan)
+        self.palette_dict = self.create_palette(img_out)
+        print("palette", self.palette_dict)
+        self.create_monochrome_images_of_color_streams(np.array(img_out), out_dir, out_form)
+        image_by_hx = self.create_monochrome_images_from_rgb(np.array(img_out))
+        print("image by hex", image_by_hx)
+
+    def create_palette(self, img):
+        """
+        extract palette for "P" image
+        index on hexstring
+        :param img:
+        :return: dict of counts with 6-char hex index
+        """
+        palette_dict = {}
+        palette = img.getpalette()
+        rgb_palette = np.reshape(palette, (-1, 3))
+        count_rgb_list = img.getcolors(self.num_colors)
+        print(f"colours {len(count_rgb_list)}")  # ca 48 non-zer0
+        for count_rgb in count_rgb_list:
+            rgb = rgb_palette[count_rgb[1]]
+            hx = rgb2hex(rgb)
+            # print(f"{count_rgb[0]} {hx} {rgb}")
+            count = count_rgb[0]
+            if count != 0:
+                palette_dict[hx] = count
+        return palette_dict
+
+    def replace_single_color(self, rgb_array, old_col, new_col, back_col=[0., 0., 0.]):
+        single_chan = np.where(rgb_array == old_col, new_col, back_col)
+        single_chan = np.multiply(single_chan, 1.0 / 255.)
+        return single_chan
+
+    def create_monochrome_images_of_color_streams(self, img_array, out_dir, out_form="png"):
+        for palette_index in range(self.num_colors):
+            if out_dir:
+                out_path = Path(out_dir, "p" + str(palette_index) + "." + out_form)
+                # img1 = np.where(img_array == color, True, False)
+                img1 = np.where(img_array == palette_index, palette_index, 254)
+                plt.imsave(out_path, img1)
+
+    def create_monochrome_images_from_rgb(self, rgb_array, back_col=[0., 110., 220.,]):
+        new_array_dict = {}
+        print("RGB ", rgb_array.shape)
+        for hex_col in self.palette_dict:
+            rgb = hex2rgb(hex_col)
+            rgbx = [float(rgb[0]), float(rgb[1]), float(rgb[2])]
+            new_array = None
+            # new_array = np.where(int(rgb_array) == rgb, rgbx, back_col)
+            # print("NP COUNT", np.count_nonzero(new_array))
+            # print ("rgb shape...", new_array.shape)
+            new_array_dict[rgb2hex(rgb)] = new_array
+        return new_array_dict
+
+
+    def extract_color_streams(self):
+        in_path = None
+        suffixes = ["png", "jpeg", "jpg"]
+        for suffix in suffixes:
+            in_path = Path(self.input_dir, self.root + "." + suffix)
+            if in_path.exists():
+                break
+        if in_path is None:
+            print(f"cannot find images with root {self.root}")
+            return
+        out_dir = self.make_out_dir(self.input_dir, self.root)
+        img = Image.open(in_path)
+        self.create_and_write_color_streams(img, num_colors=8, out_dir=out_dir)
+
+    def make_out_dir(self, in_dir, root):
+        out_root = Path(in_dir, root)
+        if not out_root.exists():
+            out_root.mkdir()
+        return out_root
+
+def rgb2hex(rgb):
+    """convert rgb 3-array to 8 char hex string
+    :param rgb: 3-array of ints
+    :return: "hhhhhh" string does NOT prepend "0x"
+    """
+    assert len(rgb) == 3
+    # assert type(rgb[0]) is int, f"found {type(rgb[0])} {rgb[0]}, in rgb"
+    assert rgb[0] >= 0 and rgb[0] <= 255, f"found {rgb[0]}, in rgb"
+    s = ""
+    for r in rgb:
+        h = hex(r)[2:] if r >= 16 else "0" + hex(r)[2:]
+        s += h
+    return s
+
+def hex2rgb(hx):
+    """
+    transform 6-digit hex number into [r,g,b] integers
+
+    :param hx:
+    :return:
+    """
+    assert len(hx) == 6
+    rgb = []
+    for r in range(3):
+        ss = "0x" + hx[2 * r : 2 * r + 2]
+        rr = int(ss, 16)
+        rgb.append(rr)
+    return rgb
 
 def main():
     print("started image_lib")
@@ -381,10 +536,10 @@ def main():
     snake1 = False
     snake2 = False
     unsupervised = False
-    thinx = False
+    thin = False
     skel1 = False
     skel2 = False
-    medial = True
+    medial =  True
 
     if segment:
         image_lib.segment()
@@ -400,7 +555,7 @@ def main():
         image_lib.snake2()
     if unsupervised:
         image_lib.unsupervised()
-    if thinx:
+    if thin:
         image_lib.thin()
     if skel1:
         image_lib.skel1()
@@ -419,7 +574,6 @@ def main():
     print("END")
 
     print("finished image_lib")
-
 
 if __name__ == "__main__":
     main()
