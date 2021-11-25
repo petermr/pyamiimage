@@ -50,7 +50,7 @@ class AmiSkeleton:
 
     logger = logging.getLogger("ami_skeleton")
 
-    def __init__(self, plot_plot=False):
+    def __init__(self, plot_plot=False, title=None):
         self.skeleton_image = None
         self.binary = None
         self.nx_graph = None
