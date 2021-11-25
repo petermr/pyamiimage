@@ -2,14 +2,13 @@
 from skan.pre import threshold
 
 from ..test.resources import Resources
-from skimage import filters, color, io, data, draw
+from skimage import io
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 import sknw
-from ..pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph, FloodFill
 
-from ..pyimage.graph_lib import AmiSkeleton, AmiIsland, AmiGraph, FloodFill
+from ..pyimage.graph_lib import AmiSkeleton, AmiGraph
 from ..pyimage.preprocessing import ImageProcessor
 from pathlib import Path
 import unittest
@@ -31,10 +30,10 @@ class TestAmiSkeleton:
     # use_ami_graph = False
 
     # errors to be fixed
-    skip_no_create_bbox_error = False # 1 cases
-    skip_found_set_error = False # 1 cases
-    skip_not_subscriptable = False # 8 cases
-    skip_not_iterable = False # 1 cases
+    skip_no_create_bbox_error = False  # 1 cases
+    skip_found_set_error = False  # 1 cases
+    skip_not_subscriptable = False  # 8 cases
+    skip_not_iterable = False  # 1 cases
 
     # @unittest.skipIf(skip_OK, "already runs")
     def test_example_basics_biosynth1_no_text(self):
@@ -158,17 +157,18 @@ class TestAmiSkeleton:
                                         {8, 9, 26, 19},
                                         {10, 11, 12, 13, 14, 15, 16, 17, 18, 20},
                                         {21, 22, 23, 24, 25}]
-        assert connected_components[0] == {0,1,2,3,4,5,6,7}
-        assert connected_components[1] == {8,9,26,19}
+        assert connected_components[0] == {0, 1, 2, 3, 4, 5, 6, 7}
+        assert connected_components[1] == {8, 9, 26, 19}
 
     @unittest.skipIf(skip_found_set_error, "expected <class 'pyimage.graph_lib.AmiIsland'> found <class 'set'>")
     def test_create_bounding_box_from_node_list(self):
+        """computes bbox for single 7-node island"""
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
         node_ids = {0, 1, 2, 3, 4, 5, 6, 7}
 
         bbox = ami_skeleton.extract_bbox_for_nodes(node_ids)
-        assert bbox == ( (661.0, 863.0), (82.0, 102.0))
+        assert bbox == ((661.0, 863.0), (82.0, 102.0))
 
     @unittest.skipIf(skip_no_create_bbox_error, "'TestAmiSkeleton' object has no attribute 'create_bbox_for_island'")
     def test_create_bounding_boxes_from_node_list(self):
@@ -179,9 +179,9 @@ class TestAmiSkeleton:
 
         assert len(bboxes) == 4
         assert bboxes == [((661.0, 863.0), (82.0, 102.0)),
-                         ((391.0, 953.0), (117.0, 313.0)),
-                         ((991.0, 1064.0), (148.0, 236.0)),
-                         ((992.0, 1009.0), (252.0, 294.0))]
+                          ((391.0, 953.0), (117.0, 313.0)),
+                          ((991.0, 1064.0), (148.0, 236.0)),
+                          ((992.0, 1009.0), (252.0, 294.0))]
 
     @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
     def test_create_bounding_boxes_from_node_list_with_size_filter_biosynth3(self):
@@ -206,15 +206,6 @@ class TestAmiSkeleton:
              ((193, 216), (410, 465)),
              ((197, 219), (849, 904))]
 
-    def test_create_bounding_box_from_node_list(self):
-        """computes bbox for single 7-node island"""
-        ami_skeleton = AmiSkeleton()
-        nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
-        node_ids = {0, 1, 2, 3, 4, 5, 6, 7}
-
-        bbox = ami_skeleton.extract_bbox_for_nodes(node_ids)
-        assert bbox == ((661.0, 863.0), (82.0, 102.0))
-
     def test_remove_pixels_in_bounding_box_arrows1(self):
         image = io.imread(Resources.BIOSYNTH1_ARROWS)
         bbox = ((82, 102), (661, 863))
@@ -230,7 +221,7 @@ class TestAmiSkeleton:
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
         islands = ami_skeleton.create_islands()
         print("island", islands[0])
-        margin = 2  #  to overcome some of the antialiasing
+        margin = 2  # to overcome some of the antialiasing
         for island in islands:
             raw_bbox = island.get_raw_box()
             sub_image = ((raw_bbox[0][0]-margin, raw_bbox[0][1]+margin), (raw_bbox[1][0]-margin, raw_bbox[1][1]+margin))
@@ -261,10 +252,10 @@ class TestAmiSkeleton:
         cropped_image = ami_skeleton.create_grayscale_from_file(Resources.BIOSYNTH1_CROPPED)
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw(Resources.BIOSYNTH1_ARROWS)
         bboxes_arrows = ami_skeleton.create_islands()
-        dd = 2  #  to overcome some of the antialiasing
+        dd = 2  # to overcome some of the antialiasing
         for bbox in bboxes_arrows:
             bbox = ((bbox[0][0]-dd, bbox[0][1]+dd), (bbox[1][0]-dd, bbox[1][1]+dd))
-            AmiGraph.set_bbox_pixels_to_color(bbox, cropped_image, color=127)
+            AmiGraph.set_bbox_pixels_to_color(bbox, cropped_image, colorx=127)
         fig, ax = plt.subplots()
         ax.imshow(cropped_image, cmap='gray')
         if ami_skeleton.interactive:
@@ -274,7 +265,7 @@ class TestAmiSkeleton:
     @unittest.skipIf(skip_not_iterable, "'AmiIsland' object is not iterable")
     def test_flood_fill_first_component(self):
         ami_skeleton = AmiSkeleton()
-        component_index = 0 # as example
+        component_index = 0  # as example
         ami_skeleton.read_image_plot_component(component_index, Resources.BIOSYNTH1_ARROWS)
         return
 
