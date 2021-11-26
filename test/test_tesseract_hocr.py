@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from pathlib import Path
 import numpy as np
 from skan.pre import threshold
-
+import unittest
 
 """
 These tests are desinged to test tesseract hocr
@@ -14,6 +14,7 @@ These tests are desinged to test tesseract hocr
 These tests are for Test Driven Development
 """
 
+skip_long_tests = True
 class TestTesseractHOCR():
         
     def setup_method(self, method):
@@ -95,7 +96,8 @@ class TestTesseractHOCR():
         assert len(bbox_for_phrases) == 29
 
 
-    def test_phrase_wikidata_search(self):
+    @unittest.skipIf(skip_long_tests, "Wikopedia lookup")
+    def test_phrase_wikidata_search_long(self):
         path = Resources.BIOSYNTH3
         hocr = self.ocr.hocr_from_image_path(path)
         root = self.ocr.parse_hocr_string(hocr)

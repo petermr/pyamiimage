@@ -18,7 +18,9 @@ from skimage.morphology import medial_axis, skeletonize, thin
 """Code copied from earlier PMR ImageLib
 being gradually converted into ImageProcessor
 """
-class ImageLib():
+
+
+class ImageLib:
     def __init__(self):
         self.image = None
         self.path = "assets/purple_ocimum_basilicum.png"
@@ -49,7 +51,6 @@ class ImageLib():
         ax.axis('off')
         return fig, ax
 
-
     def circle_points(self, resolution, center, radius):
         """
         Generate points defining a circle on an image.
@@ -71,7 +72,7 @@ class ImageLib():
 #        plt.imshow(image)
 
         self.image = io.imread('../../images/green.png')
-        plt.imshow(self.image);
+        plt.imshow(self.image)
         io.imsave('../../outputs/misc1/green.png', self.image)
 
 #        images = io.ImageCollection('../images/*.png:../images/*.jpg')
@@ -91,25 +92,25 @@ class ImageLib():
 
         fig, ax = plt.subplots(1, 1)
         ax.hist(self.text.ravel(), bins=32, range=[0, 256])
-        ax.set_xlim(0, 256);
+        ax.set_xlim(0, 256)
 
         text_segmented = self.text > 50
-        self.image_show(text_segmented);
+        self.image_show(text_segmented)
 
-        text_segmented = self.text>70
-        self.image_show(text_segmented);
+        text_segmented = self.text > 70
+        self.image_show(text_segmented)
 
-        text_segmented = self.text>120
-        self.image_show(text_segmented);
+        text_segmented = self.text > 120
+        self.image_show(text_segmented)
 
-        text_threshold = filters.threshold_otsu(self.text)  # Hit tab with the cursor after the underscore, try several methods
-        self.image_show(self.text > text_threshold);
+        text_threshold = filters.threshold_otsu(self.text)
+        self.image_show(self.text > text_threshold)
 
-        text_threshold = filters.threshold_li(self.text)  # Hit tab with the cursor after the underscore, try several methods
-        self.image_show(self.text > text_threshold);
+        text_threshold = filters.threshold_li(self.text)
+        self.image_show(self.text > text_threshold)
 
         text_threshold = filters.threshold_local(self.text, block_size=51, offset=10)
-        self.image_show(self.text > text_threshold);
+        self.image_show(self.text > text_threshold)
         print("end image_show")
 
     def supervised(self):
@@ -118,11 +119,10 @@ class ImageLib():
 #        self.image = io.imread('girl.jpg')
         self.image = data.astronaut()
 
-        plt.imshow(self.image);
+        plt.imshow(self.image)
 
         self.image_gray = color.rgb2gray(self.image)
-        self.image_show(self.image_gray);
-
+        self.image_show(self.image_gray)
 
         # Exclude last point because a closed path should not have duplicate points
         points = self.circle_points(200, [80, 250], 80)[:-1]
@@ -133,28 +133,28 @@ class ImageLib():
         snake = seg.active_contour(self.image_gray, points)
         fig, ax = self.image_show(self.image)
         ax.plot(points[:, 0], points[:, 1], '--r', lw=3)
-        ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3);
+        ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
 
         snake = seg.active_contour(self.image_gray, points, alpha=0.06, beta=0.3)
         fig, ax = self.image_show(self.image)
         ax.plot(points[:, 0], points[:, 1], '--r', lw=3)
-        ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3);
+        ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
 
         image_labels = np.zeros(self.image_gray.shape, dtype=np.uint8)
         indices = draw.circle_perimeter(80, 250, 20)  # from here
         image_labels[indices] = 1
         image_labels[points[:, 1].astype(np.int), points[:, 0].astype(np.int)] = 2
-        self.image_show(image_labels);
+        self.image_show(image_labels)
 
         image_segmented = seg.random_walker(self.image_gray, image_labels)
         # Check our results
         fig, ax = self.image_show(self.image_gray)
-        ax.imshow(image_segmented == 1, alpha=0.3);
+        ax.imshow(image_segmented == 1, alpha=0.3)
 
         image_segmented = seg.random_walker(self.image_gray, image_labels, beta=3000)
         # Check our results
         fig, ax = self.image_show(self.image_gray)
-        ax.imshow(image_segmented == 1, alpha=0.3);
+        ax.imshow(image_segmented == 1, alpha=0.3)
         print("end supervised")
 
     def snake1(self):
@@ -171,7 +171,7 @@ class ImageLib():
                                init, alpha=0.015, beta=10, gamma=0.001)
 
         fig, ax = plt.subplots(figsize=(7, 7))
-        ax.imshow(img, cmap=plt.cm.gray)
+        ax.imshow(img, cmap="Greys")
         ax.plot(init[:, 1], init[:, 0], '--r', lw=3)
         ax.plot(snake[:, 1], snake[:, 0], '-b', lw=3)
         ax.set_xticks([]), ax.set_yticks([])
@@ -197,22 +197,23 @@ class ImageLib():
         ax.axis([0, img.shape[1], img.shape[0], 0])
 
         plt.show()
+
 # unsupervised
     def unsupervised(self):
         print("start unsupervised")
-        image_slic = seg.slic(self.image,n_segments=155)
-        self.image_show(color.label2rgb(image_slic, self.image, kind='avg'));
+        image_slic = seg.slic(self.image, n_segments=155)
+        self.image_show(color.label2rgb(image_slic, self.image, kind='avg'))
 
         image_felzenszwalb = seg.felzenszwalb(self.image)
-        self.image_show(image_felzenszwalb);
+        self.image_show(image_felzenszwalb)
 
         np.unique(image_felzenszwalb).size
 
         image_felzenszwalb_colored = color.label2rgb(image_felzenszwalb, self.image, kind='avg')
-        self.image_show(image_felzenszwalb_colored);
+        self.image_show(image_felzenszwalb_colored)
         print("end unsupervised")
 
-#thin
+# thin
     def thin(self):
         print("start thin")
 
@@ -241,11 +242,10 @@ class ImageLib():
 
         fig.tight_layout()
         plt.show()
-        print ("end thin")
-
+        print("end thin")
 
     def skel1(self):
-        print ("start skel1")
+        print("start skel1")
         blobs = data.binary_blobs(200, blob_size_fraction=.2,
                                   volume_fraction=.35, seed=1)
 
@@ -269,10 +269,10 @@ class ImageLib():
 
         fig.tight_layout()
         plt.show()
-        print ("end skel1")
+        print("end skel1")
 
     def skel2(self):
-        print ("start skel2")
+        print("start skel2")
         skeleton = skeletonize(self.image)
         thinned = thin(self.image)
         thinned_partial = thin(self.image, max_iter=25)
@@ -298,7 +298,7 @@ class ImageLib():
 
         fig.tight_layout()
         plt.show()
-        print ("end skel2")
+        print("end skel2")
 
     def segment(self):
         print("start segment")
@@ -311,7 +311,7 @@ class ImageLib():
 
         # Generate the data
         img = data.binary_blobs(200, blob_size_fraction=.2,
-                                  volume_fraction=.35, seed=1)
+                                volume_fraction=.35, seed=1)
         """
         img = io.imread('../../images/PMC5453356.png')
         img = img > 20
@@ -348,7 +348,6 @@ class ImageLib():
 
         dist_on_skel = dist_on_skel > 5.0
 
-
         ax[2].imshow(skeleton, cmap=plt.cm.gray)
         ax[2].set_title('skeletonize')
         ax[2].axis('off')
@@ -364,6 +363,7 @@ class ImageLib():
 
 #        fig.tight_layout()
         plt.show()
+
 
 class Quantizer:
     """colour quantizer for pixel images
@@ -381,7 +381,6 @@ class Quantizer:
         self.num_colors = num_colors
         self.method = method
         self.palette_dict = None
-
 
     def create_and_write_color_streams(self, pil_img, num_colors=8, out_dir=None, out_form="png", out_root=None,
                                        method=OCTREE, kmeans=8, dither=None):
@@ -421,7 +420,7 @@ class Quantizer:
         single_chan = self.replace_single_color(rgb_array,
                                                 old_col=[146, 209, 80],
                                                 new_col=[255, 0, 0],
-                                                back_col = [220, 255, 255])
+                                                back_col=[220, 255, 255])
         plt.imsave(Path(out_dir, "single" + "." + out_form), single_chan)
         self.palette_dict = self.create_palette(img_out)
         print("palette", self.palette_dict)
@@ -450,7 +449,9 @@ class Quantizer:
                 palette_dict[hx] = count
         return palette_dict
 
-    def replace_single_color(self, rgb_array, old_col, new_col, back_col=[0., 0., 0.]):
+    def replace_single_color(self, rgb_array, old_col, new_col, back_col=None):
+        if back_col is None:
+            back_col = [0., 0., 0.]
         single_chan = np.where(rgb_array == old_col, new_col, back_col)
         single_chan = np.multiply(single_chan, 1.0 / 255.)
         return single_chan
@@ -463,7 +464,9 @@ class Quantizer:
                 img1 = np.where(img_array == palette_index, palette_index, 254)
                 plt.imsave(out_path, img1)
 
-    def create_monochrome_images_from_rgb(self, rgb_array, back_col=[0., 110., 220.,]):
+    def create_monochrome_images_from_rgb(self, rgb_array, back_col=None):
+        if back_col is None:
+            back_col = [0., 110., 220., ]
         new_array_dict = {}
         print("RGB ", rgb_array.shape)
         for hex_col in self.palette_dict:
@@ -475,7 +478,6 @@ class Quantizer:
             # print ("rgb shape...", new_array.shape)
             new_array_dict[rgb2hex(rgb)] = new_array
         return new_array_dict
-
 
     def extract_color_streams(self):
         in_path = None
@@ -497,6 +499,7 @@ class Quantizer:
             out_root.mkdir()
         return out_root
 
+
 def rgb2hex(rgb):
     """convert rgb 3-array to 8 char hex string
     :param rgb: 3-array of ints
@@ -504,12 +507,13 @@ def rgb2hex(rgb):
     """
     assert len(rgb) == 3
     # assert type(rgb[0]) is int, f"found {type(rgb[0])} {rgb[0]}, in rgb"
-    assert rgb[0] >= 0 and rgb[0] <= 255, f"found {rgb[0]}, in rgb"
+    assert 0 <= rgb[0] <= 255, f"found {rgb[0]}, in rgb"
     s = ""
     for r in rgb:
         h = hex(r)[2:] if r >= 16 else "0" + hex(r)[2:]
         s += h
     return s
+
 
 def hex2rgb(hx):
     """
@@ -521,10 +525,11 @@ def hex2rgb(hx):
     assert len(hx) == 6
     rgb = []
     for r in range(3):
-        ss = "0x" + hx[2 * r : 2 * r + 2]
+        ss = "0x" + hx[2 * r: 2 * r + 2]
         rr = int(ss, 16)
         rgb.append(rr)
     return rgb
+
 
 def main():
     print("started image_lib")
@@ -539,7 +544,7 @@ def main():
     thin = False
     skel1 = False
     skel2 = False
-    medial =  True
+    medial = True
 
     if segment:
         image_lib.segment()
@@ -574,6 +579,7 @@ def main():
     print("END")
 
     print("finished image_lib")
+
 
 if __name__ == "__main__":
     main()

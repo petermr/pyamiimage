@@ -2,15 +2,37 @@ import pytesseract
 from pathlib import Path
 from lxml import etree as et
 import numpy as np
-from ..pyimage.preprocessing import ImageProcessor
+from lxml.etree import Element, QName
+from lxml import etree
+from pyimage.graph_lib import XMLNamespaces
+
 try:
     from pyami.py4ami import wikimedia
-except:
-    print("Cannot load pyami")
+except ImportError:
+    print("Cannot load pyami wikimedia")
 
 """
 This file is to play with the output of hocr
 """
+A_BBOX = "bbox"
+A_FILL = "fill"
+A_FONT_SIZE = "font-size"
+A_FONT_FAMILY = "font-family"
+A_HEIGHT = "height"
+A_STROKE = "stroke"
+A_STROKE_WIDTH = "stroke-width"
+A_TITLE = "title"
+A_WIDTH = "width"
+A_XLINK = 'xlink'
+A_X = "x"
+A_Y = "y"
+
+E_G = 'g'
+E_RECT = 'rect'
+E_SVG = 'svg'
+E_TEXT = "text"
+
+
 class TesseractOCR:
     """Wrapper for pytesseract + addtional methods for phrase detection"""
     def __init__(self) -> None:
@@ -33,7 +55,7 @@ class TesseractOCR:
             path = str(path)
 
         hocr = pytesseract.image_to_pdf_or_hocr(path, extension='hocr', config='11')
-        root = self.parse_hocr_string(hocr)
+        self.parse_hocr_string(hocr)
         return hocr
 
     def read_hocr_file(self, path):
@@ -108,7 +130,7 @@ class TesseractOCR:
         bbox_for_words = [[int(coordinate) for coordinate in bbox] for bbox in bbox_for_words]
 
         # and return a numpy array from the generated list
-        bbox_for_words =  np.array(bbox_for_words)
+        bbox_for_words = np.array(bbox_for_words)
         return bbox_for_words, words
 
     def find_phrases(self, root, word_seperation=20, y_tolerance=10):
@@ -148,13 +170,13 @@ class TesseractOCR:
         qitems, desc = lookup.lookup_items(phrases)
         return qitems, desc
 
-    def output_phrases_to_file(self, list, output_file):
+    def output_phrases_to_file(self, listx, output_file):
         """
         :param: list of phrases, output file name
         :returns: output file path"""
         BIOSYNTH3_PHRASES = Path(Path(__file__).parent.parent, f"temp/{output_file}")
         with open(BIOSYNTH3_PHRASES, 'w') as f:
-            for item in list:
+            for item in listx:
                 f.write("%s\n" % item)
         return BIOSYNTH3_PHRASES
 
@@ -169,3 +191,81 @@ class TesseractOCR:
         bbox_for_words, words = self.extract_bbox_from_hocr(root)
         
         return bbox_for_words, words
+
+    @classmethod
+    def parse_hocr_title(cls, title):
+        """
+         title="bbox 336 76 1217 111; baseline -0.006 -9; x_size 28; x_descenders 6; x_ascenders 7"
+
+        :param title:
+        :return:
+        """
+        if title is None:
+            return None
+        parts = title.split("; ")
+        title_dict = {}
+        for part in parts:
+            vals = part.split()
+            kw = vals[0]
+            if kw == A_BBOX:
+                val = ((vals[1], vals[3]), (vals[2], vals[4]))
+            else:
+                val = vals[1:]
+            title_dict[kw] = val
+        return title_dict
+
+    def create_svg_from_hocr(self, hocr_html):
+        """
+
+        :param hocr_html:
+        :return:
+        """
+        html = etree.parse(hocr_html)
+        word_spans = html.findall("//{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']")
+        svg = Element(QName(XMLNamespaces.svg, E_SVG), nsmap={
+            E_SVG: XMLNamespaces.svg,
+            A_XLINK: XMLNamespaces.xlink,
+        })
+        for word_span in word_spans:
+            title = word_span.attrib[A_TITLE]
+            title_dict = self.parse_hocr_title_HOCR(title)
+            bbox = title_dict[A_BBOX]
+            text = word_span.text
+            g = self.create_svg_text_box_from_hocr(bbox, text)
+            svg.append(g)
+        bb = etree.tostring(svg, encoding='utf-8', method='xml')
+        s = bb.decode("utf-8")
+        path_svg = Path(Path(__file__).parent.parent, "temp", "textbox.svg")
+        with open(path_svg, "w", encoding="UTF-8") as f:
+            f.write(s)
+            print(f"Wrote textboxes to {path_svg}")
+
+    def create_svg_text_box_from_hocr(self, bbox, txt):
+
+        g = Element(QName(XMLNamespaces.svg, E_G))
+        height = int(bbox[1][1]) - int(bbox[1][0])
+        print("height", height)
+
+        rect = Element(QName(XMLNamespaces.svg, E_RECT))
+        rect.attrib[A_X] = bbox[0][0]
+        rect.attrib[A_WIDTH] = str(int(bbox[0][1]) - int(bbox[0][0]))
+        rect.attrib[A_Y] = str(int(bbox[1][0]))  # kludge for offset of inverted text
+        rect.attrib[A_HEIGHT] = str(height)
+        rect.attrib[A_STROKE_WIDTH] = "1.0"
+        rect.attrib[A_STROKE] = "red"
+        rect.attrib[A_FILL] = "none"
+        g.append(rect)
+
+        text = Element(QName(XMLNamespaces.svg, E_TEXT))
+        text.attrib[A_X] = bbox[0][0]
+        text.attrib[A_Y] = str(int(bbox[1][0]) + height)
+        text.attrib[A_FONT_SIZE] = str(0.9 * height)
+        text.attrib[A_STROKE] = "blue"
+        text.attrib[A_FONT_FAMILY] = "sans-serif"
+
+        text.text = txt
+
+        g.append(text)
+
+        return g
+

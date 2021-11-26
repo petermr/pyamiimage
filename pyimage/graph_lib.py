@@ -8,8 +8,6 @@ import sknw  # must pip install sknw
 import logging
 from pathlib import Path
 from collections import deque
-from lxml.etree import Element, QName
-from lxml import etree
 import matplotlib.pyplot as plt
 from pyimage.svg import BBox
 import os
@@ -30,24 +28,6 @@ class AmiSkeleton:
     NODE_PTS = "pts"
     CENTROID = "o"
 
-    E_G = 'g'
-    E_RECT = 'rect'
-    E_SVG = 'svg'
-    E_TEXT = "text"
-
-    A_BBOX = "bbox"
-    A_FILL = "fill"
-    A_FONT_SIZE = "font-size"
-    A_FONT_FAMILY = "font-family"
-    A_HEIGHT = "height"
-    A_STROKE = "stroke"
-    A_STROKE_WIDTH = "stroke-width"
-    A_TITLE = "title"
-    A_WIDTH = "width"
-    A_XLINK = 'xlink'
-    A_X = "x"
-    A_Y = "y"
-
     logger = logging.getLogger("ami_skeleton")
 
     def __init__(self, plot_plot=False, title=None):
@@ -66,8 +46,13 @@ class AmiSkeleton:
         self.islands = None
         self.bboxes = None
         self.thresh = None
+        #
+        self.ami_graph = None
+        self.node_dict = {}
+        self.edge_dict = {}
 
-    def create_grayscale_from_file(self, path):
+
+    def create_grayscale_from_file_IMAGE(self, path):
         """
         Reads an image from path and creates a grayscale (w. skimage)
         May throw image exceptions (not trapped)
@@ -79,7 +64,7 @@ class AmiSkeleton:
         self.image = color.rgb2gray(io.imread(path))
         return self.image
 
-    def create_white_skeleton_image_from_file(self, path):
+    def create_white_skeleton_image_from_file_IMAGE(self, path):
         """
         the image may be inverted so the highlights are white
 
@@ -89,34 +74,34 @@ class AmiSkeleton:
         # image = io.imread(file)
         assert path is not None
         path = Path(path)
-        self.image = self.create_grayscale_from_file(path)
-        self.skeleton_image = self.create_white_skeleton_from_image(self.image)
+        self.image = self.create_grayscale_from_file_IMAGE(path)
+        self.skeleton_image = self.create_white_skeleton_from_image_IMAGE(self.image)
         return self.skeleton_image
 
-    def create_white_skeleton_from_image(self, image):
+    def create_white_skeleton_from_image_IMAGE(self, image):
         """
-        create AmiSkeleton based on white components of image
+        create skeleton_image based on white components of image
 
         :param image:
         :return: AmiSkeleton
         """
         assert image is not None
-        self.create_white_binary_from_image(image)
+        self.create_white_binary_from_image_IMAGE(image)
         self.skeleton_image = morphology.skeletonize(self.binary)
         return self.skeleton_image
 
-    def create_white_binary_from_image(self, image):
+    def create_white_binary_from_image_IMAGE(self, image):
         """
         Create a thresholded, binary image from a grayscale
 
         :param image: grayscale image
         :return: binary with white pixels as signal
         """
-        self.binary, self.thresh = self.create_thresholded_image_and_value(image)
+        self.binary, self.thresh = self.create_thresholded_image_and_value_IMAGE(image)
         self.binary = np.invert(self.binary)
 
     @classmethod
-    def create_thresholded_image_and_value(cls, image):
+    def create_thresholded_image_and_value_IMAGE(cls, image):
         """
         Thresholded image and (attempt) to get threshold
         The thresholded image is OK but the threshold value may not yet work
@@ -129,7 +114,7 @@ class AmiSkeleton:
         tt = np.where(t_image > 0)  # above threshold
         return t_image, tt
 
-    def binarize_skeletonize_sknw_nx_graph_plot(self, path, plot_plot=True):
+    def binarize_skeletonize_sknw_nx_graph_plot_TEST(self, path, plot_plot=True):
         """
         Creates skeleton and nx_graph and plots it
 
@@ -139,28 +124,38 @@ class AmiSkeleton:
         """
         assert path is not None
         path = Path(path)
-        self.skeleton_image = self.create_white_skeleton_image_from_file(path)
+        self.skeleton_image = self.create_white_skeleton_image_from_file_IMAGE(path)
         # build graph from skeleton
-        self.nx_graph = sknw.build_sknw(self.skeleton_image)
-        print(self.nx_graph)
+        self.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(self.skeleton_image)
         if plot_plot:
-            self.plot_nx_graph()
+            self.plot_nx_graph_NX()
         return self.skeleton_image
 
-    def create_nx_graph_via_skeleton_sknw(self, path):
+    def create_nx_graph_via_skeleton_sknw_NX_GRAPH(self, path):
         """
         Creates a nx_graph
+        does it need a path?
         :param path:
         :return: AmiSkeleton
         """
         assert path is not None
         path = Path(path)
-        self.skeleton_image = self.create_white_skeleton_image_from_file(path)
+        self.skeleton_image = self.create_white_skeleton_image_from_file_IMAGE(path)
         # build graph from skeleton
-        self.nx_graph = sknw.build_sknw(self.skeleton_image)
+        self.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(self.skeleton_image)
         return self.nx_graph
 
-    def plot_nx_graph(self, title="skeleton"):
+    @classmethod
+    def create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(cls, skeleton_image):
+        """
+        DO NOT INLINE
+        :param skeleton_image:
+        :return:
+        """
+        nx_graph = sknw.build_sknw(skeleton_image)
+        return nx_graph
+
+    def plot_nx_graph_NX(self, nx_graph, title="skeleton"):
         """
 
         :param title:
@@ -173,12 +168,12 @@ graph.node[id]['o']: Numpy(n), centried of the node
 graph.edge(id1, id2)['pts']: Numpy(x, n), sequence of the edge point
 graph.edge(id1, id2)['weight']: float, length of this edge        """
 
-        assert self.nx_graph is not None
-        self.get_nodes_and_edges_from_nx_graph()
-        self.plot_edges_nodes_and_title(title)
+        assert nx_graph is not None
+        self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH()
+        self.plot_edges_nodes_and_title_GRAPH(title)
         return None
 
-    def plot_edges_nodes_and_title(self, title, plot_plot=True):
+    def plot_edges_nodes_and_title_GRAPH(self, title, plot_plot=True):
         """
         Requires nodes and edges to have been created
         :param title:
@@ -204,23 +199,23 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         if self.interactive:
             plt.show()
 
-    def get_nodes_and_edges_from_nx_graph(self):
+    @classmethod
+    def get_coords_for_nodes_and_edges_from_nx_graph_GRAPH(cls, nx_graph):
         """
-        creates nodes and edges from graph
+        creates nodes and edges from networkx graph
         :return: Node
         """
-        assert self.nx_graph is not None
-        graph_nodes = self.nx_graph.nodes()
-        self.nodes = graph_nodes
-        self.node_xy = np.array([self.nodes[i][self.CENTROID] for i in self.nodes])
-        # draw edges by pts (s(tart),e(nd)) appear to be the nodes on each edge
-        self.edge_xy_list = []
-        for (s, e) in self.nx_graph.edges():
-            edge_xy = self.nx_graph[s][e][self.NODE_PTS]
-            self.edge_xy_list.append(edge_xy)
-        return None
+        assert nx_graph is not None
+        nodes = nx_graph.nodes()
+        node_xy = np.array([nodes[i][AmiSkeleton.CENTROID] for i in nodes])
+        # edges by pts (s(tart),e(nd)) appear to be the nodes on each edge
+        edge_xy_list = []
+        for (s, e) in nx_graph.edges():
+            edge_xy = nx_graph[s][e][AmiSkeleton.NODE_PTS]
+            edge_xy_list.append(edge_xy)
+        return node_xy, edge_xy_list
 
-    def extract_bbox_for_nodes(self, ami_island):
+    def extract_bbox_for_nodes_ISLAND(self, ami_island):
         """
         gets bounding box for a list of nodes in
 
@@ -230,7 +225,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         assert ami_island is not None
         assert type(ami_island) is AmiIsland, f"expected {AmiIsland} found {type(ami_island)}"
-        node_xy = self.extract_coords_for_nodes(ami_island)
+        node_xy = self.extract_coords_for_nodes_ISLAND(ami_island)
         # print ("node_xy...", node_xy)
         xx = node_xy[:, 0]
         yy = node_xy[:, 1]
@@ -241,7 +236,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         bbox = BBox(((xmin, xmax), (ymin, ymax)))
         return bbox
 
-    def extract_coords_for_nodes(self, ami_island):
+    def extract_coords_for_nodes_ISLAND(self, ami_island):
         """
         gets coordinates for a set of nx_graph nodes
         *** NOTE it seems the sknw output has y,x rather than x,y ***
@@ -254,12 +249,12 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         npoints = len(ami_island)
         node_xy = np.empty([0, 2], dtype=float)
         for isd in ami_island:
-            centroid = self.extract_coords_for_node(isd)
+            centroid = self.extract_coords_for_node_NX_GRAPH_CLS(isd)
             node_xy = np.append(node_xy, centroid)
         node_xy = np.reshape(node_xy, (npoints, 2))
         return node_xy
 
-    def extract_coords_for_node(self, id):
+    def extract_coords_for_node_NX_GRAPH_CLS(self, id):
         """
         gets coords for a single node with given id
         :param id: normally an int
@@ -270,7 +265,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
         return centroid
 
-    def create_islands(self):
+    def create_islands_GRAPH(self):
         """
         needs nx_graph to exist
 
@@ -278,44 +273,45 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
 
         assert self.nx_graph is not None
-        self.islands = self.get_ami_islands_from_nx_graph()
+        self.islands = self.get_ami_islands_from_nx_graph_GRAPH()
         return self.islands
 
-    def create_bbox_for_island(self, island):
-        bbox0 = self.extract_bbox_for_nodes(island)
+    def create_bbox_for_island_ISLAND(self, island):
+        bbox0 = self.extract_bbox_for_nodes_ISLAND(island)
         bbox = BBox(bbox0)
         return bbox
 
-    def get_ami_islands_from_nx_graph(self):
+    def get_ami_islands_from_nx_graph_GRAPH(self):
         """
         Get the pixel-disjoint "islands" as from NetworkX
         :return: list of AmiIslands
         """
 
-        self.get_nodes_and_edges_from_nx_graph()
+        self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH()
         assert self.nx_graph is not None
         ami_islands = []
         for node_ids in nx.algorithms.components.connected_components(self.nx_graph):
             print("node_ids ", node_ids)
             ami_island = AmiIsland.create_island(node_ids)
-            island = ami_island
-            assert island is not None
-            assert type(island) is AmiIsland
-            ami_islands.append(island)
+            assert ami_island is not None
+            assert type(ami_island) is AmiIsland
+            ami_islands.append(ami_island)
         return ami_islands
 
-    def read_image_plot_component(self, component_index, image):
+    def read_image_plot_component_TEST(self, component_index, image):
         """
         Convenience method to read imag, get components and plot given one
         :param component_index:
         :param image:
         :return:
         """
-        islands = self.get_islands_from_image(image)
+        self.create_nx_graph_via_skeleton_sknw_NX_GRAPH(image)
+        self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH()
+        islands = self.get_ami_islands_from_nx_graph_GRAPH()
         island = islands[component_index]
-        self.plot_island(island)
+        self.plot_island_ISLAND(island)
 
-    def plot_island(self, component):
+    def plot_island_ISLAND(self, component):
         """
         Plots a given component
         :param component:
@@ -330,7 +326,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
             flooder.plot_used_pixels()
 
     @classmethod
-    def get_width_height(cls, bbox):
+    def get_width_height_BBOX(cls, bbox):
         """
 
         :param bbox: tuple of tuples ((x0,x1), (y0,y1))
@@ -343,7 +339,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         height = bbox[1][1] - bbox[1][0]
         return width, height
 
-    def create_and_plot_all_components(self, path, min_size=None):
+    def create_and_plot_all_components_TEST(self, path, min_size=None):
         """
 
         :param path:
@@ -352,17 +348,19 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         if min_size is None:
             min_size = [30, 30]
-        self.create_nx_graph_via_skeleton_sknw(path)
-        self.get_nodes_and_edges_from_nx_graph()
-        components = self.get_ami_islands_from_nx_graph()
-        bboxes = self.create_islands()
+        self.create_nx_graph_via_skeleton_sknw_NX_GRAPH(path)
+        nodes_xy, edges_xy = self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH()
+        components = self.get_ami_islands_from_nx_graph_GRAPH()
+        assert self.nx_graph is not None
+        self.islands = self.get_ami_islands_from_nx_graph_GRAPH()
+        bboxes = self.islands
         for component, bbox in zip(components, bboxes):
-            w, h = AmiSkeleton.get_width_height(bbox)
+            w, h = AmiSkeleton.get_width_height_BBOX(bbox)
             if min_size[0] < w or min_size[1] < h:
-                self.plot_island(component)
+                self.plot_island_ISLAND(component)
 
     @classmethod
-    def fits_within(cls, bbox, bbox_gauge):
+    def fits_within_BBOX(cls, bbox, bbox_gauge):
         """
 
         :param bbox: tuple of tuples ((x0,x1), (y0,y1))
@@ -372,96 +370,19 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         """
         needs to have its own class
         """
-        width, height = cls.get_width_height(bbox)
+        width, height = cls.get_width_height_BBOX(bbox)
         return width < bbox_gauge[0] and height < bbox_gauge[1]
 
-    def get_islands_from_image(self, image):
+    def get_ami_islands_from_image_OBSOLETE(self, image):
         """
         read image, calculate islands
 
         :param image:
         :return: list of islands in arbitrary order
         """
-        self.create_nx_graph_via_skeleton_sknw(image)
-        self.get_nodes_and_edges_from_nx_graph()
-        islands = self.get_ami_islands_from_nx_graph()
-        return islands
-
-    def parse_hocr_title(self, title):
-        """
-         title="bbox 336 76 1217 111; baseline -0.006 -9; x_size 28; x_descenders 6; x_ascenders 7"
-
-        :param title:
-        :return:
-        """
-        if title is None:
-            return None
-        parts = title.split("; ")
-        title_dict = {}
-        for part in parts:
-            vals = part.split()
-            kw = vals[0]
-            if kw == self.A_BBOX:
-                val = ((vals[1], vals[3]), (vals[2], vals[4]))
-            else:
-                val = vals[1:]
-            title_dict[kw] = val
-        return title_dict
-
-    def create_svg_from_hocr(self, hocr_html):
-        """
-
-        :param hocr_html:
-        :return:
-        """
-        html = etree.parse(hocr_html)
-        word_spans = html.findall("//{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']")
-        svg = Element(QName(XMLNamespaces.svg, self.E_SVG), nsmap={
-            self.E_SVG: XMLNamespaces.svg,
-            self.A_XLINK: XMLNamespaces.xlink,
-        })
-        for word_span in word_spans:
-            title = word_span.attrib[self.A_TITLE]
-            title_dict = self.parse_hocr_title(title)
-            bbox = title_dict[self.A_BBOX]
-            text = word_span.text
-            g = self.create_svg_text_box_from_hocr(bbox, text)
-            svg.append(g)
-        bb = etree.tostring(svg, encoding='utf-8', method='xml')
-        s = bb.decode("utf-8")
-        path_svg = Path(Path(__file__).parent.parent, "temp", "textbox.svg")
-        with open(path_svg, "w", encoding="UTF-8") as f:
-            f.write(s)
-            print(f"Wrote textboxes to {path_svg}")
-
-    def create_svg_text_box_from_hocr(self, bbox, txt):
-
-        g = Element(QName(XMLNamespaces.svg, self.E_G))
-        height = int(bbox[1][1]) - int(bbox[1][0])
-        print("height", height)
-
-        rect = Element(QName(XMLNamespaces.svg, self.E_RECT))
-        rect.attrib[self.A_X] = bbox[0][0]
-        rect.attrib[self.A_WIDTH] = str(int(bbox[0][1]) - int(bbox[0][0]))
-        rect.attrib[self.A_Y] = str(int(bbox[1][0]))  # kludge for offset of inverted text
-        rect.attrib[self.A_HEIGHT] = str(height)
-        rect.attrib[self.A_STROKE_WIDTH] = "1.0"
-        rect.attrib[self.A_STROKE] = "red"
-        rect.attrib[self.A_FILL] = "none"
-        g.append(rect)
-
-        text = Element(QName(XMLNamespaces.svg, self.E_TEXT))
-        text.attrib[self.A_X] = bbox[0][0]
-        text.attrib[self.A_Y] = str(int(bbox[1][0]) + height)
-        text.attrib[self.A_FONT_SIZE] = str(0.9 * height)
-        text.attrib[self.A_STROKE] = "blue"
-        text.attrib[self.A_FONT_FAMILY] = "sans-serif"
-
-        text.text = txt
-
-        g.append(text)
-
-        return g
+        self.create_nx_graph_via_skeleton_sknw_NX_GRAPH(image)
+        self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH()
+        return self.get_ami_islands_from_nx_graph_GRAPH()
 
 
 class XMLNamespaces:
@@ -493,22 +414,6 @@ class AmiIsland:
             f"coords: {self.get_or_create_coords()}\n" + \
             "\n"
             # f"skeleton {self.ami_skeleton}\n" + \
-
-        # if self.ami_skeleton is not None:
-        #     s = s + \
-        #     f"skeleton_image {self.ami_skeleton.skeleton_image}\n" + \
-        #     f"binary {self.ami_skeleton.binary}\n" + \
-        #     f"nx_graph {self.ami_skeleton.nx_graph}\n" + \
-        #     f"edge xy {self.ami_skeleton.edge_xy_list}\n"+ \
-        #     f"node_xy {self.ami_skeleton.node_xy}\n" + \
-        #     f"nodes {self.ami_skeleton.nodes}\n" + \
-        #     f"image {self.ami_skeleton.image}\n" + \
-        #     f"path {self.ami_skeleton.path}\n" + \
-        #     f"binary {self.ami_skeleton.new_binary}\n" + \
-        #     f"plot_plot {self.ami_skeleton.plot_plot}\n" + \
-        #     f"islands {self.ami_skeleton.islands}\n" + \
-        #     f"boxes {self.ami_skeleton.bboxes}\n" + \
-        #     f"thresh {self.ami_skeleton.thresh}\n"
 
         return s
 
@@ -785,16 +690,16 @@ class AmiGraph:
         return s
 
     def read_nx_graph(self, nx_graph):
-        self.ami_edges = []
-        for (start, end) in nx_graph.edges():
-            points_xy = nx_graph[start][end][AmiSkeleton.NODE_PTS]
-            ami_edge = AmiEdge()
-            ami_edge.read_nx_edge(points_xy)
-            self.ami_edges.append(ami_edge)
-
         # self.nodes_as_dicts = [nx_graph.node[ndidx] for ndidx in (nx_graph.nodes())]
         # self.nodes_yx = [nx_graph.node[ndidx][AmiSkeleton.CENTROID] for ndidx in (nx_graph.nodes())]
+        self.read_nx_edges(nx_graph)
+        self.read_nx_nodes(nx_graph)
+        self.nx_graph = nx_graph
 
+        self.ingest_graph_info()
+        return
+
+    def read_nx_nodes(self, nx_graph):
         self.ami_nodes = []
         nodes = nx_graph.nodes()
         for node_index in nodes:
@@ -804,10 +709,14 @@ class AmiGraph:
             ami_node.read_nx_node(node_dict)
             self.ami_nodes.append(ami_node)
 
-        self.nx_graph = nx_graph
+    def read_nx_edges(self, nx_graph):
+        self.ami_edges = []
+        for (start, end) in nx_graph.edges():
+            points_xy = nx_graph[start][end][AmiSkeleton.NODE_PTS]
+            ami_edge = AmiEdge()
+            ami_edge.read_nx_edge(points_xy)
+            self.ami_edges.append(ami_edge)
 
-        self.ingest_graph_info()
-        return
 
 class AmiNode:
     """Node holds coordinates
