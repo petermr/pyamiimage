@@ -13,7 +13,7 @@ Demos on ipynb Notebooks.
 
 ## branches
 
-* tess_anuv - tezseract to create weords and phrases
-* nodes_and_islands 
-  analysis of components using sknw and nx_graph
+* tess_anuv - tesseract to create words and phrases
+* nodes_and_islands - analysis of components using sknw and nx_graph
+* adding_pipeline - stitching together parts of pyamiimage to form cohesive outputs from images
 
