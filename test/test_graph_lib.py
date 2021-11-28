@@ -1,12 +1,12 @@
 """graph classes and algorithms for managing pixel analyses"""
 
-from ..pyimage import graph_lib
+
 # import numpy
 from pathlib import Path
 from skimage import io
 
 import unittest
-from ..pyimage.graph_lib import AmiGraph, AmiNode, AmiEdge, AmiGraphError
+from ..pyimage.graph_lib import AmiGraph
 """
 These tests are designed to test the preprocessing module
 containing the graph_lib module 
@@ -14,7 +14,8 @@ containing the graph_lib module
 These tests are for Test Driven Development
 """
 
-class TestGraphLib():
+
+class TestGraphLib:
 
     @classmethod
     def create_from(cls, pathname):
@@ -28,9 +29,10 @@ class TestGraphLib():
     SIMPLE_2N1E_PATH = Path(TEST_DIR, SIMPLE_2N1E+".png")
     GRAPH_DICT = {
     }
-    EDGES1 =  [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6), (8, 19), (9, 19), (10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20), (19, 26), (21, 24), (22, 24), (23, 24), (24, 25)]
+    EDGES1 = [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6), (8, 19), (9, 19), (10, 12),
+              (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20), (19, 26),
+              (21, 24), (22, 24), (23, 24), (24, 25)]
     NODES1 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
-
 
     def setup_method(self, method):
         """setup any state tied to the execution of the given method in a
@@ -87,8 +89,4 @@ class TestGraphLib():
         assert ami_graph.edges is not None
         assert len(ami_graph.edges) == 23, f"ami_graph has {len(self.EDGES1)} edges"
         print("info", ami_graph.ingest_graph_info())
-
-
-
-
 

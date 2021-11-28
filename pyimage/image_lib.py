@@ -9,6 +9,7 @@ from skimage.color import rgb2gray
 from skimage.segmentation import active_contour
 from pathlib import Path
 from PIL import Image
+from skimage.morphology import medial_axis, skeletonize
 
 # https://scikit-image.org/docs/dev/user_guide/tutorial_segmentation.html
 # https://scikit-image.org/docs/dev/auto_examples/edges/plot_active_contours.html
@@ -51,38 +52,6 @@ class ImageLib:
         ax.axis('off')
         return fig, ax
 
-    def circle_points(self, resolution, center, radius):
-        """
-        Generate points defining a circle on an image.
-        """
-        radians = np.linspace(0, 2 * np.pi, resolution)
-
-        c = center[1] + radius * np.cos(radians)
-        r = center[0] + radius * np.sin(radians)
-
-        return np.array([c, r]).T
-
-    def blobs(self):
-        print("start blobs")
-        self.image = data.binary_blobs()
-        plt.imshow(self.image, cmap='gray')
-        io.imsave('../../outputs/misc1/blobs.png', self.image)
-
-#        self.image = data.astronaut()
-#        plt.imshow(image)
-
-        self.image = io.imread('../../images/green.png')
-        plt.imshow(self.image)
-        io.imsave('../../outputs/misc1/green.png', self.image)
-
-#        images = io.ImageCollection('../images/*.png:../images/*.jpg')
-#        print('Type:', type(images))
-#        images.files
-#        Out[]: Type: <class ‘skimage.io.collection.ImageCollection’>
-
-        io.imsave('logo.png', self.image)
-        print("end blobs")
-
     def image_show_top(self):
         print("start image_show")
 
@@ -113,51 +82,88 @@ class ImageLib:
         self.image_show(self.text > text_threshold)
         print("end image_show")
 
-    def supervised(self):
+
+class ImageExamples:
+
+    def circle_points(self, resolution, center, radius):
+        """
+        Generate points defining a circle on an image.
+        """
+        radians = np.linspace(0, 2 * np.pi, resolution)
+
+        c = center[1] + radius * np.cos(radians)
+        r = center[0] + radius * np.sin(radians)
+
+        return np.array([c, r]).T
+
+    def blobs(self):
+        print("start blobs")
+        self.image = data.binary_blobs()
+        plt.imshow(self.image, cmap='gray')
+        io.imsave('../../outputs/misc1/blobs.png', self.image)
+
+        #        self.image = data.astronaut()
+        #        plt.imshow(image)
+
+        self.image = io.imread('../../images/green.png')
+        plt.imshow(self.image)
+        io.imsave('../../outputs/misc1/green.png', self.image)
+
+        #        images = io.ImageCollection('../images/*.png:../images/*.jpg')
+        #        print('Type:', type(images))
+        #        images.files
+        #        Out[]: Type: <class ‘skimage.io.collection.ImageCollection’>
+
+        io.imsave('logo.png', self.image)
+        print("end blobs")
+
+    @classmethod
+    def supervised(cla):
         print("start supervised")
 
 #        self.image = io.imread('girl.jpg')
-        self.image = data.astronaut()
+        image = data.astronaut()
 
-        plt.imshow(self.image)
+        plt.imshow(image)
 
-        self.image_gray = color.rgb2gray(self.image)
-        self.image_show(self.image_gray)
+        image_gray = color.rgb2gray(image)
+        ImageLib.image_show(image_gray)
 
         # Exclude last point because a closed path should not have duplicate points
-        points = self.circle_points(200, [80, 250], 80)[:-1]
+        points = ImageExamples.circle_points(200, [80, 250], 80)[:-1]
 
-        fig, ax = self.image_show(self.image)
+        fig, ax = ImageLib.image_show(image)
         ax.plot(points[:, 0], points[:, 1], '--r', lw=3)
 
-        snake = seg.active_contour(self.image_gray, points)
-        fig, ax = self.image_show(self.image)
-        ax.plot(points[:, 0], points[:, 1], '--r', lw=3)
-        ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
-
-        snake = seg.active_contour(self.image_gray, points, alpha=0.06, beta=0.3)
-        fig, ax = self.image_show(self.image)
+        snake = seg.active_contour(image_gray, points)
+        fig, ax = ImageLib.image_show(image)
         ax.plot(points[:, 0], points[:, 1], '--r', lw=3)
         ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
 
-        image_labels = np.zeros(self.image_gray.shape, dtype=np.uint8)
+        snake = seg.active_contour(image_gray, points, alpha=0.06, beta=0.3)
+        fig, ax = ImageLib.image_show(image)
+        ax.plot(points[:, 0], points[:, 1], '--r', lw=3)
+        ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
+
+        image_labels = np.zeros(image_gray.shape, dtype=np.uint8)
         indices = draw.circle_perimeter(80, 250, 20)  # from here
         image_labels[indices] = 1
         image_labels[points[:, 1].astype(np.int), points[:, 0].astype(np.int)] = 2
-        self.image_show(image_labels)
+        ImageLib.image_show(image_labels)
 
-        image_segmented = seg.random_walker(self.image_gray, image_labels)
+        image_segmented = seg.random_walker(image_gray, image_labels)
         # Check our results
-        fig, ax = self.image_show(self.image_gray)
+        fig, ax = ImageLib.image_show(image_gray)
         ax.imshow(image_segmented == 1, alpha=0.3)
 
-        image_segmented = seg.random_walker(self.image_gray, image_labels, beta=3000)
+        image_segmented = seg.random_walker(image_gray, image_labels, beta=3000)
         # Check our results
-        fig, ax = self.image_show(self.image_gray)
+        fig, ax = ImageLib.image_show(image_gray)
         ax.imshow(image_segmented == 1, alpha=0.3)
         print("end supervised")
 
-    def snake1(self):
+    @classmethod
+    def snake1(cls):
 
         img = data.astronaut()
         img = rgb2gray(img)
@@ -179,7 +185,8 @@ class ImageLib:
 
         plt.show()
 
-    def snake2(self):
+    @classmethod
+    def snake2(cls):
         img = data.text()
 
         r = np.linspace(136, 50, 100)
@@ -198,23 +205,31 @@ class ImageLib:
 
         plt.show()
 
-# unsupervised
-    def unsupervised(self):
-        print("start unsupervised")
-        image_slic = seg.slic(self.image, n_segments=155)
-        self.image_show(color.label2rgb(image_slic, self.image, kind='avg'))
 
-        image_felzenszwalb = seg.felzenszwalb(self.image)
-        self.image_show(image_felzenszwalb)
+# unsupervised
+
+    @classmethod
+    def unsupervised(cls, image):
+        """
+        requires self.image
+        :return:
+        """
+        print("start unsupervised")
+        image_slic = seg.slic(image, n_segments=155)
+        ImageLib.image_show(color.label2rgb(image_slic, image, kind='avg'))
+
+        image_felzenszwalb = seg.felzenszwalb(image)
+        ImageLib.image_show(image_felzenszwalb)
 
         np.unique(image_felzenszwalb).size
 
-        image_felzenszwalb_colored = color.label2rgb(image_felzenszwalb, self.image, kind='avg')
-        self.image_show(image_felzenszwalb_colored)
+        image_felzenszwalb_colored = color.label2rgb(image_felzenszwalb, image, kind='avg')
+        ImageLib.image_show(image_felzenszwalb_colored)
         print("end unsupervised")
 
 # thin
-    def thin(self):
+    @classmethod
+    def thin(cls):
         print("start thin")
 
         from skimage.morphology import skeletonize
@@ -244,7 +259,8 @@ class ImageLib:
         plt.show()
         print("end thin")
 
-    def skel1(self):
+    @classmethod
+    def skel1(cls):
         print("start skel1")
         blobs = data.binary_blobs(200, blob_size_fraction=.2,
                                   volume_fraction=.35, seed=1)
@@ -271,16 +287,17 @@ class ImageLib:
         plt.show()
         print("end skel1")
 
-    def skel2(self):
+    @classmethod
+    def skel2(cls, image):
         print("start skel2")
-        skeleton = skeletonize(self.image)
-        thinned = thin(self.image)
-        thinned_partial = thin(self.image, max_iter=25)
+        skeleton = skeletonize(image)
+        thinned = thin(image)
+        thinned_partial = thin(image, max_iter=25)
 
         fig, axes = plt.subplots(2, 2, figsize=(8, 8), sharex=True, sharey=True)
         ax = axes.ravel()
 
-        ax[0].imshow(self.image, cmap=plt.cm.gray)
+        ax[0].imshow(image, cmap=plt.cm.gray)
         ax[0].set_title('original')
         ax[0].axis('off')
 
@@ -300,14 +317,15 @@ class ImageLib:
         plt.show()
         print("end skel2")
 
-    def segment(self):
+    @classmethod
+    def segment(cls):
         print("start segment")
         coins = data.coins()
         hist, hist_centers = histogram(coins)
         print("end segment")
 
-    def medial(self):
-        from skimage.morphology import medial_axis, skeletonize
+    @classmethod
+    def medial(cls):
 
         # Generate the data
         img = data.binary_blobs(200, blob_size_fraction=.2,
@@ -547,27 +565,27 @@ def main():
     medial = True
 
     if segment:
-        image_lib.segment()
+        ImageExamples.segment()
     if blobs:
-        image_lib.blobs()
+        ImageExamples.blobs()
     if show_top:
-        image_lib.image_show_top()
+        ImageExamples.image_show_top()
     if supervised:
-        image_lib.supervised()
+        ImageExamples.supervised()
     if snake1:
-        image_lib.snake1()
+        ImageExamples.snake1()
     if snake2:
-        image_lib.snake2()
+        ImageExamples.snake2()
     if unsupervised:
-        image_lib.unsupervised()
+        ImageExamples.unsupervised()
     if thin:
-        image_lib.thin()
+        ImageExamples.thin()
     if skel1:
-        image_lib.skel1()
+        ImageExamples.skel1()
     if skel2:
-        image_lib.skel2()
+        ImageExamples.skel2()
     if medial:
-        image_lib.medial()
+        ImageExamples.medial()
 
     """
     while True:

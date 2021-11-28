@@ -6,12 +6,22 @@ from skimage import io
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
-import sknw
+from PIL import Image
 
 from ..pyimage.graph_lib import AmiSkeleton, AmiGraph
 from ..pyimage.preprocessing import ImageProcessor
 from pathlib import Path
 import unittest
+
+
+def ensure_skeleton_file(file, file_name):
+    ami_skeleton_path = Path(file.parent, file_name)
+    if not ami_skeleton_path.exists():
+        ami_skel = AmiSkeleton()
+        skeleton_image = ami_skel.create_white_skeleton_image_from_file_IMAGE(file)
+        im = Image.fromarray(skeleton_image)
+        im.save(ami_skeleton_path)
+
 
 class TestAmiSkeleton:
 
@@ -115,23 +125,33 @@ class TestAmiSkeleton:
     def test_skeletonize_biosynth1_no_text(self):
         file = Resources.BIOSYNTH1_ARROWS
         assert file.exists()
-        skeleton = AmiSkeleton().create_white_skeleton_image_from_file_IMAGE(file)
-        assert np.count_nonzero(skeleton) == 1378
+        ami_skeleton = AmiSkeleton()
+        skeleton_image = ami_skeleton.create_white_skeleton_image_from_file_IMAGE(file)
+        assert type(skeleton_image) is np.ndarray, f"skeleton type shoukd be np.ndarray, is {type(skeleton_image)}"
+        assert np.count_nonzero(skeleton_image) == 1378
         # will be white on gray
-        plt.imshow(skeleton, cmap="YlGnBu")
-        plt.imshow(skeleton, cmap="Greys")
-        print("\n", skeleton)
+        plt.imshow(skeleton_image, cmap="YlGnBu")
+        plt.imshow(skeleton_image, cmap="Greys")
+        print("\n", skeleton_image)
         if self.plot_plot:
             plt.show()
 
-    def test_skeleton_to_graph_arrows1(self):
+    def test_skeleton_to_graph_arrows1_WORKS(self):
         """creates nodes and edges for already clipped """
         ami_skel = AmiSkeleton()
-        skeleton = ami_skel.create_white_skeleton_image_from_file_IMAGE(Resources.BIOSYNTH1_ARROWS)
+        skeleton_array = ami_skel.create_white_skeleton_image_from_file_IMAGE(Resources.BIOSYNTH1_ARROWS)
+        check_type(skeleton_array, np.ndarray)
         # build graph from skeleton
-        ami_skel.nx_graph = create_nx_graph_from_skeleton_wraps_sknw(skeleton)
+        ami_skel.nx_graph = ami_skel.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
+        check_type(ami_skel.nx_graph, nx.classes.graph.Graph)
+        print(f" nx {ami_skel.nx_graph}, {ami_skel.nx_graph.nodes} {ami_skel.nx_graph.edges}")
+        check_type(ami_skel.nx_graph.nodes, nx.classes.reportviews.NodeView)
+        assert list(ami_skel.nx_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+        check_type(ami_skel.nx_graph.edges, nx.classes.reportviews.EdgeView)
+        assert list(ami_skel.nx_graph.edges) == [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6), (8, 19), (9, 19), (10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20), (19, 26), (21, 24), (22, 24), (23, 24), (24, 25)]
         if self.plot_plot:
             ami_skel.plot_nx_graph_NX(ami_skel.nx_graph)
+
 
     @unittest.skipIf(skip_non_essential, "graphs of texts not very useful")
     def test_skeleton_to_graph_text(self):
@@ -385,3 +405,8 @@ class TestAmiSkeleton:
         ami_skeleton.create_and_plot_all_components_TEST(Resources.BIOSYNTH7, min_size=[30, 30])
         ami_skeleton.create_and_plot_all_components_TEST(Resources.BIOSYNTH8, min_size=[30, 30])
         return
+
+def check_type(target, expected):
+    assert target is not None
+    typ = type(target)
+    assert typ is expected, f"type {typ} should be {expected}"

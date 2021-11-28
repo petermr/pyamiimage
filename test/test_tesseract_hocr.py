@@ -15,6 +15,7 @@ These tests are for Test Driven Development
 """
 
 skip_long_tests = True
+
 class TestTesseractHOCR():
         
     def setup_method(self, method):
@@ -95,9 +96,8 @@ class TestTesseractHOCR():
         assert len(phrases) == 29
         assert len(bbox_for_phrases) == 29
 
-
-    @unittest.skipIf(skip_long_tests, "Wikopedia lookup")
-    def test_phrase_wikidata_search_long(self):
+    @unittest.skipIf(skip_long_tests, "wikidata lookup")
+    def test_phrase_wikidata_search(self):
         path = Resources.BIOSYNTH3
         hocr = self.ocr.hocr_from_image_path(path)
         root = self.ocr.parse_hocr_string(hocr)

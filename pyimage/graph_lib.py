@@ -6,7 +6,7 @@ from skimage import morphology, io, color
 from skan.pre import threshold
 import sknw  # must pip install sknw
 import logging
-from pathlib import Path
+from pathlib import Path, PosixPath
 from collections import deque
 import matplotlib.pyplot as plt
 from pyimage.svg import BBox
@@ -61,8 +61,14 @@ class AmiSkeleton:
         """
         assert path is not None
         self.path = path
-        self.image = color.rgb2gray(io.imread(path))
-        return self.image
+        image = io.imread(path)
+        gray_image = self.create_gray_image_from_image_IMAGE(image)
+        return gray_image
+
+    @classmethod
+    def create_gray_image_from_image_IMAGE(cls, image):
+        gray_image = color.rgb2gray(image)
+        return gray_image
 
     def create_white_skeleton_image_from_file_IMAGE(self, path):
         """
@@ -74,7 +80,9 @@ class AmiSkeleton:
         # image = io.imread(file)
         assert path is not None
         path = Path(path)
+        assert path.exists() and not path.is_dir(), f"{path} should be existing file"
         self.image = self.create_grayscale_from_file_IMAGE(path)
+        assert self.image is not None, f"cannot create image from {path}"
         self.skeleton_image = self.create_white_skeleton_from_image_IMAGE(self.image)
         return self.skeleton_image
 
@@ -152,6 +160,9 @@ class AmiSkeleton:
         :param skeleton_image:
         :return:
         """
+        typ = type(skeleton_image)
+        print(f"type: {typ}")
+        assert typ is np.ndarray, f"type {skeleton_image} should be np.ndarray , found {typ}"
         nx_graph = sknw.build_sknw(skeleton_image)
         return nx_graph
 
@@ -325,20 +336,6 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         if self.interactive:
             flooder.plot_used_pixels()
 
-    @classmethod
-    def get_width_height_BBOX(cls, bbox):
-        """
-
-        :param bbox: tuple of tuples ((x0,x1), (y0,y1))
-        :return: (width, height) tuple
-        """
-        """
-        needs to have its own class
-        """
-        width = bbox[0][1] - bbox[0][0]
-        height = bbox[1][1] - bbox[1][0]
-        return width, height
-
     def create_and_plot_all_components_TEST(self, path, min_size=None):
         """
 
@@ -358,20 +355,6 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
             w, h = AmiSkeleton.get_width_height_BBOX(bbox)
             if min_size[0] < w or min_size[1] < h:
                 self.plot_island_ISLAND(component)
-
-    @classmethod
-    def fits_within_BBOX(cls, bbox, bbox_gauge):
-        """
-
-        :param bbox: tuple of tuples ((x0,x1), (y0,y1))
-        :param bbox_gauge: tuple of (width, height) that bbox must fit in
-        :return: true if firs in rectangle
-        """
-        """
-        needs to have its own class
-        """
-        width, height = cls.get_width_height_BBOX(bbox)
-        return width < bbox_gauge[0] and height < bbox_gauge[1]
 
     def get_ami_islands_from_image_OBSOLETE(self, image):
         """

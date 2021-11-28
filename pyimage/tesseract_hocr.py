@@ -246,14 +246,7 @@ class TesseractOCR:
         height = int(bbox[1][1]) - int(bbox[1][0])
         print("height", height)
 
-        rect = Element(QName(XMLNamespaces.svg, E_RECT))
-        rect.attrib[A_X] = bbox[0][0]
-        rect.attrib[A_WIDTH] = str(int(bbox[0][1]) - int(bbox[0][0]))
-        rect.attrib[A_Y] = str(int(bbox[1][0]))  # kludge for offset of inverted text
-        rect.attrib[A_HEIGHT] = str(height)
-        rect.attrib[A_STROKE_WIDTH] = "1.0"
-        rect.attrib[A_STROKE] = "red"
-        rect.attrib[A_FILL] = "none"
+        rect = self.create_svg_rect_from_bbox(bbox, height)
         g.append(rect)
 
         text = Element(QName(XMLNamespaces.svg, E_TEXT))
@@ -268,4 +261,23 @@ class TesseractOCR:
         g.append(text)
 
         return g
+
+    @classmethod
+    def create_svg_rect_from_bbox(cls, bbox, height=None):
+        """
+        Create from bounding box but override height
+
+        :param bbox:
+        :param height:
+        :return:
+        """
+        rect = Element(QName(XMLNamespaces.svg, E_RECT))
+        rect.attrib[A_X] = bbox[0][0]
+        rect.attrib[A_WIDTH] = str(int(bbox[0][1]) - int(bbox[0][0]))
+        rect.attrib[A_Y] = str(int(bbox[1][0]))  # kludge for offset of inverted text
+        rect.attrib[A_HEIGHT] = str(height) if height is not None else  str(int(bbox[1][1]) - int(bbox[1][0]))
+        rect.attrib[A_STROKE_WIDTH] = "1.0"
+        rect.attrib[A_STROKE] = "red"
+        rect.attrib[A_FILL] = "none"
+        return rect
 

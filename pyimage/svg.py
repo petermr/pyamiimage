@@ -237,7 +237,8 @@ class SVGTitle(AbsSVG):
 
 
 class SVGTextBox(SVGG):
-    """This will contain text and a shape (for drawing)"""
+    """This will contain text and a shape (for drawing)
+    Not an SVG primitive"""
 
     def __init__(self, svg_text=None, svg_shape=None):
         super().__init__()
@@ -266,7 +267,7 @@ class SVGTextBox(SVGG):
 
 
 class BBox:
-    """bounding box tuple2 of tuple2s
+    """bounding box 2array of 2arrays
     """
     def __init__(self, xy_ranges=None):
         """
@@ -429,6 +430,38 @@ class BBox:
         """set xy_ranges to None"""
         self.xy_ranges = None
 
+    @classmethod
+    def get_width_height_BBOX(cls, bbox):
+        """
+        TODO MOVED
+
+        :param bbox: tuple of tuples ((x0,x1), (y0,y1))
+        :return: (width, height) tuple
+        """
+        """
+        needs to have its own class
+        """
+        width = bbox[0][1] - bbox[0][0]
+        height = bbox[1][1] - bbox[1][0]
+        return width, height
+
+    @classmethod
+    def fits_within_BBOX(cls, bbox, bbox_gauge):
+        """
+        TODO MOVED
+
+        :param bbox: tuple of tuples ((x0,x1), (y0,y1))
+        :param bbox_gauge: tuple of (width, height) that bbox must fit in
+        :return: true if firs in rectangle
+        """
+        """
+        needs to have its own class
+        """
+        width, height = cls.get_width_height_BBOX(bbox)
+        return width < bbox_gauge[0] and height < bbox_gauge[1]
+
+
+
 
 """If you looking for the overlap between two real-valued bounded intervals, then this is quite nice:
 
@@ -443,6 +476,7 @@ class AmiArrow(SVGG):
     <g>
       <line ... marker=arrowhead"/>
     </g>
+    non-standard SVG component
     """
     def __init__(self):
         super().__init__()
