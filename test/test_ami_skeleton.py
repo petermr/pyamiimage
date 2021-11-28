@@ -140,14 +140,14 @@ class TestAmiSkeleton:
         """creates nodes and edges for already clipped """
         ami_skel = AmiSkeleton()
         skeleton_array = ami_skel.create_white_skeleton_image_from_file_IMAGE(Resources.BIOSYNTH1_ARROWS)
-        check_type(skeleton_array, np.ndarray)
+        check_type_and_existence(skeleton_array, np.ndarray)
         # build graph from skeleton
         ami_skel.nx_graph = ami_skel.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
-        check_type(ami_skel.nx_graph, nx.classes.graph.Graph)
+        check_type_and_existence(ami_skel.nx_graph, nx.classes.graph.Graph)
         print(f" nx {ami_skel.nx_graph}, {ami_skel.nx_graph.nodes} {ami_skel.nx_graph.edges}")
-        check_type(ami_skel.nx_graph.nodes, nx.classes.reportviews.NodeView)
+        check_type_and_existence(ami_skel.nx_graph.nodes, nx.classes.reportviews.NodeView)
         assert list(ami_skel.nx_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
-        check_type(ami_skel.nx_graph.edges, nx.classes.reportviews.EdgeView)
+        check_type_and_existence(ami_skel.nx_graph.edges, nx.classes.reportviews.EdgeView)
         assert list(ami_skel.nx_graph.edges) == [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6), (8, 19), (9, 19), (10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20), (19, 26), (21, 24), (22, 24), (23, 24), (24, 25)]
         if self.plot_plot:
             ami_skel.plot_nx_graph_NX(ami_skel.nx_graph)
@@ -406,7 +406,18 @@ class TestAmiSkeleton:
         ami_skeleton.create_and_plot_all_components_TEST(Resources.BIOSYNTH8, min_size=[30, 30])
         return
 
-def check_type(target, expected):
+def check_type_and_existence(target, expected_type):
+    """
+    asserts not None for object and its type
+    if path asserts existence
+
+
+    :param target: object to check
+    :param expected_type: type of object
+    :return: None
+    """
     assert target is not None
     typ = type(target)
-    assert typ is expected, f"type {typ} should be {expected}"
+    assert typ is expected_type, f"type {typ} should be {expected_type}"
+    if expected_type is Path:
+        assert target.exists(), f"{target} should exist"
