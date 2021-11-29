@@ -70,7 +70,7 @@ plt.title('Build Graph')
 plt.show()"""
 
         show_plot = False
-        # show_plot = True
+        show_plot = True
         # open and skeletonize
         multi = False  # edge/node access needs an array for True
         img = data.horse()

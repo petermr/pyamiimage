@@ -413,8 +413,9 @@ class AmiIsland:
                 self.coords_xy.append(coord_xy)
 
     def get_or_create_nodes(self):
+        # TODO
         if self.nodes is None and self.node_ids is not None:
-            self.nodes = [AmiNode
+            # self.nodes = [AmiNode
             for node_id in self.node_ids:
                 print(f"TODO resolve node from {node_id}")
 
