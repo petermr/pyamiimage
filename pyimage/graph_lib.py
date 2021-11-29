@@ -414,7 +414,7 @@ class AmiIsland:
 
     def get_or_create_nodes(self):
         if self.nodes is None and self.node_ids is not None:
-            self.nodes = []
+            self.nodes = [AmiNode
             for node_id in self.node_ids:
                 print(f"TODO resolve node from {node_id}")
 
@@ -699,6 +699,13 @@ class AmiGraph:
             ami_edge = AmiEdge()
             ami_edge.read_nx_edge(points_xy)
             self.ami_edges.append(ami_edge)
+
+    def get_or_create_islands(self):
+        if self.ami_island_list is None and self.nx_graph is not None:
+            self.ami_island_list = [AmiIsland.create_island(comp) for comp in
+                                    nx.algorithms.components.connected_components(self.nx_graph)]
+        return self.ami_island_list
+
 
 
 class AmiNode:

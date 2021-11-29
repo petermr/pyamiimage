@@ -11,7 +11,7 @@ from skimage import data, io
 import sknw
 
 from test.resources import Resources
-from pyimage.graph_lib import AmiGraph, AmiSkeleton
+from pyimage.graph_lib import AmiGraph, AmiSkeleton, AmiIsland
 from .test_ami_skeleton import check_type_and_existence
 
 class TestAmiGraph:
@@ -169,12 +169,13 @@ plt.show()"""
     def test_islands(self):
         ami_skel = AmiSkeleton()
         assert Resources.BIOSYNTH1_ARROWS.exists() and not Resources.BIOSYNTH1_ARROWS.is_dir(), f"{Resources.BIOSYNTH1_ARROWS} should be existing file"
-        check_type_and_existence(Resources.BIOSYNTH1_ARROWS)
+        check_type_and_existence(Resources.BIOSYNTH1_ARROWS, PosixPath)
         image1 = io.imread(Resources.BIOSYNTH1_ARROWS)
         check_type_and_existence(image1, np.ndarray)
         ami_skel.image = ami_skel.create_gray_image_from_image_IMAGE(image1)
         skeleton_array = ami_skel.create_white_skeleton_from_image_IMAGE(ami_skel.image)
         nx_graph = ami_skel.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
+
 
         assert nx.algorithms.components.number_connected_components(nx_graph) == 4
         connected_components = list(nx.algorithms.components.connected_components(nx_graph))
@@ -182,7 +183,10 @@ plt.show()"""
                                         {8, 9, 26, 19},
                                         {10, 11, 12, 13, 14, 15, 16, 17, 18, 20},
                                         {21, 22, 23, 24, 25}]
-        assert connected_components[0] == {0, 1, 2, 3, 4, 5, 6, 7}
-        assert connected_components[1] == {8, 9, 26, 19}
 
         ami_graph = AmiGraph()
+        ami_graph.read_nx_graph(nx_graph)
+        islands = ami_graph.get_or_create_islands()
+        assert len(islands) == 4
+        assert type(islands[0]) is AmiIsland
+        assert islands[0].get_or_create_nodes() == {0, 1, 2, 3, 4, 5, 6, 7}
