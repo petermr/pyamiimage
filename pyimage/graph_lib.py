@@ -51,77 +51,6 @@ class AmiSkeleton:
         self.node_dict = {}
         self.edge_dict = {}
 
-
-    def create_grayscale_from_file_IMAGE(self, path):
-        """
-        Reads an image from path and creates a grayscale (w. skimage)
-        May throw image exceptions (not trapped)
-        :param path: 
-        :return: single channel grayscale
-        """
-        assert path is not None
-        self.path = path
-        image = io.imread(path)
-        gray_image = self.create_gray_image_from_image_IMAGE(image)
-        return gray_image
-
-    @classmethod
-    def create_gray_image_from_image_IMAGE(cls, image):
-        gray_image = color.rgb2gray(image)
-        return gray_image
-
-    def create_white_skeleton_image_from_file_IMAGE(self, path):
-        """
-        the image may be inverted so the highlights are white
-
-        :param path: path with image
-        :return: AmiSkeleton
-        """
-        # image = io.imread(file)
-        assert path is not None
-        path = Path(path)
-        assert path.exists() and not path.is_dir(), f"{path} should be existing file"
-        self.image = self.create_grayscale_from_file_IMAGE(path)
-        assert self.image is not None, f"cannot create image from {path}"
-        self.skeleton_image = self.create_white_skeleton_from_image_IMAGE(self.image)
-        return self.skeleton_image
-
-    def create_white_skeleton_from_image_IMAGE(self, image):
-        """
-        create skeleton_image based on white components of image
-
-        :param image:
-        :return: AmiSkeleton
-        """
-        assert image is not None
-        self.create_white_binary_from_image_IMAGE(image)
-        self.skeleton_image = morphology.skeletonize(self.binary)
-        return self.skeleton_image
-
-    def create_white_binary_from_image_IMAGE(self, image):
-        """
-        Create a thresholded, binary image from a grayscale
-
-        :param image: grayscale image
-        :return: binary with white pixels as signal
-        """
-        self.binary, self.thresh = self.create_thresholded_image_and_value_IMAGE(image)
-        self.binary = np.invert(self.binary)
-
-    @classmethod
-    def create_thresholded_image_and_value_IMAGE(cls, image):
-        """
-        Thresholded image and (attempt) to get threshold
-        The thresholded image is OK but the threshold value may not yet work
-
-        :param image: grayscale
-        :return: thresholded image, threshold value (latter may not work)
-        """
-
-        t_image = threshold(image)
-        tt = np.where(t_image > 0)  # above threshold
-        return t_image, tt
-
     def binarize_skeletonize_sknw_nx_graph_plot_TEST(self, path, plot_plot=True):
         """
         Creates skeleton and nx_graph and plots it
@@ -413,8 +342,9 @@ class AmiIsland:
                 self.coords_xy.append(coord_xy)
 
     def get_or_create_nodes(self):
+        # TODO
         if self.nodes is None and self.node_ids is not None:
-            self.nodes = [AmiNode
+            # self.nodes = [AmiNode
             for node_id in self.node_ids:
                 print(f"TODO resolve node from {node_id}")
 

@@ -172,8 +172,8 @@ plt.show()"""
         check_type_and_existence(Resources.BIOSYNTH1_ARROWS, PosixPath)
         image1 = io.imread(Resources.BIOSYNTH1_ARROWS)
         check_type_and_existence(image1, np.ndarray)
-        ami_skel.image = ami_skel.create_gray_image_from_image_IMAGE(image1)
-        skeleton_array = ami_skel.create_white_skeleton_from_image_IMAGE(ami_skel.image)
+        gray_image = AmiSkeleton.create_gray_image_from_image_IMAGE(image1)
+        skeleton_array = AmiSkeleton.create_white_skeleton_from_image_IMAGE(gray_image)
         nx_graph = ami_skel.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
 
 
