@@ -195,9 +195,9 @@ plt.show()"""
         :return:
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        nodex = AmiNode(nx_graph=nx_graph, node_id=nx_graph.nodes[0])
+        nodex = AmiNode(nx_graph=nx_graph, node_id=(list(nx_graph.nodes)[0]))
         xy = nodex.get_or_create_centroid_xy()
-        assert xy == [0, 2]
+        assert xy == [844.0, 82.0]
 
     def test_bboxes(self):
         """

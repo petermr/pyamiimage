@@ -18,6 +18,11 @@ class AmiNode:
         :param ami_graph: will use ami_graph.nx_graph
         :param nx_graph: else will use nx_graph
         """
+
+        if len(str(node_id)) > 4:
+            print(f"ami_graph {ami_graph}, nx_graph {nx_graph}")
+            raise Exception(f"id should be simple {node_id}")
+
         self.ami_graph = ami_graph
         self.nx_graph = nx_graph
         if nx_graph is None and self.ami_graph is not None:
@@ -38,7 +43,7 @@ class AmiNode:
         :return:
         """
         if self.centroid_xy is None and self.nx_graph is not None:
-            assert len(self.node_id) == 1, f"self.node_id {self.node_id}"
+            assert len(str(self.node_id)) < 4, f"self.node_id {self.node_id}"
             self.centroid_xy = Util.get_xy_from_sknw_centroid(
                 self.nx_graph.nodes[self.node_id][self.CENTROID])
         return self.centroid_xy
