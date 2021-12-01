@@ -4,7 +4,7 @@ from lxml import etree as et
 import numpy as np
 from lxml.etree import Element, QName
 from lxml import etree
-from pyimage.graph_lib import XMLNamespaces
+from pyimage.svg import XMLNamespaces
 
 try:
     from pyami.py4ami import wikimedia
@@ -275,9 +275,8 @@ class TesseractOCR:
         rect.attrib[A_X] = bbox[0][0]
         rect.attrib[A_WIDTH] = str(int(bbox[0][1]) - int(bbox[0][0]))
         rect.attrib[A_Y] = str(int(bbox[1][0]))  # kludge for offset of inverted text
-        rect.attrib[A_HEIGHT] = str(height) if height is not None else  str(int(bbox[1][1]) - int(bbox[1][0]))
+        rect.attrib[A_HEIGHT] = str(height) if height is not None else str(int(bbox[1][1]) - int(bbox[1][0]))
         rect.attrib[A_STROKE_WIDTH] = "1.0"
         rect.attrib[A_STROKE] = "red"
         rect.attrib[A_FILL] = "none"
         return rect
-

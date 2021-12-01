@@ -9,7 +9,6 @@ from skimage.color import rgb2gray
 from skimage.segmentation import active_contour
 from pathlib import Path
 from PIL import Image
-from skimage.morphology import medial_axis, skeletonize
 
 # https://scikit-image.org/docs/dev/user_guide/tutorial_segmentation.html
 # https://scikit-image.org/docs/dev/auto_examples/edges/plot_active_contours.html
@@ -197,14 +196,13 @@ class ImageExamples:
                                alpha=0.1, beta=1.0, w_line=-5, w_edge=0, gamma=0.1)
 
         fig, ax = plt.subplots(figsize=(9, 5))
-        ax.imshow(img, cmap=plt.cm.gray)
+        ax.imshow(img, cmap="Grays")
         ax.plot(init[:, 1], init[:, 0], '--r', lw=3)
         ax.plot(snake[:, 1], snake[:, 0], '-b', lw=3)
         ax.set_xticks([]), ax.set_yticks([])
         ax.axis([0, img.shape[1], img.shape[0], 0])
 
         plt.show()
-
 
 # unsupervised
 
@@ -247,11 +245,11 @@ class ImageExamples:
 
         ax = axes.ravel()
 
-        ax[0].imshow(image, cmap=plt.cm.gray)
+        ax[0].imshow(image, cmap="Grays")
         ax[0].axis('off')
         ax[0].set_title('original', fontsize=20)
 
-        ax[1].imshow(skeleton, cmap=plt.cm.gray)
+        ax[1].imshow(skeleton, cmap="Grays")
         ax[1].axis('off')
         ax[1].set_title('skeleton', fontsize=20)
 
@@ -271,15 +269,15 @@ class ImageExamples:
         fig, axes = plt.subplots(1, 3, figsize=(8, 4), sharex=True, sharey=True)
         ax = axes.ravel()
 
-        ax[0].imshow(blobs, cmap=plt.cm.gray)
+        ax[0].imshow(blobs, cmap="Grays")
         ax[0].set_title('original')
         ax[0].axis('off')
 
-        ax[1].imshow(skeleton, cmap=plt.cm.gray)
+        ax[1].imshow(skeleton, cmap="Grays")
         ax[1].set_title('skeletonize')
         ax[1].axis('off')
 
-        ax[2].imshow(skeleton_lee, cmap=plt.cm.gray)
+        ax[2].imshow(skeleton_lee, cmap="Grays")
         ax[2].set_title('skeletonize (Lee 94)')
         ax[2].axis('off')
 
@@ -297,19 +295,19 @@ class ImageExamples:
         fig, axes = plt.subplots(2, 2, figsize=(8, 8), sharex=True, sharey=True)
         ax = axes.ravel()
 
-        ax[0].imshow(image, cmap=plt.cm.gray)
+        ax[0].imshow(image, cmap="Grays")
         ax[0].set_title('original')
         ax[0].axis('off')
 
-        ax[1].imshow(skeleton, cmap=plt.cm.gray)
+        ax[1].imshow(skeleton, cmap="Grays")
         ax[1].set_title('skeleton')
         ax[1].axis('off')
 
-        ax[2].imshow(thinned, cmap=plt.cm.gray)
+        ax[2].imshow(thinned, cmap="Grays")
         ax[2].set_title('thinned')
         ax[2].axis('off')
 
-        ax[3].imshow(thinned_partial, cmap=plt.cm.gray)
+        ax[3].imshow(thinned_partial, cmap="Grays")
         ax[3].set_title('partially thinned')
         ax[3].axis('off')
 
@@ -355,7 +353,7 @@ class ImageExamples:
         fig, axes = plt.subplots(2, 2, figsize=(8, 8), sharex=True, sharey=True)
         ax = axes.ravel()
 
-        ax[0].imshow(img, cmap=plt.cm.gray)
+        ax[0].imshow(img, cmap="Grays")
         ax[0].set_title('original')
         ax[0].axis('off')
 
@@ -366,16 +364,16 @@ class ImageExamples:
 
         dist_on_skel = dist_on_skel > 5.0
 
-        ax[2].imshow(skeleton, cmap=plt.cm.gray)
+        ax[2].imshow(skeleton, cmap="Grays")
         ax[2].set_title('skeletonize')
         ax[2].axis('off')
 
         """
-        ax[3].imshow(skeleton_lee, cmap=plt.cm.gray)
+        ax[3].imshow(skeleton_lee, cmap="Grays")
         ax[3].set_title("skeletonize (Lee 94)")
         ax[3].axis('off')
         """
-        ax[3].imshow(dist_on_skel, cmap=plt.cm.gray)
+        ax[3].imshow(dist_on_skel, cmap="Grays")
         ax[3].set_title("thick lines")
         ax[3].axis('off')
 

@@ -2,8 +2,11 @@ from collections import defaultdict
 import pprint
 import json
 taxonomy = None
+
+
 def tree():
     return defaultdict(tree)
+
 
 def test_colours():
     print("colours")
@@ -34,14 +37,17 @@ def make_taxonomy():
     print("del:", json.dumps(taxonomy, indent=4))
     return taxonomy
 
+
 def dicts(t):
     return {k: dicts(t[k]) for k in t}
 
+
 def addx(t, path):
     for node in path:
-        print(">> ",t," > ",node)
+        print(">> ", t, " > ", node)
         t = t[node]
     return t
+
 
 def test_taxonomy():
     taxonomy = make_taxonomy()
@@ -49,16 +55,15 @@ def test_taxonomy():
     ttt = dicts(taxonomy)
     print("\n>dicts>\n", ttt)
 
+
 def test_taxonomy1():
     taxonomy = make_taxonomy()
     print("\n>taxonomy1>\n", taxonomy)
     tax1 = addx(taxonomy,
-        'Animalia>Chordata>Mammalia>Cetacea>Balaenopteridae>Balaenoptera>blue whale'.split('>'))
-    print("\n>tax1>\n....", tax1,"\n>taxonomy2>\n", taxonomy)
+                'Animalia>Chordata>Mammalia>Cetacea>Balaenopteridae>Balaenoptera>blue whale'.split('>'))
+    print("\n>tax1>\n....", tax1, "\n>taxonomy2>\n", taxonomy)
     taxonomy["test"] = "test"
     print("\n>taxonomy4>\n", taxonomy["test"])
-
-
 
 
 """

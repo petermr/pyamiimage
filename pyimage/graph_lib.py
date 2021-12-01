@@ -2,458 +2,19 @@ import numpy as np
 import networkx as nx
 import copy
 from networkx.algorithms import tree
-from skimage import morphology, io, color
-from skan.pre import threshold
+from skimage import io
 import sknw  # must pip install sknw
 import logging
-from pathlib import Path, PosixPath
-from collections import deque
-import matplotlib.pyplot as plt
-from pyimage.svg import BBox
-import os
+from pathlib import PosixPath
+
+from .ami_image import AmiImage
+from .util import Util
+from .ami_island import AmiIsland
+from .ami_node import AmiNode
+from .ami_skeleton import AmiSkeleton
+from .ami_edge import AmiEdge
 
 
-class AmiSkeleton:
-    """manages workflow from file to plot.
-    creates:
-    * binary
-    * skeleton
-    * sknw nodes and edges
-    * networkx graph (often called nx_graph)
-    * plots
-
-
-    May need rationalizatiom with AmiGraph
-    """
-    NODE_PTS = "pts"
-    CENTROID = "o"
-
-    logger = logging.getLogger("ami_skeleton")
-
-    def __init__(self, plot_plot=False, title=None):
-        self.skeleton_image = None
-        self.binary = None
-        self.nx_graph = None
-        self.edge_xy_list = []
-        self.node_xy = []
-        self.nodes = []
-        self.image = None
-        self.path = None
-        self.new_binary = None
-        self.interactive = False
-        self.title = title
-        self.plot_plot = plot_plot
-        self.islands = None
-        self.bboxes = None
-        self.thresh = None
-        #
-        self.ami_graph = None
-        self.node_dict = {}
-        self.edge_dict = {}
-
-    def binarize_skeletonize_sknw_nx_graph_plot_TEST(self, path, plot_plot=True):
-        """
-        Creates skeleton and nx_graph and plots it
-
-        :param path:
-        :param plot_plot:
-        :return: AmiSkeleton
-        """
-        assert path is not None
-        path = Path(path)
-        self.skeleton_image = self.create_white_skeleton_image_from_file_IMAGE(path)
-        # build graph from skeleton
-        self.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(self.skeleton_image)
-        if plot_plot:
-            self.plot_nx_graph_NX()
-        return self.skeleton_image
-
-    def create_nx_graph_via_skeleton_sknw_NX_GRAPH(self, path):
-        """
-        Creates a nx_graph
-        does it need a path?
-        :param path:
-        :return: AmiSkeleton
-        """
-        assert path is not None
-        path = Path(path)
-        self.skeleton_image = self.create_white_skeleton_image_from_file_IMAGE(path)
-        # build graph from skeleton
-        self.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(self.skeleton_image)
-        return self.nx_graph
-
-    @classmethod
-    def create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(cls, skeleton_image):
-        """
-        DO NOT INLINE
-        :param skeleton_image:
-        :return:
-        """
-        typ = type(skeleton_image)
-        print(f"type: {typ}")
-        assert typ is np.ndarray, f"type {skeleton_image} should be np.ndarray , found {typ}"
-        nx_graph = sknw.build_sknw(skeleton_image)
-        return nx_graph
-
-    def plot_nx_graph_NX(self, nx_graph, title="skeleton"):
-        """
-
-        :param title:
-        :return: None
-        """
-        """
-        requires that nx_graph has been created
-graph.node[id]['pts'] : Numpy(x, n), coordinates of nodes points
-graph.node[id]['o']: Numpy(n), centried of the node
-graph.edge(id1, id2)['pts']: Numpy(x, n), sequence of the edge point
-graph.edge(id1, id2)['weight']: float, length of this edge        """
-
-        assert nx_graph is not None
-        self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH()
-        self.plot_edges_nodes_and_title_GRAPH(title)
-        return None
-
-    def plot_edges_nodes_and_title_GRAPH(self, title, plot_plot=True):
-        """
-        Requires nodes and edges to have been created
-        :param title:
-        :param plot_plot:
-        :return:
-        """
-        for edge_xy in self.edge_xy_list:
-            plt.plot(edge_xy[:, 1], np.negative(edge_xy[:, 0]), 'green')
-        # draw node by small circle (".")
-        plt.plot(self.node_xy[:, 1], np.negative(self.node_xy[:, 0]), 'r.')
-        # title and show
-        plt.title(title)
-        if plot_plot:
-            plt.show()
-
-        path = Path(Path(__file__).parent.parent, "temp/figs")
-        if not path.exists():
-            path.mkdir()
-        fig = Path(path, f"{title}.png")
-        if fig.exists():
-            os.remove(fig)
-        plt.savefig(fig, format="png")
-        if self.interactive:
-            plt.show()
-
-    @classmethod
-    def get_coords_for_nodes_and_edges_from_nx_graph_GRAPH(cls, nx_graph):
-        """
-        creates nodes and edges from networkx graph
-        :return: Node
-        """
-        assert nx_graph is not None
-        nodes = nx_graph.nodes()
-        node_xy = np.array([nodes[i][AmiSkeleton.CENTROID] for i in nodes])
-        # edges by pts (s(tart),e(nd)) appear to be the nodes on each edge
-        edge_xy_list = []
-        for (s, e) in nx_graph.edges():
-            edge_xy = nx_graph[s][e][AmiSkeleton.NODE_PTS]
-            edge_xy_list.append(edge_xy)
-        return node_xy, edge_xy_list
-
-    def extract_bbox_for_nodes_ISLAND(self, ami_island):
-        """
-        gets bounding box for a list of nodes in
-
-        requires nodes to have been created
-        :param ami_island:
-        :return: bounding box ((xmin, xmax), (ymin, ymax))
-        """
-        assert ami_island is not None
-        assert type(ami_island) is AmiIsland, f"expected {AmiIsland} found {type(ami_island)}"
-        node_xy = self.extract_coords_for_nodes_ISLAND(ami_island)
-        # print ("node_xy...", node_xy)
-        xx = node_xy[:, 0]
-        yy = node_xy[:, 1]
-        xmin = int(np.min(xx))
-        xmax = int(np.max(xx))
-        ymin = int(np.min(yy))
-        ymax = int(np.max(yy))
-        bbox = BBox(((xmin, xmax), (ymin, ymax)))
-        return bbox
-
-    def extract_coords_for_nodes_ISLAND(self, ami_island):
-        """
-        gets coordinates for a set of nx_graph nodes
-        *** NOTE it seems the sknw output has y,x rather than x,y ***
-
-        :param ami_island: normally ints but I suppose could be other
-        :return: node_xy as [npoints, 2] ndarray
-        """
-        assert ami_island is not None
-        assert type(ami_island) is AmiIsland, f"expected {AmiIsland} found {type(ami_island)}"
-        npoints = len(ami_island)
-        node_xy = np.empty([0, 2], dtype=float)
-        for isd in ami_island:
-            centroid = self.extract_coords_for_node_NX_GRAPH_CLS(isd)
-            node_xy = np.append(node_xy, centroid)
-        node_xy = np.reshape(node_xy, (npoints, 2))
-        return node_xy
-
-    def extract_coords_for_node_NX_GRAPH_CLS(self, id):
-        """
-        gets coords for a single node with given id
-        :param id: normally an int
-        :return:
-        """
-        node_data = self.nx_graph.nodes[id]
-        centroid = node_data[AmiSkeleton.CENTROID]
-        centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
-        return centroid
-
-    def create_islands_GRAPH(self):
-        """
-        needs nx_graph to exist
-
-        :return: list of islands
-        """
-
-        assert self.nx_graph is not None
-        self.islands = self.get_ami_islands_from_nx_graph_GRAPH()
-        return self.islands
-
-    def create_bbox_for_island_ISLAND(self, island):
-        bbox0 = self.extract_bbox_for_nodes_ISLAND(island)
-        bbox = BBox(bbox0)
-        return bbox
-
-    def get_ami_islands_from_nx_graph_GRAPH(self):
-        """
-        Get the pixel-disjoint "islands" as from NetworkX
-        :return: list of AmiIslands
-        """
-
-        self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH()
-        assert self.nx_graph is not None
-        ami_islands = []
-        for node_ids in nx.algorithms.components.connected_components(self.nx_graph):
-            print("node_ids ", node_ids)
-            ami_island = AmiIsland.create_island(node_ids)
-            assert ami_island is not None
-            assert type(ami_island) is AmiIsland
-            ami_islands.append(ami_island)
-        return ami_islands
-
-    def read_image_plot_component_TEST(self, component_index, image):
-        """
-        Convenience method to read imag, get components and plot given one
-        :param component_index:
-        :param image:
-        :return:
-        """
-        self.create_nx_graph_via_skeleton_sknw_NX_GRAPH(image)
-        self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH()
-        islands = self.get_ami_islands_from_nx_graph_GRAPH()
-        island = islands[component_index]
-        self.plot_island_ISLAND(island)
-
-    def plot_island_ISLAND(self, component):
-        """
-        Plots a given component
-        :param component:
-        :return:
-        """
-        start_node_index = list(component)[0]  # take first node
-        start_node = self.nodes[start_node_index]
-        start_pixel = start_node[self.NODE_PTS][0]  # may be a list of xy for a complex node always pick first
-        flooder = FloodFill()
-        pixels = flooder.flood_fill(self.binary, start_pixel)
-        if self.interactive:
-            flooder.plot_used_pixels()
-
-    def create_and_plot_all_components_TEST(self, path, min_size=None):
-        """
-
-        :param path:
-        :param min_size:
-        :return:
-        """
-        if min_size is None:
-            min_size = [30, 30]
-        self.create_nx_graph_via_skeleton_sknw_NX_GRAPH(path)
-        nodes_xy, edges_xy = self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH()
-        components = self.get_ami_islands_from_nx_graph_GRAPH()
-        assert self.nx_graph is not None
-        self.islands = self.get_ami_islands_from_nx_graph_GRAPH()
-        bboxes = self.islands
-        for component, bbox in zip(components, bboxes):
-            w, h = AmiSkeleton.get_width_height_BBOX(bbox)
-            if min_size[0] < w or min_size[1] < h:
-                self.plot_island_ISLAND(component)
-
-    def get_ami_islands_from_image_OBSOLETE(self, image):
-        """
-        read image, calculate islands
-
-        :param image:
-        :return: list of islands in arbitrary order
-        """
-        self.create_nx_graph_via_skeleton_sknw_NX_GRAPH(image)
-        self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH()
-        return self.get_ami_islands_from_nx_graph_GRAPH()
-
-
-class XMLNamespaces:
-    svg = "http://www.w3.org/2000/svg"
-    xlink = "http://www.w3.org/1999/xlink"
-
-
-class AmiIsland:
-    def __init__(self):
-        self.ami_skeleton = None
-        self.node_ids = None
-        self.nodes = []
-        self.coords_xy = None
-
-    @classmethod
-    def create_island(cls, node_ids, skeleton=None):
-        """
-        create from a list of node_ids (maybe from sknw)
-        :param node_ids:
-        :return:
-        """
-        ami_island = AmiIsland()
-        ami_island.node_ids = node_ids
-        ami_island.ami_skeleton = skeleton
-        return ami_island
-
-    def __str__(self):
-        s = f"nodes: {self.node_ids}; \n" + \
-            f"coords: {self.get_or_create_coords()}\n" + \
-            "\n"
-            # f"skeleton {self.ami_skeleton}\n" + \
-
-        return s
-
-    def get_raw_box(self):
-        bbox = None
-        return bbox
-
-    def get_or_create_coords(self):
-        if self.coords_xy is None:
-            self.get_or_create_nodes()
-            self.coords_xy = []
-            for node in self.nodes:
-                coord_xy = node.get_coord_xy()
-                self.coords_xy.append(coord_xy)
-
-    def get_or_create_nodes(self):
-        # TODO
-        if self.nodes is None and self.node_ids is not None:
-            # self.nodes = [AmiNode
-            for node_id in self.node_ids:
-                print(f"TODO resolve node from {node_id}")
-
-
-"""Utils - could be moved to utils class"""
-
-
-def is_ordered_numbers(limits2):
-    """
-    check limits2 is a numeric 2-tuple in increasing order
-    :param limits2:
-    :return: True tuple[1] > tuple[2]
-    """
-    return limits2 is not None and len(limits2) == 2 \
-        and is_number(limits2[0]) and is_number(limits2[1]) \
-        and limits2[1] > limits2[0]
-
-
-def is_number(s):
-    """
-    test if s is a number
-    :param s:
-    :return: True if float(s) succeeds
-    """
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
-
-
-class FloodFill:
-    """creates a list of flood_filling pixels given a seed"""
-
-    def __init__(self):
-        self.start_pixel = None
-        self.binary = None
-        self.filling_pixels = None
-
-    def flood_fill(self, binary_image, start_pixel):
-        """
-
-        :param binary_image: Not altered
-        :param start_pixel:
-        :return: (filled image, set of filling pixels)
-        """
-        # self.binary = self.binary.astype(int)
-
-        self.start_pixel = start_pixel
-        self.binary = binary_image
-        self.filling_pixels = self.get_filling_pixels()
-        return self.filling_pixels
-
-    def get_filling_pixels(self):
-        # new_image = np.copy(self.binary)
-        xy = self.start_pixel
-        xy_deque = deque()
-        xy_deque.append(xy)
-        filling_pixels = set()
-        while xy_deque:
-            xy = xy_deque.popleft()
-            self.binary[xy[0], xy[1]] = 0  # unset pixel
-            neighbours_list = self.get_neighbours(xy)
-            for neighbour in neighbours_list:
-                neighbour_xy = (neighbour[0], neighbour[1])  # is this necessary??
-                if neighbour_xy not in filling_pixels:
-                    filling_pixels.add(neighbour_xy)
-                    xy_deque.append(neighbour_xy)
-                else:
-                    pass
-        return filling_pixels
-
-    def get_neighbours(self, xy):
-        # i = xy[0]
-        # j = xy[1]
-        w = 3
-        h = 3
-        neighbours = []
-        # I am sure there's a more pythonic way
-        for i in range(w):
-            ii = xy[0] + i - 1
-            if ii < 0 or ii >= self.binary.shape[0]:
-                continue
-            for j in range(h):
-                jj = xy[1] + j - 1
-                if jj >= 0 or jj < self.binary.shape[1]:
-                    if self.binary[ii][jj] == 1:
-                        neighbours.append((ii, jj))
-        return neighbours
-
-    def plot_used_pixels(self):
-        used_image = self.create_image_of_filled_pixels()
-        fig, ax = plt.subplots()
-        ax.imshow(used_image)
-        plt.show()
-
-    def create_image_of_filled_pixels(self):
-        used_image = np.zeros(self.binary.shape, dtype=bool)
-        for pixel in self.filling_pixels:
-            used_image[pixel[0], pixel[1]] = 1
-        return used_image
-
-    def get_raw_box(self):
-        """
-        gets raw bounding box dimensions as an array of arrays.
-        will make this into BoundingBox soon
-
-        :return:
-        """
 class AmiGraph:
     """holds AmiNodes and AmiEdges
     may also hold subgraphs
@@ -461,7 +22,7 @@ class AmiGraph:
 
     logger = logging.getLogger("ami_graph")
 
-    def __init__(self, generate_nodes=True, nd_skeleton=None):
+    def __init__(self, nx_graph=None, generate_nodes=True, nd_skeleton=None):
         """create fro nodes and edges"""
         self.ami_node_dict = {}
         self.ami_edge_dict = {}
@@ -472,6 +33,9 @@ class AmiGraph:
         self.ami_island_list = None
         self.node_dict = None
         self.nd_skeleton = nd_skeleton
+        self.islands = None
+        if nx_graph is not None:
+            self.read_nx_graph(nx_graph)
 
     def read_nodes(self, nodes):
         """create a list of AmiNodes """
@@ -547,12 +111,12 @@ class AmiGraph:
         self.assert_nx_island_info(nx_island_list)
         nx_edgelist = self.get_edge_list_through_mininum_spanning_tree()
         self.debug_edges_and_nodes(nx_edgelist, debug_count=7)
-        self.nodes = self.nx_graph.nodes
-        self.node_dict = {i: (self.nodes[node]["o"][0], self.nodes[node]["o"][1]) for i, node in enumerate(self.nodes)}
+        nodes = self.nx_graph.nodes
+        self.node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
 
         self.ami_island_list = []
         for nx_island in nx_island_list:
-            ami_island = AmiIsland.create_island(nx_island, skeleton=self.nd_skeleton)
+            ami_island = AmiIsland.create_island(nx_island, ami_graph=self, skeleton=self.nd_skeleton)
             print(f"ami_island {ami_island}")
             self.ami_island_list.append(ami_island)
 
@@ -603,10 +167,18 @@ class AmiGraph:
         return s
 
     def read_nx_graph(self, nx_graph):
+        """
+        Read and unpack NetworkX graph.
+        This may change as a result of changing data models
+        the nx_graph may be tyhe fundamental data structure
+        :param nx_graph:
+        :return:
+        """
         # self.nodes_as_dicts = [nx_graph.node[ndidx] for ndidx in (nx_graph.nodes())]
         # self.nodes_yx = [nx_graph.node[ndidx][AmiSkeleton.CENTROID] for ndidx in (nx_graph.nodes())]
         self.read_nx_edges(nx_graph)
         self.read_nx_nodes(nx_graph)
+        # this may be the critical data structure and the others are convenience
         self.nx_graph = nx_graph
 
         self.ingest_graph_info()
@@ -617,7 +189,8 @@ class AmiGraph:
         nodes = nx_graph.nodes()
         for node_index in nodes:
             node_dict = nodes[node_index]
-            ami_node = AmiNode()
+            assert len(node_index) == 1, f"node_index is {node_index}"
+            ami_node = AmiNode(self, node_id=node_index, nx_graph=nx_graph)
             ami_node.set_centroid_yx(nx_graph.nodes[node_index][AmiSkeleton.CENTROID])
             ami_node.read_nx_node(node_dict)
             self.ami_nodes.append(ami_node)
@@ -625,77 +198,70 @@ class AmiGraph:
     def read_nx_edges(self, nx_graph):
         self.ami_edges = []
         for (start, end) in nx_graph.edges():
-            points_xy = nx_graph[start][end][AmiSkeleton.NODE_PTS]
+            points_yx = nx_graph[start][end][AmiSkeleton.NODE_PTS]
             ami_edge = AmiEdge()
-            ami_edge.read_nx_edge(points_xy)
+            ami_edge.read_nx_edge_points_yx(points_yx)
             self.ami_edges.append(ami_edge)
 
     def get_or_create_islands(self):
+        """
+        Islands are nx_graph 'components' with added functionality
+        :return:
+        """
         if self.ami_island_list is None and self.nx_graph is not None:
-            self.ami_island_list = [AmiIsland.create_island(comp) for comp in
+            self.ami_island_list = [AmiIsland.create_island(comp, ami_graph=self) for comp in
                                     nx.algorithms.components.connected_components(self.nx_graph)]
         return self.ami_island_list
 
+    @classmethod
+    def create_nx_graph_from_arbitrary_image_file(cls, path):
+        assert path.exists() and not path.is_dir(), f"{path} should be existing file"
+        Util.check_type_and_existence(path, PosixPath)
+        image1 = io.imread(path)
+        Util.check_type_and_existence(image1, np.ndarray)
+        gray_image = AmiImage.create_gray_image_from_image(image1)
+        skeleton_array = AmiImage.create_white_skeleton_from_image(gray_image)
+        nx_graph = AmiSkeleton.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
+        return nx_graph
 
-
-class AmiNode:
-    """Node holds coordinates
-    ["o"] for centrois (AmiSkeleton.CENTROID)
-    ["pts"] for multiple points (AmiSkeleton.POINTS)
-    """
-    def __init__(self):
-        self.node_dict = {}
-        self.coords = None
-        self.centroid = None
-
-    def read_nx_node(self, node_dict):
-        """read dict for node, contains coordinates
-        typically: 'o': array([ 82., 844.]), 'pts': array([[ 82, 844]], dtype=int16)}
-        dict ket
+    def get_ami_islands_from_nx_graph(self):
         """
-        self.node_dict = copy.deepcopy(node_dict)
-
-    def set_centroid_yx(self, point_yx):
+        Get the pixel-disjoint "islands" as from NetworkX
+        :return: list of AmiIslands
         """
-        set point in y,x, format
-        :param point_yx:
+
+        self.get_coords_for_nodes_and_edges_from_nx_graph(self.nx_graph)
+        assert self.nx_graph is not None
+        ami_islands = []
+        for node_ids in nx.algorithms.components.connected_components(self.nx_graph):
+            print("node_ids ", node_ids)
+            ami_island = AmiIsland.create_island(node_ids, self)
+            assert ami_island is not None
+            assert type(ami_island) is AmiIsland
+            ami_islands.append(ami_island)
+        return ami_islands
+
+    def extract_coords_for_node(self, idx):
+        """
+        gets coords for a single node with given id
+        :param idx: normally an int
         :return:
         """
-        self.centroid = [point_yx[1], point_yx[0]] # note coords reverse in sknw
-        return
+        node_data = self.nx_graph.nodes[idx]
+        centroid = node_data[AmiSkeleton.CENTROID]
+        centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
+        return centroid
 
-    def __repr__(self):
-        s = str(self.coords) + "\n" + str(self.centroid)
-        return s
+    def create_islands(self):
+        """
+        needs nx_graph to exist
 
-    def __str__(self):
-        s = f"centroid {self.centroid}"
-        return s
+        :return: list of islands
+        """
 
-class AmiEdge:
-    def __init__(self):
-        self.points = None
-        self.bbox = None
-
-    def read_nx_edge(self, points):
-        self.points = points
-        # points are in separate columns (y, x)
-        # print("coord", points[:, 1], points[:, 0], 'green')
-
-    def __repr__(self):
-        s = ""
-        if self.points is not None:
-            s = f"ami edge pts: {self.points[0]} .. {len(str(self.points))} .. {self.points[-1]}"
-        return s
-
-    def get_or_create_bbox(self):
-        if self.bbox is None and self.points is not None:
-            self.bbox = BBox()
-            for point in self.points:
-                self.bbox.add_point(point)
-
-        return self.bbox
-
+        assert self.nx_graph is not None
+        self.islands = self.get_ami_islands_from_nx_graph()
+        return self.islands
 
 
 class AmiGraphError(Exception):
@@ -704,7 +270,6 @@ class AmiGraphError(Exception):
 
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
 
     img = np.array([
         [0, 0, 0, 1, 0, 0, 0, 0, 0],

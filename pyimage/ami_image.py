@@ -63,7 +63,7 @@ class AmiImage:
         :return: AmiSkeleton
         """
         assert image is not None
-        binary = AmiImage.create_white_binary_from_image(image)
+        binary, _ = AmiImage.create_white_binary_from_image(image)
         skeleton_image = morphology.skeletonize(binary)
         return skeleton_image
 
@@ -92,5 +92,3 @@ class AmiImage:
         t_image = threshold(image)
         tt = np.where(t_image > 0)  # above threshold
         return t_image, tt
-
-# Anuv
