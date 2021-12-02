@@ -10,6 +10,8 @@ import numpy as np
 from ..pyimage.ami_image import AmiImage
 
 RESOURCE_DIR = Path(Path(__file__).parent, "resources")
+COMPARE_DIR = Path(Path(__file__).parent, "comparison_images")
+
 RGB_SNIPPET = Path(RESOURCE_DIR, "biosynth_3_snippet_1.png")
 
 
@@ -45,6 +47,14 @@ class TestAmiImage:
         """convert raw "gray" image to grayscale"""
         image = io.imread(RGB_SNIPPET)
         gray_image = AmiImage.create_grayscale_0_1_float_from_image(image)
+        
+        # DOES NOT WORK
+        # compare_filename = "gray.png"
+        # compare_filepath = Path(COMPARE_DIR, compare_filename)
+        # compare_image = io.imread(compare_filepath)
+        # assert np.array_equal(gray_image, compare_image), f"Image does not match {compare_filename} image"
+
+        # ***POSSIBLY REDUNDANT***
         assert gray_image.shape == (341, 796)  # gray
         print(gray_image)
         assert np.count_nonzero(gray_image) == 270842  # zero == black
@@ -55,5 +65,18 @@ class TestAmiImage:
         print(f"non black pixels {non_black_pixels}")
         black_pixels = np.any(gray_image == 0.0)
 
+    def test_white_binary(self):
+        """tests image to white binary image"""
+        image = io.imread(RGB_SNIPPET)
+        white_binary = AmiImage.threshold(image)
+        # only unique values in a binary image are 0 and 1
+        unique_values = np.unique(white_binary)
+        assert len(unique_values) == 2
+
+        # DOES NOT WORK
+        # compare_filename = "white_binary.png"
+        # compare_filepath = Path(COMPARE_DIR, compare_filename)
+        # compare_image = io.imread(compare_filepath)
+        # assert np.array_equal(white_binary, compare_image), f"Image does not match {compare_filename} image"        
 
 # TODO tests for AmiImage conversions of simple images to gray and white skeleton

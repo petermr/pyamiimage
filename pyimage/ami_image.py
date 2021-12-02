@@ -134,9 +134,16 @@ class AmiImage:
         :param threshold: integer or float?
         :return: integer 0/1 binary image
         """
+        # check if image is grayscale
+        if len(image.shape) > 2:
+            # convert to grayscale if not grayscale
+            gray = cls.create_grayscale_0_1_float_from_image(image)
+        
+        # if no threshold is provided, assume default threshold: otsu
         if threshold is None:
-            threshold = skimage.filters.threshold_otsu(image)
-        binary_image = np.where(image >= threshold, 1, 0)
+            threshold = skimage.filters.threshold_otsu(gray)
+        
+        binary_image = np.where(gray >= threshold, 1, 0)
         return binary_image
 
     @classmethod
