@@ -35,11 +35,11 @@ class AmiImage:
         """
         assert path is not None
         image = io.imread(path)
-        gray_image = AmiImage.create_grayscale_from_image(image)
+        gray_image = AmiImage.create_grayscale_0_1_float_from_image(image)
         return gray_image
 
     @classmethod
-    def create_grayscale_from_image(cls, image):
+    def create_grayscale_0_1_float_from_image(cls, image):
         gray_image = color.rgb2gray(image)
         return gray_image
 
