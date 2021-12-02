@@ -1,3 +1,4 @@
+"""supports/wraps nx_graphs from N etworkX"""
 import numpy as np
 import networkx as nx
 import copy
@@ -22,26 +23,29 @@ class AmiGraph:
 
     logger = logging.getLogger("ami_graph")
 
-    def __init__(self, nx_graph=None, generate_nodes=True, nd_skeleton=None):
+    def __init__(self, nx_graph, generate_nodes=True, nd_skeleton=None):
         """create fro nodes and edges"""
-        self.ami_node_dict = {}
-        self.ami_edge_dict = {}
-        self.generate_nodes = generate_nodes
+        # self.ami_node_dict = {}
+        # self.ami_edge_dict = {}
+        # self.generate_nodes = generate_nodes
         self.nx_graph = None
         self.ami_edges = None
         self.ami_nodes = None
         self.ami_island_list = None
-        self.node_dict = None
+        # self.node_dict = None
         self.nd_skeleton = nd_skeleton
-        self.islands = None
-        if nx_graph is not None:
-            self.read_nx_graph(nx_graph)
+        # self.islands = None
+        if nx_graph is None:
+            raise Exception(f"nx_graph cannot be None")
+        self.read_nx_graph(nx_graph)
+        assert self.nx_graph is not None, f"ami_graph.nx_graph should not be None"
+        return
 
-    def read_nodes(self, nodes):
-        """create a list of AmiNodes """
-        if nodes is not None:
-            for node in nodes:
-                self.add_raw_node(node)
+    # def read_nodes(self, nodes):
+    #     """create a list of AmiNodes """
+    #     if nodes is not None:
+    #         for node in nodes:
+    #             self.add_raw_node(node)
 
     def add_raw_node(self, raw_node, fail_on_duplicate=False):
         """add a raw node either a string or string-indexed dict
@@ -91,10 +95,9 @@ class AmiGraph:
     def create_ami_graph(cls, nd_skeleton):
         """Uses Sknw to create a graph object within a new AmiGraph"""
         # currently only called in a test
-        ami_graph = AmiGraph(nd_skeleton=nd_skeleton)
         nx_graph = sknw.build_sknw(nd_skeleton)
-        print("nx_graph", nx_graph)
-        ami_graph.read_nx_graph(nx_graph)
+        ami_graph = AmiGraph(nx_graph, nd_skeleton=nd_skeleton)
+        # ami_graph.read_nx_graph(nx_graph )
         print(f"***ami_graph\n {ami_graph}\n")
         return ami_graph
 
@@ -116,7 +119,7 @@ class AmiGraph:
 
         self.ami_island_list = []
         for nx_island in nx_island_list:
-            ami_island = AmiIsland.create_island(nx_island, ami_graph=self, skeleton=self.nd_skeleton)
+            ami_island = self.create_ami_island(nx_island, skeleton=self.nd_skeleton)
             print(f"ami_island {ami_island}")
             self.ami_island_list.append(ami_island)
 
@@ -203,13 +206,13 @@ class AmiGraph:
             ami_edge.read_nx_edge_points_yx(points_yx)
             self.ami_edges.append(ami_edge)
 
-    def get_or_create_islands(self):
+    def get_or_create_ami_islands(self):
         """
-        Islands are nx_graph 'components' with added functionality
-        :return:
+        AmiIslands are nx_graph 'components' with added functionality
+        :return: list of AmiIslands
         """
         if self.ami_island_list is None and self.nx_graph is not None:
-            self.ami_island_list = [AmiIsland.create_island(comp, ami_graph=self) for comp in
+            self.ami_island_list = [self.create_ami_island(comp) for comp in
                                     nx.algorithms.components.connected_components(self.nx_graph)]
         return self.ami_island_list
 
@@ -219,7 +222,7 @@ class AmiGraph:
         Util.check_type_and_existence(path, PosixPath)
         image1 = io.imread(path)
         Util.check_type_and_existence(image1, np.ndarray)
-        gray_image = AmiImage.create_gray_image_from_image(image1)
+        gray_image = AmiImage.create_grayscale_from_image(image1)
         skeleton_array = AmiImage.create_white_skeleton_from_image(gray_image)
         nx_graph = AmiSkeleton.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
         return nx_graph
@@ -235,7 +238,7 @@ class AmiGraph:
         ami_islands = []
         for node_ids in nx.algorithms.components.connected_components(self.nx_graph):
             print("node_ids ", node_ids)
-            ami_island = AmiIsland.create_island(node_ids, self)
+            ami_island = self.create_ami_island(node_ids)
             assert ami_island is not None
             assert type(ami_island) is AmiIsland
             ami_islands.append(ami_island)
@@ -262,6 +265,27 @@ class AmiGraph:
         assert self.nx_graph is not None
         self.islands = self.get_ami_islands_from_nx_graph()
         return self.islands
+
+    @classmethod
+    def create_ami_island(self, node_ids, skeleton=None):
+        """
+        create from a list of node_ids (maybe from sknw)
+        maybe should be instance method of ami_graph
+        :param node_ids: set of node ids
+        :param ami_graph: essential
+        :param skeleton:
+        :return: AmiIsland object
+        """
+        assert type(node_ids) is set, "componente mus be of type set"
+        assert len(node_ids) > 0 , "components cannot be empty"
+
+        ami_island = AmiIsland()
+        ami_island.node_ids = node_ids
+        ami_island.ami_skeleton = skeleton
+        ami_island.ami_graph = self
+        print("ami_island", ami_island)
+        return ami_island
+
 
 
 class AmiGraphError(Exception):

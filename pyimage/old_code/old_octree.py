@@ -3,8 +3,7 @@
 # from https://github.com/delimitry/octree_color_quantizer CC0, thanks
 from pathlib import Path
 
-from ..pyimage.ColorModule import Color
-from ..pyimage.image_lib import ImageLib
+from pyimage.old_code.ColorModule import Color
 from PIL import Image
 
 

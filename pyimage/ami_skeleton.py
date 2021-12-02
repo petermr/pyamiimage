@@ -66,7 +66,7 @@ class AmiSkeleton:
         """
         assert path is not None
         path = Path(path)
-        self.skeleton_image = AmiImage.create_white_skeleton_image_from_file(path)
+        self.skeleton_image = AmiImage.create_white_skeleton_from_file(path)
         # build graph from skeleton
         nx_graph = self.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(self.skeleton_image)
         if plot_plot:
@@ -82,7 +82,7 @@ class AmiSkeleton:
         """
         assert path is not None
         path = Path(path)
-        self.skeleton_image = AmiImage.create_white_skeleton_image_from_file(path)
+        self.skeleton_image = AmiImage.create_white_skeleton_from_file(path)
         # build graph from skeleton
         self.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(self.skeleton_image)
         return self.nx_graph

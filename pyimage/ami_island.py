@@ -1,5 +1,4 @@
 """AmiIsland is a set of node_ids that NetwworkX has listed as a "component"""
-import logging
 
 from pyimage.svg import BBox
 from pyimage.util import Util
@@ -14,32 +13,11 @@ class AmiIsland:
         self.coords_xy = None
         self.bbox = None
 
-    @classmethod
-    def create_island(cls, node_ids, ami_graph, skeleton=None):
-        """
-        create from a list of node_ids (maybe from sknw)
-        maybe should be instance method of ami_graph
-        :param node_ids: set of node ids
-        :param ami_graph: essential
-        :param skeleton:
-        :return:
-        """
-        assert type(node_ids) is set, "componente mus be of type set"
-        assert len(node_ids) > 0 , "components cannot be empty"
-
-        ami_island = AmiIsland()
-        ami_island.node_ids = node_ids
-        ami_island.ami_skeleton = skeleton
-        ami_island.ami_graph = ami_graph
-        print("ami_island", ami_island)
-        return ami_island
-
     def __str__(self):
         s = "" + \
             f"node_ids: {self.node_ids}; \n" + \
             f"coords: {self.coords_xy}\n" + \
             "\n"
-            # f"skeleton {self.ami_skeleton}\n" + \
 
         return s
 
@@ -52,6 +30,9 @@ class AmiIsland:
         coords = []
         if self.coords_xy is None:
             for node_id in self.node_ids:
+                print(f"ami_graph {type(self.ami_graph)} {self.ami_graph}")
+                print(f"ami_graph.nx_graph nx_graph: {self.ami_graph.nx_graph}")
+                print(f"ami_graph {type(self.ami_graph)} {self.ami_graph} nx_graph: {self.ami_graph.nx_graph}")
                 yx = self.ami_graph.nx_graph.nodes[node_id]["o"]
                 xy = Util.get_xy_from_sknw_centroid(yx)
                 coords.append(xy)
@@ -68,6 +49,11 @@ class AmiIsland:
         return coords
 
     def get_or_create_bbox(self):
+        """
+        create BBox object if not exists.
+        May give empty box if no coordinates
+        :return: BBox
+        """
         if self.bbox is None:
             coords_xy = self.get_or_create_coords()
             print(f"coords_xy {coords_xy}")
@@ -75,6 +61,3 @@ class AmiIsland:
             for coord in coords_xy:
                 self.bbox.add_coordinate(coord)
         return self.bbox
-
-
-

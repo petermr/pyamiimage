@@ -12,11 +12,11 @@ import sknw
 
 from pyimage.ami_node import AmiNode
 from test.resources import Resources
-from pyimage.graph_lib import AmiSkeleton
+from pyimage.old_code.graph_lib import AmiSkeleton
 from pyimage.ami_island import AmiIsland
 from pyimage.ami_image import AmiImage
 from pyimage.util import Util
-from pyimage.graph_lib import AmiGraph
+from pyimage.old_code.graph_lib import AmiGraph
 
 
 class TestAmiGraph:
@@ -146,7 +146,7 @@ plt.show()"""
         skel_path = Resources.BIOSYNTH1_ARROWS
         Util.check_type_and_existence(skel_path, PosixPath)
 
-        skeleton_array = AmiImage.create_white_skeleton_image_from_file(skel_path)
+        skeleton_array = AmiImage.create_white_skeleton_from_file(skel_path)
         Util.check_type_and_existence(skeleton_array, np.ndarray)
 
         nx_graph = AmiSkeleton.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
@@ -170,7 +170,7 @@ plt.show()"""
 
     def test_islands(self):
         """
-        Create islands using sknw/NetworkX and check basic properties
+        Create island_node_id_sets using sknw/NetworkX and check basic properties
         :return:
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
@@ -184,10 +184,10 @@ plt.show()"""
 
         ami_graph = AmiGraph()
         ami_graph.read_nx_graph(nx_graph)
-        islands = ami_graph.get_or_create_islands()
-        assert len(islands) == 4
-        assert type(islands[0]) is AmiIsland
-        assert islands[0].node_ids == {0, 1, 2, 3, 4, 5, 6, 7}
+        island_node_id_sets = ami_graph.get_or_create_ami_islands()
+        assert len(island_node_id_sets) == 4
+        assert type(island_node_id_sets[0]) is AmiIsland
+        assert island_node_id_sets[0].node_ids == {0, 1, 2, 3, 4, 5, 6, 7}
 
     def test_nodes(self):
         """
@@ -195,6 +195,8 @@ plt.show()"""
         :return:
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        ami_graph = AmiGraph()
+        ami_graph.read_nx_graph(nx_graph)
         nodex = AmiNode(nx_graph=nx_graph, node_id=(list(nx_graph.nodes)[0]))
         xy = nodex.get_or_create_centroid_xy()
         assert xy == [844.0, 82.0]
@@ -206,9 +208,10 @@ plt.show()"""
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         ami_graph = AmiGraph(nx_graph=nx_graph)
-        islands = ami_graph.get_or_create_islands()
+        islands = ami_graph.get_or_create_ami_islands()
         bbox_list = []
         for island in islands:
+            # print(f"island.ami_graph.nx_graph {island.ami_graph.nx_graph}")
             bbox_list.append(island.get_or_create_bbox())
         assert len(bbox_list) == 4
         # this is horrible and fragile, need __eq__ for bbox

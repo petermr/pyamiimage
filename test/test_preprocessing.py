@@ -1,5 +1,4 @@
-from ..pyimage.preprocessing import ImageProcessor
-import pytest
+from pyimage.old_code.preprocessing import ImageProcessor
 import numpy
 from pathlib import Path
 
