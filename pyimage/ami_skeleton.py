@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 
 from pyimage.ami_image import AmiImage
 from pyimage.util import Util
-from pyimage.ami_island import AmiIsland
-from pyimage.svg import BBox
+
+from pyimage.bbox import BBox
 from pyimage.flood_fill import FloodFill
 
 
@@ -159,6 +159,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         return node_xy, edge_xy_list
 
     def extract_bbox_for_nodes_ISLAND(self, ami_island):
+        from pyimage import AmiIsland
         """
         gets bounding box for a list of nodes in
 

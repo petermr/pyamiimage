@@ -22,7 +22,7 @@ class TestGraphLib:
 
     # apparently doesn't like init in Test class
     # def __init__(self):
-    TEST_DIR = Path(Path(__file__).parent, "resources")
+    TEST_DIR = Path(Path(__file__).parent, "../../test/resources")
     SIMPLE_2N1E = "simple_2n1e"
     SIMPLE_2N1E_PATH = Path(TEST_DIR, SIMPLE_2N1E+".png")
     GRAPH_DICT = {

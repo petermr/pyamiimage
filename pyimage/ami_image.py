@@ -164,3 +164,18 @@ class AmiImage:
 #       RGB 0-1
 #       binary 0-255 , etc
 # maybe is library somewhere
+
+"""python REPL commands
+replay these from this directory (resources) to see the distrib of gray values
+sniprgbafile = Path(os.getcwd(), "snippet_rgba.png")
+snipgrayim = io.imread(sniprgbafile)
+sniprgbim = skimage.color.rgba2rgb(sniprgbaim)
+snipgrayim = skimage.color.rgb2gray(sniprgbim)
+plt.hist(snipgray)
+plt.title("gray values")
+plt.ylabel("count")
+plt.xlabel("whiteness")
+plt.show()
+# HISTORY
+import readline; print('\n'.join([str(readline.get_history_item(i + 1)) for i in range(readline.get_current_history_length())]))
+"""

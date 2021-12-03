@@ -282,6 +282,7 @@ class AmiGraph:
         ami_island.node_ids = node_ids
         ami_island.ami_skeleton = skeleton
         ami_island.ami_graph = self
+        print(f"ami_island =============  {ami_island.ami_graph}")
         print("ami_island", ami_island)
         return ami_island
 

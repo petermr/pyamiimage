@@ -8,12 +8,17 @@ import sknw  # must pip install sknw
 import logging
 from pathlib import PosixPath
 
-from .ami_image import AmiImage
-from .util import Util
-from .ami_island import AmiIsland
-from .ami_node import AmiNode
-from .ami_skeleton import AmiSkeleton
-from .ami_edge import AmiEdge
+from pyimage.ami_image import AmiImage
+from pyimage.util import Util
+from pyimage.ami_skeleton import AmiSkeleton
+from pyimage.svg import BBox
+
+
+"""
+==========================================================================
+==============================GRAPH=======================================
+==========================================================================
+"""
 
 
 class AmiGraph:
@@ -23,29 +28,33 @@ class AmiGraph:
 
     logger = logging.getLogger("ami_graph")
 
-    def __init__(self, nx_graph, generate_nodes=True, nd_skeleton=None):
+    def __init__(self, nx_graph, generate_nodes=False, nd_skeleton=None):
         """create fro nodes and edges"""
-        # self.ami_node_dict = {}
-        # self.ami_edge_dict = {}
-        # self.generate_nodes = generate_nodes
-        self.nx_graph = None
+        if nx_graph is None:
+            raise Exception(f"nx_graph cannot be None")
+        self.nx_graph = nx_graph
+        AmiGraph.debugx(self, "init")
+
         self.ami_edges = None
         self.ami_nodes = None
         self.ami_island_list = None
-        # self.node_dict = None
         self.nd_skeleton = nd_skeleton
-        # self.islands = None
-        if nx_graph is None:
-            raise Exception(f"nx_graph cannot be None")
+        self.ami_edge_dict = None
+        self.generate_nodes = generate_nodes
+        self.ami_node_dict = None
+
         self.read_nx_graph(nx_graph)
         assert self.nx_graph is not None, f"ami_graph.nx_graph should not be None"
         return
 
-    # def read_nodes(self, nodes):
-    #     """create a list of AmiNodes """
-    #     if nodes is not None:
-    #         for node in nodes:
-    #             self.add_raw_node(node)
+    @classmethod
+    def debugx(cls, ami_graph, msg):
+        print(f"dir ami_graph {msg} {dir(ami_graph)} \n contains nx_graph {'nx_graph' in dir(ami_graph)}")
+        assert 'nx_graph' in dir(ami_graph)
+
+    def get_nx_graph(self):
+        """try to avoid circular imports or attribute not found"""
+        return self.nx_graph
 
     def add_raw_node(self, raw_node, fail_on_duplicate=False):
         """add a raw node either a string or string-indexed dict
@@ -98,7 +107,7 @@ class AmiGraph:
         nx_graph = sknw.build_sknw(nd_skeleton)
         ami_graph = AmiGraph(nx_graph, nd_skeleton=nd_skeleton)
         # ami_graph.read_nx_graph(nx_graph )
-        print(f"***ami_graph\n {ami_graph}\n")
+        print(f"***ami_graph\n {ami_graph} nx_graph: {ami_graph.nx_graph}\n")
         return ami_graph
 
     def ingest_graph_info(self):
@@ -115,7 +124,7 @@ class AmiGraph:
         nx_edgelist = self.get_edge_list_through_mininum_spanning_tree()
         self.debug_edges_and_nodes(nx_edgelist, debug_count=7)
         nodes = self.nx_graph.nodes
-        self.node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
+        self.ami_node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
 
         self.ami_island_list = []
         for nx_island in nx_island_list:
@@ -183,8 +192,9 @@ class AmiGraph:
         self.read_nx_nodes(nx_graph)
         # this may be the critical data structure and the others are convenience
         self.nx_graph = nx_graph
-
-        self.ingest_graph_info()
+        ingest = False
+        if ingest:
+            self.ingest_graph_info()
         return
 
     def read_nx_nodes(self, nx_graph):
@@ -233,7 +243,7 @@ class AmiGraph:
         :return: list of AmiIslands
         """
 
-        self.get_coords_for_nodes_and_edges_from_nx_graph(self.nx_graph)
+        # self.get_coords_for_nodes_and_edges_from_nx_graph(self.nx_graph)
         assert self.nx_graph is not None
         ami_islands = []
         for node_ids in nx.algorithms.components.connected_components(self.nx_graph):
@@ -255,37 +265,35 @@ class AmiGraph:
         centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
         return centroid
 
-    def create_islands(self):
-        """
-        needs nx_graph to exist
+    def create_ami_island(self, node_ids):
 
-        :return: list of islands
-        """
-
-        assert self.nx_graph is not None
-        self.islands = self.get_ami_islands_from_nx_graph()
-        return self.islands
-
-    @classmethod
-    def create_ami_island(self, node_ids, skeleton=None):
         """
         create from a list of node_ids (maybe from sknw)
         maybe should be instance method of ami_graph
         :param node_ids: set of node ids
-        :param ami_graph: essential
         :param skeleton:
         :return: AmiIsland object
         """
         assert type(node_ids) is set, "componente mus be of type set"
-        assert len(node_ids) > 0 , "components cannot be empty"
+        assert len(node_ids) > 0, "components cannot be empty"
 
         ami_island = AmiIsland()
         ami_island.node_ids = node_ids
-        ami_island.ami_skeleton = skeleton
         ami_island.ami_graph = self
         print("ami_island", ami_island)
         return ami_island
 
+
+    # def create_islands(self):
+    #     """
+    #     needs nx_graph to exist
+    #
+    #     :return: list of islands
+    #     """
+    #
+    #     assert self.nx_graph is not None
+    #     islands = self.get_ami_islands_from_nx_graph()
+    #     return islands
 
 
 class AmiGraphError(Exception):
@@ -294,20 +302,196 @@ class AmiGraphError(Exception):
 
 
 if __name__ == '__main__':
+    pass
 
-    img = np.array([
-        [0, 0, 0, 1, 0, 0, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0, 1, 0],
-        [0, 0, 0, 1, 0, 0, 0, 1, 0],
-        [0, 0, 0, 1, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 1, 0, 0, 0],
-        [1, 0, 1, 0, 0, 1, 1, 1, 1],
-        [0, 1, 0, 0, 1, 0, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0, 0, 0]])
+"""
+==========================================================================
+===============================EDGE=======================================
+==========================================================================
+"""
 
-    # sknw.example1()
-    # sknw.example2horse()  # works
-    # sknw.example3() # needs flipping White to black
-    # sknw.example4() # needs flipping White to black
+"""wrapper for edge from sknw/nx, still being developed"""
+
+
+class AmiEdge:
+    def __init__(self):
+        self.points_xy = None
+        self.bbox = None
+
+    def read_nx_edge_points_yx(self, points_array_yx):
+        """
+        convert from nx_points (held as yarray, xarray) to array(x, y)
+        :param points_array_yx:
+        :return:
+        """
+        # points are in separate columns (y, x)
+        # print("coord", points[:, 1], points[:, 0], 'green')
+        # I can't get list comprehension to work, help needed!
+        # self.points_xy = [   [point[1], point[0]] for point in points_array_yx]:
+        assert points_array_yx is not None and points_array_yx.ndim == 2 and points_array_yx.shape[1] == 2
+        self.points_xy = []
+        for point in points_array_yx:
+            self.points_xy.append([point[1], point[0]])
+        # print ("points_xy", self.points_xy)
+
+    def __repr__(self):
+        s = ""
+        if self.points_xy is not None:
+            s = f"ami edge pts: {self.points_xy[0]} .. {len(str(self.points_xy))} .. {self.points_xy[-1]}"
+        return s
+
+    def get_or_create_bbox(self):
+        if self.bbox is None and self.points_xy is not None:
+            self.bbox = BBox()
+            for point in self.points_xy:
+                self.bbox.add_coordinate(point)
+
+        return self.bbox
+
+
+"""a warpper for an sknw/nx node, still being developed"""
+
+
+"""
+==========================================================================
+===============================NODE=======================================
+==========================================================================
+"""
+
+
+class AmiNode:
+    """Node holds coordinates
+    ["o"] for centrois (AmiSkeleton.CENTROID)
+    ["pts"] for multiple points (AmiSkeleton.POINTS)
+    ALL COORDINATES COMMUNICATED BY/TO USER ARE X,Y
+    (SKNW uses y,x coordinates)
+    """
+    CENTROID = "o"
+
+    def __init__(self, node_id=None, ami_graph=None, nx_graph=None):
+        """
+
+        :param node_id: mandatory
+        :param ami_graph: will use ami_graph.nx_graph
+        :param nx_graph: else will use nx_graph
+        """
+
+        if len(str(node_id)) > 4:
+            print(f"ami_graph {ami_graph}, nx_graph {nx_graph}")
+            raise Exception(f"id should be simple {node_id}")
+
+        self.ami_graph = ami_graph
+        self.nx_graph = nx_graph
+        if nx_graph is None and self.ami_graph is not None:
+            self.nx_graph = self.ami_graph.nx_graph
+        self.centroid_xy = None
+        self.coords_xy = None
+        self.node_id = node_id
+        self.node_dict = None  # may not be needed
+
+    def read_nx_node(self, node_dict):
+        """read dict for node, contains coordinates
+        typically: 'o': array([ 82., 844.]), 'pts': array([[ 82, 844]], dtype=int16)}
+        dict ket
+        """
+        self.node_dict = copy.deepcopy(node_dict)
+
+    def get_or_create_centroid_xy(self):
+        """
+        gets centroid from nx_graph.nodes[node_id]
+        :return:
+        """
+        if self.centroid_xy is None and self.nx_graph is not None:
+            assert len(str(self.node_id)) < 4, f"self.node_id {self.node_id}"
+            self.centroid_xy = Util.get_xy_from_sknw_centroid(
+                self.nx_graph.nodes[self.node_id][self.CENTROID])
+        return self.centroid_xy
+
+    def set_centroid_yx(self, point_yx):
+        """
+        set point in y,x, format
+        :param point_yx:
+        :return:
+        """
+        self.centroid_xy = [point_yx[1], point_yx[0]]  # note coords reverse in sknw
+        return
+
+    def __repr__(self):
+        s = str(self.coords_xy) + "\n" + str(self.centroid_xy)
+        return s
+
+    def __str__(self):
+        s = f"centroid {self.centroid_xy}"
+        return s
+
+
+# =====
+
+"""AmiIsland is a set of node_ids that NetwworkX has listed as a "component"""
+
+"""
+==========================================================================
+==============================ISLAND======================================
+==========================================================================
+"""
+
+
+class AmiIsland:
+    def __init__(self, ami_graph=None):
+        # self.ami_skeleton = None
+        self.node_ids = None
+        self.ami_graph = ami_graph
+        self.coords_xy = None
+        self.bbox = None
+
+    def __str__(self):
+        s = "" + \
+            f"node_ids: {self.node_ids}; \n" + \
+            f"coords: {self.coords_xy}\n" + \
+            f"ami_graph: {self.ami_graph}" + \
+            "\n"
+
+        return s
+
+    def get_raw_box(self):
+        bbox = None
+        return bbox
+
+    def get_or_create_coords(self):
+        coords = []
+        assert self.ami_graph is not None, "must have AmiGraph"
+        if self.coords_xy is None:
+            for node_id in self.node_ids:
+                print(f"node id {node_id}")
+                print(f"ami_graph {type(self.ami_graph)} {self.ami_graph}")
+                print(f"dir ami_graph {dir(self.ami_graph)}")
+                nx_graph = self.ami_graph.nx_graph
+                # nx_graph = self.ami_graph.get_nx_graph()
+                yx = nx_graph.nodes[node_id]["o"]
+                xy = Util.get_xy_from_sknw_centroid(yx)
+                coords.append(xy)
+            # self.get_or_create_nodes()
+            # self.coords_xy = []
+            # for node in self.nodes:
+            #     coord_xy = node.coords_xy
+            #     self.coords_xy.append(coord_xy)
+
+    # def get_or_create_nodes(self):
+    #     if len(self.nodes) == 0 and self.node_ids is not None:
+    #         self.nodes = [AmiNode(node_id) for node_id in self.node_ids]
+    #     return self.nodes
+        return coords
+
+    def get_or_create_bbox(self):
+        """
+        create BBox object if not exists.
+        May give empty box if no coordinates
+        :return: BBox
+        """
+        if self.bbox is None:
+            coords_xy = self.get_or_create_coords()
+            print(f"coords_xy {coords_xy}")
+            self.bbox = BBox()
+            for coord in coords_xy:
+                self.bbox.add_coordinate(coord)
+        return self.bbox

@@ -10,8 +10,9 @@ from PIL import Image
 from pathlib import Path
 import unittest
 
-from pyimage.old_code.graph_lib import AmiSkeleton, AmiGraph
-from pyimage.old_code.preprocessing import ImageProcessor
+from pyimage.ami_graph import AmiGraph
+from pyimage.ami_skeleton import AmiSkeleton
+from pyimage.ami_image import ImageProcessor
 from pyimage.util import Util
 
 
