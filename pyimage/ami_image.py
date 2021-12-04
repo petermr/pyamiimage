@@ -40,7 +40,9 @@ class AmiImage:
 
     @classmethod
     def create_grayscale_0_1_float_from_image(cls, image):
-        gray_image = color.rgb2gray(image)
+        # requires 2 separate conversions
+        gray_image = color.rgb2gray(color.rgba2rgb(image))
+        assert np.max(gray_image) == 1.0
         return gray_image
 
     @classmethod
@@ -71,6 +73,13 @@ class AmiImage:
         binary, _ = AmiImage.create_white_binary_from_image(image)
         skeleton_image = morphology.skeletonize(binary)
         return skeleton_image
+
+    @classmethod
+    def create_white_binary_from_file(cls, path):
+        assert path is not None
+        image = io.imread(path)
+        binary = AmiImage.create_white_binary_from_image(image)
+        return binary
 
     @classmethod
     def create_white_binary_from_image(cls, image):

@@ -162,9 +162,9 @@ plt.show()"""
                                         (21, 24), (22, 24), (23, 24), (24, 25)]
 
         node1ps = nx_graph.nodes[1]["pts"]
-        print(f"node1ps {node1ps}")
+        # print(f"node1ps {node1ps}")
         node1ps0 = node1ps[0]
-        print("node1ps0", node1ps0)
+        # print("node1ps0", node1ps0)
         assert str(node1ps) == "[[ 83 680]]"
 
         if False:
@@ -212,17 +212,10 @@ plt.show()"""
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         ami_graph = AmiGraph(nx_graph)
-        print(f"ami_graph.nx_graph {ami_graph.nx_graph}")
-        AmiGraph.debugx(ami_graph, "before island creation")
         islands = ami_graph.get_or_create_ami_islands()
         bbox_list = []
         for island in islands:
-            print(f"island {island}")
-            # print(f"island.ami_graph.nx_graph {island.ami_graph.nx_graph}")
-            AmiGraph.debugx(ami_graph, "first island")
             bbox = island.get_or_create_bbox()
-            AmiGraph.debugx(ami_graph, "second island")
-            print(f"bbox => {bbox}")
             bbox_list.append(bbox)
         assert len(bbox_list) == 4
         # this is horrible and fragile, need __eq__ for bbox

@@ -33,7 +33,6 @@ class AmiGraph:
         if nx_graph is None:
             raise Exception(f"nx_graph cannot be None")
         self.nx_graph = nx_graph
-        AmiGraph.debugx(self, "init")
 
         self.ami_edges = None
         self.ami_nodes = None
@@ -46,11 +45,6 @@ class AmiGraph:
         self.read_nx_graph(nx_graph)
         assert self.nx_graph is not None, f"ami_graph.nx_graph should not be None"
         return
-
-    @classmethod
-    def debugx(cls, ami_graph, msg):
-        print(f"dir ami_graph {msg} {dir(ami_graph)} \n contains nx_graph {'nx_graph' in dir(ami_graph)}")
-        assert 'nx_graph' in dir(ami_graph)
 
     def get_nx_graph(self):
         """try to avoid circular imports or attribute not found"""
@@ -80,7 +74,6 @@ class AmiGraph:
         # self.ami_edges = edges
         if len(self.ami_node_dict.keys()) == 0 and self.generate_nodes:
             self.generate_nodes_from_edges()
-            print("after node generation", str(self))
         for i, edge in enumerate(edges):
             idx = "e" + str(i)
             self.add_edge(edge, idx)
@@ -106,15 +99,12 @@ class AmiGraph:
         # currently only called in a test
         nx_graph = sknw.build_sknw(nd_skeleton)
         ami_graph = AmiGraph(nx_graph, nd_skeleton=nd_skeleton)
-        # ami_graph.read_nx_graph(nx_graph )
-        print(f"***ami_graph\n {ami_graph} nx_graph: {ami_graph.nx_graph}\n")
         return ami_graph
 
     def ingest_graph_info(self):
         if self.nx_graph is None:
             self.logger.warning("Null graph")
             return
-        # print("graph", self.nx_graph)
         nx_island_list = list(nx.connected_components(self.nx_graph))
         if nx_island_list is None or len(nx_island_list) == 0:
             self.logger.warning("No islands")
@@ -129,7 +119,6 @@ class AmiGraph:
         self.ami_island_list = []
         for nx_island in nx_island_list:
             ami_island = self.create_ami_island(nx_island, skeleton=self.nd_skeleton)
-            print(f"ami_island {ami_island}")
             self.ami_island_list.append(ami_island)
 
         return
@@ -140,7 +129,6 @@ class AmiGraph:
         assert len(nx_island0) > 0
         elem0 = list(nx_island0)[0]
         assert type(elem0) is int, f"island elem are {type(elem0)}"
-        print("islands", self.ami_island_list)
 
     def debug_edges_and_nodes(self, nx_edgelist, debug_count=5):
         start_node = 0
@@ -148,10 +136,10 @@ class AmiGraph:
         pts_index = 2
         for edge in nx_edgelist[:debug_count]:
             pts_ = edge[pts_index]['pts']
-            print(edge[start_node], edge[end_node], "pts in edge", len(pts_))
         edgelist_pts_ = nx_edgelist[0][2]['pts']
         for step in edgelist_pts_[:debug_count]:
             print("step", step)
+            pass
 
     def get_edge_list_through_mininum_spanning_tree(self):
         mst = tree.maximum_spanning_edges(self.nx_graph, algorithm="kruskal", data=True)
@@ -247,7 +235,6 @@ class AmiGraph:
         assert self.nx_graph is not None
         ami_islands = []
         for node_ids in nx.algorithms.components.connected_components(self.nx_graph):
-            print("node_ids ", node_ids)
             ami_island = self.create_ami_island(node_ids)
             assert ami_island is not None
             assert type(ami_island) is AmiIsland
@@ -280,7 +267,6 @@ class AmiGraph:
         ami_island = AmiIsland()
         ami_island.node_ids = node_ids
         ami_island.ami_graph = self
-        print("ami_island", ami_island)
         return ami_island
 
 
@@ -325,14 +311,10 @@ class AmiEdge:
         :return:
         """
         # points are in separate columns (y, x)
-        # print("coord", points[:, 1], points[:, 0], 'green')
-        # I can't get list comprehension to work, help needed!
-        # self.points_xy = [   [point[1], point[0]] for point in points_array_yx]:
         assert points_array_yx is not None and points_array_yx.ndim == 2 and points_array_yx.shape[1] == 2
         self.points_xy = []
         for point in points_array_yx:
             self.points_xy.append([point[1], point[0]])
-        # print ("points_xy", self.points_xy)
 
     def __repr__(self):
         s = ""
@@ -462,24 +444,10 @@ class AmiIsland:
         assert self.ami_graph is not None, "must have AmiGraph"
         if self.coords_xy is None:
             for node_id in self.node_ids:
-                print(f"node id {node_id}")
-                print(f"ami_graph {type(self.ami_graph)} {self.ami_graph}")
-                print(f"dir ami_graph {dir(self.ami_graph)}")
-                nx_graph = self.ami_graph.nx_graph
-                # nx_graph = self.ami_graph.get_nx_graph()
-                yx = nx_graph.nodes[node_id]["o"]
+                yx = self.ami_graph.nx_graph.nodes[node_id]["o"]
                 xy = Util.get_xy_from_sknw_centroid(yx)
                 coords.append(xy)
-            # self.get_or_create_nodes()
-            # self.coords_xy = []
-            # for node in self.nodes:
-            #     coord_xy = node.coords_xy
-            #     self.coords_xy.append(coord_xy)
 
-    # def get_or_create_nodes(self):
-    #     if len(self.nodes) == 0 and self.node_ids is not None:
-    #         self.nodes = [AmiNode(node_id) for node_id in self.node_ids]
-    #     return self.nodes
         return coords
 
     def get_or_create_bbox(self):
@@ -490,7 +458,6 @@ class AmiIsland:
         """
         if self.bbox is None:
             coords_xy = self.get_or_create_coords()
-            print(f"coords_xy {coords_xy}")
             self.bbox = BBox()
             for coord in coords_xy:
                 self.bbox.add_coordinate(coord)
