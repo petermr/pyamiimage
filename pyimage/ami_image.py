@@ -87,11 +87,12 @@ class AmiImage:
         Create a thresholded, binary image from a grayscale
 
         :param image: grayscale image
-        :return: binary with white pixels as signal
+        :return: binary with white pixels as signal (thresh is discarded)
         """
-        binary, thresh = AmiImage.create_auto_thresholded_image_and_value(image)
+        gray = AmiImage.create_grayscale_0_1_float_from_image(image)
+        binary, thresh = AmiImage.create_auto_thresholded_image_and_value(gray)
         binary = np.invert(binary)
-        return binary, thresh
+        return binary  # discard thresh
 
     @classmethod
     def create_auto_thresholded_image_and_value(cls, image):
@@ -103,7 +104,7 @@ class AmiImage:
         :param image: grayscale
         :return: thresholded image, threshold value (latter may not work)
         """
-
+        print(f"shape thresh {image.shape}")
         t_image = threshold(image)
         tt = np.where(t_image > 0)  # above threshold
         return t_image, tt
