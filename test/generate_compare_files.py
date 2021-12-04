@@ -15,7 +15,7 @@ class AmiImageFileGenerator():
 
     def generate_rbg2gray_image(self):
         filename = "gray.png"
-        gray = AmiImage.create_grayscale_0_1_float_from_image(self.image)
+        gray = AmiImage.create_grayscale_from_image(self.image)
         filepath = Path(COMPARE_DIR, filename)
         self.write_image_to_path(gray, filepath)
         print(f"Saved {filename} to comparion dir")

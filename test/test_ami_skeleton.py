@@ -10,9 +10,10 @@ from PIL import Image
 from pathlib import Path
 import unittest
 
-from pyimage.ami_graph import AmiGraph
+
+from pyimage.ami_graph_all import AmiGraph
 from pyimage.ami_skeleton import AmiSkeleton
-from pyimage.ami_image import ImageProcessor
+from pyimage.ami_image import AmiImage
 from pyimage.util import Util
 
 
@@ -128,7 +129,7 @@ class TestAmiSkeleton:
         file = Resources.BIOSYNTH1_ARROWS
         assert file.exists()
         ami_skeleton = AmiSkeleton()
-        skeleton_image = ami_skeleton.create_white_skeleton_image_from_file_IMAGE(file)
+        skeleton_image = AmiImage.create_white_skeleton_from_file(file)
         assert type(skeleton_image) is np.ndarray, f"skeleton type shoukd be np.ndarray, is {type(skeleton_image)}"
         assert np.count_nonzero(skeleton_image) == 1378
         # will be white on gray
@@ -141,7 +142,7 @@ class TestAmiSkeleton:
     def test_skeleton_to_graph_arrows1_WORKS(self):
         """creates nodes and edges for already clipped """
         ami_skel = AmiSkeleton()
-        skeleton_array = ami_skel.create_white_skeleton_image_from_file_IMAGE(Resources.BIOSYNTH1_ARROWS)
+        skeleton_array = AmiImage.create_white_skeleton_from_file(Resources.BIOSYNTH1_ARROWS)
         Util.check_type_and_existence(skeleton_array, np.ndarray)
         # build graph from skeleton
         ami_skel.nx_graph = ami_skel.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
@@ -277,12 +278,12 @@ class TestAmiSkeleton:
     def test_remove_pixels_in_arrow_bounding_boxes_from_islands_text1(self):
         ami_skeleton = AmiSkeleton()
         # arrows_image = io.imread(Resources.BIOSYNTH1_ARROWS)
-        arrows_image = ami_skeleton.create_grayscale_from_file_IMAGE(Resources.BIOSYNTH1_ARROWS)
+        arrows_image = AmiImage.create_grayscale_from_file(Resources.BIOSYNTH1_ARROWS)
 
-        cropped_image = ami_skeleton.create_grayscale_from_file_IMAGE(Resources.BIOSYNTH1_CROPPED)
+        cropped_image = AmiImage.create_grayscale_from_file(Resources.BIOSYNTH1_CROPPED)
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw_NX_GRAPH(Resources.BIOSYNTH1_ARROWS)
         assert ami_skeleton.nx_graph is not None
-        ami_skeleton.islands = ami_skeleton.get_ami_islands_from_nx_graph_GRAPH()
+        ami_skeleton.islands = ami_skeleton.get_ami_islands_from_nx_graph()
         bboxes_arrows = ami_skeleton.islands
         dd = 2  # to overcome some of the antialiasing
         for bbox in bboxes_arrows:
@@ -375,12 +376,13 @@ class TestAmiSkeleton:
 # Utils
 
     def binarize_and_skeletonize_arrows(self):
-        image_preprocessor = ImageProcessor()
         TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
         BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
-        image_preprocessor.load_image(BIOSYNTH_PATH_IMAGE)
-
-        skeleton = image_preprocessor.invert_threshold_skeletonize()
+        image = AmiImage.create_grayscale_from_file(BIOSYNTH_PATH_IMAGE)
+        skeleton = AmiImage.create_white_skeleton_from_image(image)
+        # image_preprocessor.load_image(BIOSYNTH_PATH_IMAGE)
+        #
+        # skeleton = image_preprocessor.invert_threshold_skeletonize()
         return skeleton
 
     def set_bbox_to_color(self, bbox, dd, image):

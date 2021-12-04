@@ -35,15 +35,48 @@ class AmiImage:
         """
         assert path is not None
         image = io.imread(path)
-        gray_image = AmiImage.create_grayscale_0_1_float_from_image(image)
+        gray_image = cls.create_grayscale_from_image(image)
         return gray_image
 
     @classmethod
-    def create_grayscale_0_1_float_from_image(cls, image):
+    def create_grayscale_from_image(cls, image):
         # requires 2 separate conversions
-        gray_image = color.rgb2gray(color.rgba2rgb(image))
-        assert np.max(gray_image) == 1.0
+        gray_image = cls.create_gray_from_image(image)
+        cls.check_binary_or_grayscale(gray_image, image)
         return gray_image
+
+    @classmethod
+    def check_binary_or_grayscale(cls, gray_image, image):
+        if cls.heuristic_check_binary(image):
+            pass
+        elif cls.check_grayscale(image):
+            pass
+        else:
+            raise ValueError(f"not a gray or binary image {image.shape}")
+        assert not (gray_image.dtype == np.floating and np.max(gray_image) == 1.0) and \
+               not (gray_image.dtype == int and np.max(gray_image) == 255), \
+            f"checking range {gray_image.dtype} {np.max(gray_image)}"
+
+
+    @classmethod
+    def create_gray_from_image(cls, image):
+        """
+        creates grayscale from input image
+        accepts following types:
+        shape = (*,*,4) assumed rgba and will convert to rgb
+        shape = (*,*,3) assumed rgb and will convert to grayscale
+        shape = (*,*) assumed grayscale or binary, no action
+        :param image:
+        :return: grayscale or possibly binary image
+        """
+        gray = None
+        if cls.has_gray_shape(image):
+            gray = image
+        elif cls.has_alpha_channel_shape(image):
+            image = color.rgba2rgb(image)
+            if AmiImage.has_rgb_shape(image):
+                gray = color.rgb2gray(image)
+        return gray
 
     @classmethod
     def create_white_skeleton_from_file(cls, path):
@@ -56,9 +89,15 @@ class AmiImage:
         # image = io.imread(file)
         assert path is not None
         assert path.exists() and not path.is_dir(), f"{path} should be existing file"
-        image = AmiImage.create_grayscale_from_file(path)
-        assert image is not None, f"cannot create image from {path}"
-        skeleton_image = AmiImage.create_white_skeleton_from_image(image)
+
+        # grayscale = AmiImage.create_grayscale_from_file(path)
+        # assert grayscale is not None, f"cannot create grayscale image from {path}"
+        # skeleton_image = AmiImage.create_white_skeleton_from_image(grayscale)
+        image = io.imread(path)
+        print(f"path {path} has shape: {image.shape}")
+        print(f"AmiImage.has_alpha_channel_shape() {AmiImage.has_alpha_channel_shape(path)} for {path} ")
+        skeleton_image = cls.create_white_skeleton_from_image(image)
+
         return skeleton_image
 
     @classmethod
@@ -70,7 +109,7 @@ class AmiImage:
         :return: AmiSkeleton
         """
         assert image is not None
-        binary, _ = AmiImage.create_white_binary_from_image(image)
+        binary = AmiImage.create_white_binary_from_image(image)
         skeleton_image = morphology.skeletonize(binary)
         return skeleton_image
 
@@ -89,7 +128,7 @@ class AmiImage:
         :param image: grayscale image
         :return: binary with white pixels as signal (thresh is discarded)
         """
-        gray = AmiImage.create_grayscale_0_1_float_from_image(image)
+        gray = AmiImage.create_grayscale_from_image(image)
         binary, thresh = AmiImage.create_auto_thresholded_image_and_value(gray)
         binary = np.invert(binary)
         return binary  # discard thresh
@@ -147,7 +186,7 @@ class AmiImage:
         # check if image is grayscale
         if len(image.shape) > 2:
             # convert to grayscale if not grayscale
-            gray = cls.create_grayscale_0_1_float_from_image(image)
+            gray = cls.create_grayscale_from_image(image)
         
         # if no threshold is provided, assume default threshold: otsu
         if threshold is None:
@@ -162,12 +201,68 @@ class AmiImage:
         :show: display images for invert, threshold and skeletonize
         :return: skeletonized image
         """
-        inverted_image = AmiImage.invert(image)
-        binary_image = AmiImage.threshold(inverted_image)
+        inverted_image = cls.invert(image)
+        binary_image = cls.threshold(inverted_image)
         binary_image = binary_image.astype(np.uint16)
-        skeleton = AmiImage.skeletonize(binary_image)
+        skeleton = cls.skeletonize(binary_image)
 
         return skeleton
+
+    @classmethod
+    def has_alpha_channel_shape(cls, image):
+        return type(image) is np.ndarray and len(image.shape) == 3 and image.shape[2] == 4
+
+    @classmethod
+    def has_rgb_shape(cls, image):
+        return type(image) is np.ndarray and len(image.shape) == 3 and image.shape[2] == 3
+
+    @classmethod
+    def has_gray_shape(cls, image):
+        """
+        checks if 2-D ndarray
+        :param image:
+        :return:
+        """
+        return type(image) is np.ndarray and len(image.shape) == 2
+
+    @classmethod
+    def get_image_dtype(cls, image):
+        if type(image) is not np.ndarray or image.size == 0:
+            return None
+        return image.dtype
+
+    @classmethod
+    def heuristic_check_binary(cls, image):
+        """
+        Ths is very hacky, don't rely on it
+        if image is 2-D and max val is 1 or boolean retrun True
+        :param image:
+        :return:
+        """
+        if type(image) is not np.ndarray or len(image.shape) != 2:
+            return False
+        if image.dtype is bool:
+            return True
+        if image.dtype is int:
+            if np.max(image) == 1:
+                return True
+        if image.dtype is np.floating:
+            pass
+        return False
+
+    @classmethod
+    def check_grayscale(cls, image):
+        """
+        Very crude, currently just checks is 2-D and not bool
+        :param image:
+        :return:
+        """
+        if type(image) is not np.ndarray or len(image.shape) != 2:
+            return False
+        if image.dtype is bool:
+            return False
+        return True
+
 
 #    TODO def get_image_type
 #    should return
@@ -189,3 +284,4 @@ plt.show()
 # HISTORY
 import readline; print('\n'.join([str(readline.get_history_item(i + 1)) for i in range(readline.get_current_history_length())]))
 """
+

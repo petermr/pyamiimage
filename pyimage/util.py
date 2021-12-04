@@ -59,3 +59,23 @@ class Util:
         assert len(yx) == 2 and type(yx) is np.ndarray, f"xy was {yx}"
         return [yx[1], yx[0]]
 
+    @classmethod
+    def make_numpy_assert(cls, numpy_array, shape=None, max=None, dtype=None):
+        """
+        Asserts properties of numpy_array
+        :param numpy_array:
+        :param shape:
+        :param max: max value (e.g. 255, or 1.0 for images)
+        :param dtype:
+        :return:
+        """
+        assert numpy_array is not None, f"numpy array should not be None"
+        if type(numpy_array) is not np.ndarray:
+            print(f"object should be numpy.darray, found {type(numpy_array)} \n {numpy_array}")
+        if shape:
+            assert numpy_array.shape == shape, f"shape should be {numpy_array.shape}"
+        if max:
+            assert np.max(numpy_array) == max, f"max should be {np.max(numpy_array)}"
+        if dtype:
+            assert numpy_array.dtype == dtype, f"dtype should be {numpy_array.dtype}"
+

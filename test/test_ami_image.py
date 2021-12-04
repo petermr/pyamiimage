@@ -46,8 +46,9 @@ class TestAmiImage:
 
     def test_rgb2gray(self):
         """convert raw "gray" image to grayscale"""
+        # TODO create pure rgb image
         image = io.imread(RGBA_SNIPPET)
-        gray_image = AmiImage.create_grayscale_0_1_float_from_image(image)
+        gray_image = AmiImage.create_grayscale_from_image(image)
         
         # DOES NOT WORK
         # compare_filename = "gray.png"
