@@ -50,7 +50,11 @@ class TestAmiSkeleton:
 
     skip_will_be_refactored = True
 
-    old = True
+    skipfloodfilltest = True  # test elsewhere
+
+    obsolete = True
+
+    interactive = False
 
     # @unittest.skipIf(skip_OK, "already runs")
     def test_example_basics_biosynth1_no_text(self):
@@ -151,12 +155,15 @@ class TestAmiSkeleton:
         Util.check_type_and_existence(ami_skel.nx_graph, nx.classes.graph.Graph)
         print(f" nx {ami_skel.nx_graph}, {ami_skel.nx_graph.nodes} {ami_skel.nx_graph.edges}")
         Util.check_type_and_existence(ami_skel.nx_graph.nodes, nx.classes.reportviews.NodeView)
-        assert list(ami_skel.nx_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+        assert list(ami_skel.nx_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                                 19, 20, 21, 22, 23, 24, 25, 26]
         Util.check_type_and_existence(ami_skel.nx_graph.edges, nx.classes.reportviews.EdgeView)
-        assert list(ami_skel.nx_graph.edges) == [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6), (8, 19), (9, 19), (10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20), (19, 26), (21, 24), (22, 24), (23, 24), (24, 25)]
+        assert list(ami_skel.nx_graph.edges) == [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6), (8, 19),
+                                                 (9, 19), (10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15),
+                                                 (16, 18), (17, 18), (18, 20), (19, 26), (21, 24), (22, 24), (23, 24),
+                                                 (24, 25)]
         if self.plot_plot:
             ami_skel.plot_nx_graph_NX(ami_skel.nx_graph)
-
 
     @unittest.skipIf(skip_non_essential, "graphs of texts not very useful")
     def test_skeleton_to_graph_text(self):
@@ -186,7 +193,8 @@ class TestAmiSkeleton:
         assert connected_components[0] == {0, 1, 2, 3, 4, 5, 6, 7}
         assert connected_components[1] == {8, 9, 26, 19}
 
-    @unittest.skipIf(skip_found_set_error or skip_will_be_refactored, "expected <class 'pyimage.graph_lib.AmiIsland'> found <class 'set'>")
+    @unittest.skipIf(skip_found_set_error or skip_will_be_refactored,
+                     "expected <class 'pyimage.graph_lib.AmiIsland'> found <class 'set'>")
     def test_create_bounding_box_from_node_list(self):
         """computes bbox for single 7-node island"""
         ami_skeleton = AmiSkeleton()
@@ -196,7 +204,8 @@ class TestAmiSkeleton:
         bbox = ami_skeleton.extract_bbox_for_nodes_ISLAND(node_ids)
         assert bbox == ((661.0, 863.0), (82.0, 102.0))
 
-    @unittest.skipIf(skip_no_create_bbox_error or skip_will_be_refactored, "'TestAmiSkeleton' object has no attribute 'create_bbox_for_island'")
+    @unittest.skipIf(skip_no_create_bbox_error or skip_will_be_refactored,
+                     "'TestAmiSkeleton' object has no attribute 'create_bbox_for_island'")
     def test_create_bounding_boxes_from_node_list(self):
         """reads plot with 4 islands, extracts islands and calculates their bboxes"""
         ami_skeleton = AmiSkeleton()
@@ -242,7 +251,7 @@ class TestAmiSkeleton:
         ax.imshow(image, cmap='gray')
         return
 
-    @unittest.skipIf(old or skip_not_subscriptable, "'NoneType' object is not subscriptable")
+    @unittest.skipIf(obsolete or skip_not_subscriptable, "'NoneType' object is not subscriptable")
     def test_remove_pixels_in_bounding_boxes_from_islands_arrows1(self):
         image = io.imread(Resources.BIOSYNTH1_ARROWS)
         ami_skeleton = AmiSkeleton()
@@ -273,18 +282,20 @@ class TestAmiSkeleton:
         margin = 2  # to overcome some of the antialiasing
         for island in islands:
             bbox = island.get_or_create_bbox()
-            bbox.expand_by_margin((20,30))
+            bbox.expand_by_margin((20, 30))
             print(f"bbox {bbox}")
             image = AmiGraph.set_bbox_pixels_to_color(bbox.xy_ranges, image, colorx=255)
-            plt.imshow(image)
-            plt.show
+            if self.interactive:
+                plt.imshow(image)
+                plt.show
 
-        fig, ax = plt.subplots()
-        ax.imshow(image, cmap='gray')
-        plt.show()
+        if self.interactive:
+            fig, ax = plt.subplots()
+            ax.imshow(image, cmap='gray')
+            plt.show()
         return
 
-    @unittest.skipIf(old or skip_not_subscriptable, "'AmiIsland' object is not subscriptabl")
+    @unittest.skipIf(obsolete or skip_not_subscriptable, "'AmiIsland' object is not subscriptabl")
     def test_remove_all_pixels_in_bounding_boxes_from_islands(self):
         """
         Don't think this is working yet
@@ -296,14 +307,14 @@ class TestAmiSkeleton:
         assert ami_skeleton.nx_graph is not None
         ami_skeleton.islands = ami_skeleton.get_ami_islands_from_nx_graph_GRAPH()
         bboxes = ami_skeleton.islands
-        margin = 2  #  to overcome some of the antialiasing
+        margin = 2   # to overcome some of the antialiasing
         for bbox in bboxes:
             self.set_bbox_to_color(bbox, margin, image)
         fig, ax = plt.subplots()
         ax.imshow(image, cmap='gray')
         return
 
-    @unittest.skipIf(old or skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
+    @unittest.skipIf(obsolete or skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
     def test_remove_pixels_in_arrow_bounding_boxes_from_islands_text1(self):
         ami_skeleton = AmiSkeleton()
         # arrows_image = io.imread(Resources.BIOSYNTH1_ARROWS)
@@ -324,28 +335,28 @@ class TestAmiSkeleton:
             plt.show()
         return
 
-    @unittest.skipIf(skip_not_iterable, "'AmiIsland' object is not iterable")
+    @unittest.skipIf(skipfloodfilltest or skip_not_iterable, "'AmiIsland' object is not iterable")
     def test_flood_fill_first_component(self):
         ami_skeleton = AmiSkeleton()
         component_index = 0  # as example
         ami_skeleton.read_image_plot_component(component_index, Resources.BIOSYNTH1_ARROWS)
         return
 
-    @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
+    @unittest.skipIf(skipfloodfilltest or skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
     def test_flood_fill_many_components(self):
         ami_skeleton = AmiSkeleton()
         path = Resources.BIOSYNTH1_ARROWS
         ami_skeleton.create_and_plot_all_components_TEST(path)
         return
 
-    @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
+    @unittest.skipIf(skipfloodfilltest or skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
     def test_flood_fill_many_components_select(self):
         ami_skeleton = AmiSkeleton()
         path = Resources.BIOSYNTH1_CROPPED
         ami_skeleton.create_and_plot_all_components_TEST(path, min_size=[30, 30])
         return
 
-    @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
+    @unittest.skipIf(skipfloodfilltest or skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
     def test_flood_fill_many_components_biosynth3(self):
         """EXAMPLE finds the 5 arrows"""
         ami_skeleton = AmiSkeleton(title="biosynth3")
@@ -355,28 +366,27 @@ class TestAmiSkeleton:
         ami_skeleton.create_and_plot_all_components_TEST(path, min_size=[30, 30])
         return
 
-    @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
+    @unittest.skipIf(skipfloodfilltest or skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
     def test_flood_fill_many_components_1(self):
         AmiSkeleton().create_and_plot_all_components_TEST(Resources.BIOSYNTH1_ARROWS)
         return
 
+    @unittest.skip("not part of skeleton")
     def test_hocr_to_svg_biosynth1(self):
         ami_skeleton = AmiSkeleton()
 
         biosynth_html = str(Resources.BIOSYNTH1_HOCR)
         ami_skeleton.create_svg_from_hocr(biosynth_html, "biosynth_1.svg")
 
+    @unittest.skip("not part of skeleton")
     def test_hocr_to_svg_biosynth3(self):
         """creates textboxes for HOCR put and writes to temp/textbox"""
         ami_skeleton = AmiSkeleton()
 
         ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH3_HOCR), "biosynth_3.svg")
 
-    def test_hocr_to_svg_biosynth4to8(self):
-        """creates textboxes for HOCR put and writes to temp/textbox"""
-        ami_skeleton = AmiSkeleton()
-
 # the only use so far of AmiGraph
+
     def test_skeletonize(self):
         skeleton_image = self.binarize_and_skeletonize_arrows()
         skeleton_image = skeleton_image.astype(np.uint16)
@@ -386,21 +396,6 @@ class TestAmiSkeleton:
         assert type(skeleton_image) is np.ndarray
         assert type(skeleton_image[0][0]) is np.uint16
         assert skeleton_image[0][0] == 0
-
-    @unittest.skipUnless(use_ami_graph, "uses AmiGraph")
-    def test_skeletonize_extract_subgraphs_ami_graph(self):
-        skeleton_image = self.binarize_and_skeletonize_arrows().astype(np.uint16)
-        assert type(skeleton_image) is np.ndarray
-        ami_graph = AmiGraph.create_ami_graph(skeleton_image)
-        print(f"ami_graph: {ami_graph}")
-        assert type(ami_graph) is AmiGraph
-        print("node_dict", type(ami_graph.node_dict), ami_graph.node_dict)
-
-        fig, ax = plt.subplots()  # note we must use plt.subplots, not plt.subplot
-        # maxx, maxy = self.get_maxx_maxy_non_pythonic(node_dict, nodes)
-        # for edge in self.edges:
-        #     self.plot_line(node_dict, edge[0], edge[1], maxy)
-        # fig.savefig(Path(Path(__file__).parent.parent, "temp", "plotarrows.png"))
 
 # Utils
 
@@ -417,25 +412,3 @@ class TestAmiSkeleton:
     def set_bbox_to_color(self, bbox, dd, image):
         margined_bbox = ((bbox[0][0] - dd, bbox[0][1] + dd), (bbox[1][0] - dd, bbox[1][1] + dd))
         AmiGraph.set_bbox_pixels_to_color(margined_bbox, image, color=160)
-
-    def create_bboxes_for_islands(self, ami_skeleton):
-        islands = ami_skeleton.get_ami_islands_from_nx_graph_GRAPH()
-
-        self.bboxes = [self.create_bbox_for_island(island) for island in islands]
-        return self.bboxes
-
-        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH4_HOCR), "biosynth_4.svg")
-        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH5_HOCR), "biosynth_5.svg")
-        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH6_HOCR), "biosynth_6.svg")
-        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH7_HOCR), "biosynth_7.svg")
-        ami_skeleton.create_svg_from_hocr(str(Resources.BIOSYNTH8_HOCR), "biosynth_8.svg")
-
-    def test_flood_fill_many_components_biosynth4to8(self):
-        ami_skeleton = AmiSkeleton()
-        ami_skeleton.create_and_plot_all_components_TEST(Resources.BIOSYNTH4, min_size=[30, 30])
-        ami_skeleton.create_and_plot_all_components_TEST(Resources.BIOSYNTH5, min_size=[30, 30])
-        ami_skeleton.create_and_plot_all_components_TEST(Resources.BIOSYNTH6, min_size=[30, 30])
-        ami_skeleton.create_and_plot_all_components_TEST(Resources.BIOSYNTH7, min_size=[30, 30])
-        ami_skeleton.create_and_plot_all_components_TEST(Resources.BIOSYNTH8, min_size=[30, 30])
-        return
-
