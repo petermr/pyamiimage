@@ -50,6 +50,8 @@ class TestAmiSkeleton:
 
     skip_will_be_refactored = True
 
+    old = True
+
     # @unittest.skipIf(skip_OK, "already runs")
     def test_example_basics_biosynth1_no_text(self):
         """Primarily for validating the image data which will be used elsewhere
@@ -240,7 +242,7 @@ class TestAmiSkeleton:
         ax.imshow(image, cmap='gray')
         return
 
-    @unittest.skipIf(skip_not_subscriptable, "'NoneType' object is not subscriptable")
+    @unittest.skipIf(old or skip_not_subscriptable, "'NoneType' object is not subscriptable")
     def test_remove_pixels_in_bounding_boxes_from_islands_arrows1(self):
         image = io.imread(Resources.BIOSYNTH1_ARROWS)
         ami_skeleton = AmiSkeleton()
@@ -259,8 +261,35 @@ class TestAmiSkeleton:
         ax.imshow(image, cmap='gray')
         return
 
-    @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptabl")
+    @unittest.skipIf(skip_not_subscriptable, "'NoneType' object is not subscriptable")
+    def test_remove_pixels_in_bounding_boxes_from_islands_arrows1_NEW(self):
+        image = io.imread(Resources.BIOSYNTH1_ARROWS)
+        ami_skeleton = AmiSkeleton()
+        nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw_NX_GRAPH(Resources.BIOSYNTH1_ARROWS)
+        ami_graph = AmiGraph(nx_graph)
+
+        islands = ami_graph.get_ami_islands_from_nx_graph()
+        # print("island", islands[0])
+        margin = 2  # to overcome some of the antialiasing
+        for island in islands:
+            bbox = island.get_or_create_bbox()
+            bbox.expand_by_margin((20,30))
+            print(f"bbox {bbox}")
+            image = AmiGraph.set_bbox_pixels_to_color(bbox.xy_ranges, image, colorx=255)
+            plt.imshow(image)
+            plt.show
+
+        fig, ax = plt.subplots()
+        ax.imshow(image, cmap='gray')
+        plt.show()
+        return
+
+    @unittest.skipIf(old or skip_not_subscriptable, "'AmiIsland' object is not subscriptabl")
     def test_remove_all_pixels_in_bounding_boxes_from_islands(self):
+        """
+        Don't think this is working yet
+        :return:
+        """
         image = io.imread(Resources.BIOSYNTH1)
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw_NX_GRAPH(Resources.BIOSYNTH1)
@@ -274,7 +303,7 @@ class TestAmiSkeleton:
         ax.imshow(image, cmap='gray')
         return
 
-    @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
+    @unittest.skipIf(old or skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
     def test_remove_pixels_in_arrow_bounding_boxes_from_islands_text1(self):
         ami_skeleton = AmiSkeleton()
         # arrows_image = io.imread(Resources.BIOSYNTH1_ARROWS)
@@ -282,7 +311,7 @@ class TestAmiSkeleton:
 
         cropped_image = AmiImage.create_grayscale_from_file(Resources.BIOSYNTH1_CROPPED)
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw_NX_GRAPH(Resources.BIOSYNTH1_ARROWS)
-        assert ami_skeleton.nx_graph is not None
+        assert nx_graph is not None
         ami_skeleton.islands = ami_skeleton.get_ami_islands_from_nx_graph()
         bboxes_arrows = ami_skeleton.islands
         dd = 2  # to overcome some of the antialiasing
@@ -299,7 +328,7 @@ class TestAmiSkeleton:
     def test_flood_fill_first_component(self):
         ami_skeleton = AmiSkeleton()
         component_index = 0  # as example
-        ami_skeleton.read_image_plot_component_TEST(component_index, Resources.BIOSYNTH1_ARROWS)
+        ami_skeleton.read_image_plot_component(component_index, Resources.BIOSYNTH1_ARROWS)
         return
 
     @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptable")

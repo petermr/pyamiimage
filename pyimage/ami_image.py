@@ -9,6 +9,8 @@ import numpy as np
 from skimage import io, color, morphology
 import skimage
 from skan.pre import threshold
+from pathlib import Path
+import os
 
 
 class AmiImage:
@@ -42,7 +44,8 @@ class AmiImage:
     def create_grayscale_from_image(cls, image):
         # requires 2 separate conversions
         gray_image = cls.create_gray_from_image(image)
-        cls.check_binary_or_grayscale(gray_image, image)
+        # TODO comment in
+        # cls.check_binary_or_grayscale(gray_image, image)
         return gray_image
 
     @classmethod
@@ -74,9 +77,19 @@ class AmiImage:
             gray = image
         elif cls.has_alpha_channel_shape(image):
             image = color.rgba2rgb(image)
-            if AmiImage.has_rgb_shape(image):
-                gray = color.rgb2gray(image)
+        if gray is None and AmiImage.has_rgb_shape(image):
+            gray = color.rgb2gray(image)
         return gray
+
+    @classmethod
+    def create_rgb_from_rgba(cls, image_rgba):
+        assert cls.has_alpha_channel_shape(image_rgba)
+        image_rgb = color.rgba2rgb(image_rgba)
+        assert not cls.has_alpha_channel_shape(image_rgb), f"converted rgb should have lost alpha channel"
+        assert cls.has_rgb_shape(image_rgb), f"converted rgb does not have rgb_shape"
+        return image_rgb
+
+
 
     @classmethod
     def create_white_skeleton_from_file(cls, path):
@@ -134,6 +147,7 @@ class AmiImage:
         return binary  # discard thresh
 
     @classmethod
+    # TODO mark deprecated
     def create_auto_thresholded_image_and_value(cls, image):
         """
         Thresholded image and (attempt) to get threshold
@@ -176,7 +190,7 @@ class AmiImage:
         return skeleton
 
     @classmethod
-    def threshold(cls, image, threshold=None):
+    def create_white_binary(cls, image, threshold=None):
         """"Returns a binary image using a threshold value
         threshold defaults to skimage.filters.threshold_otsu
         :param image: grayscale (0-255?)
@@ -202,7 +216,7 @@ class AmiImage:
         :return: skeletonized image
         """
         inverted_image = cls.invert(image)
-        binary_image = cls.threshold(inverted_image)
+        binary_image = cls.create_white_binary(inverted_image)
         binary_image = binary_image.astype(np.uint16)
         skeleton = cls.skeletonize(binary_image)
 
@@ -262,6 +276,28 @@ class AmiImage:
         if image.dtype is bool:
             return False
         return True
+
+    @classmethod
+    def write(cls, path, image, mkdir=False, overwrite=True):
+        """
+
+        Will throw io errors if cannot write file
+        :param image:
+        :param path:
+        :param mkdir: if True will mkdir for parent
+        :param overwrite: if True will overwrite existing file
+        :return:
+        """
+        path = Path(path)
+        print(f"image: {type(image)}")
+        assert type(image) is np.ndarray and image.ndim >= 2, f"not an image: {type(image)}"
+        if not mkdir:
+            assert path.parent.exists(), f"parent directory must exist {path.parent}"
+        else:
+            path.parent.mkdir()
+        if path.exists() and overwrite:
+            os.remove(path)
+        io.imsave(path, image)
 
 
 #    TODO def get_image_type

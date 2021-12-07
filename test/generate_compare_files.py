@@ -30,7 +30,7 @@ class AmiImageFileGenerator():
     def generate_white_binary_image(self):
         filename = "white_binary.png"
         # white_binary = AmiImage.create_white_binary_from_image(self.image)
-        white_binary = AmiImage.threshold(self.image)
+        white_binary = AmiImage.create_white_binary(self.image)
         filepath = Path(COMPARE_DIR, filename)
         self.write_image_to_path(white_binary, filepath)
         print(f"Saved {filename} to comparion dir")

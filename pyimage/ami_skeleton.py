@@ -15,6 +15,7 @@ from pyimage.util import Util
 
 from pyimage.bbox import BBox
 from pyimage.flood_fill import FloodFill
+# from pyimage.ami_graph_all import AmiGraph
 
 
 class AmiSkeleton:
@@ -83,9 +84,10 @@ class AmiSkeleton:
         assert path is not None
         path = Path(path)
         self.skeleton_image = AmiImage.create_white_skeleton_from_file(path)
+        assert self.skeleton_image is not None
         # build graph from skeleton
-        self.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(self.skeleton_image)
-        return self.nx_graph
+        nx_graph = self.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(self.skeleton_image)
+        return nx_graph
 
     @classmethod
     def create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(cls, skeleton_image):
@@ -203,7 +205,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         bbox = BBox(bbox0)
         return bbox
 
-    def read_image_plot_component_TEST(self, component_index, image):
+    def read_image_plot_component(self, component_index, image):
         """
         Convenience method to read imag, get components and plot given one
         :param component_index:
@@ -211,7 +213,9 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         :return:
         """
         nx_graph = self.create_nx_graph_via_skeleton_sknw_NX_GRAPH(image)
-        self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH(nx_graph)
+        # self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH(nx_graph)
+        # ami_graph = AmiGraph.
+        # TODO needs AmiGraph adding
         islands = self.get_ami_islands_from_nx_graph_GRAPH()
         island = islands[component_index]
         self.plot_island_ISLAND(island)

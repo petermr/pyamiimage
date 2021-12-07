@@ -219,4 +219,4 @@ plt.show()"""
             bbox_list.append(bbox)
         assert len(bbox_list) == 4
         # this is horrible and fragile, need __eq__ for bbox
-        assert str(bbox_list[0]) == "[[661.0, 863.0], [82.0, 102.0]]", f"bbox_list[0] is {bbox_list[0]}"
+        assert str(bbox_list[0]) == "[[661, 863], [82, 102]]", f"bbox_list[0] is {bbox_list[0]}"

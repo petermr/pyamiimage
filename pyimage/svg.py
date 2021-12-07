@@ -57,7 +57,7 @@ class AbsSVG(ABC):
         """
 
     def get_or_create_bbox(self):
-        if self.bbox is not None and not self.bbox.is_valid() and self.calculate_bbox_from_values:
+        if self.bbox is None or (not self.bbox.is_valid() and self.calculate_bbox_from_values):
             self.calculate_bbox()
         return self.bbox
 

@@ -2,12 +2,12 @@
 
 
 class BBox:
-    """bounding box 2array of 2arrays
+    """bounding box 2array of 2arrays, based on integers
     """
     def __init__(self, xy_ranges=None):
         """
         Must have a valid bbox
-        :param xy_ranges:
+        :param xy_ranges: [[x1, x2], [y1, y2]] will be set to integers
         """
         self.xy_ranges = [[], []]
         if xy_ranges is not None:
@@ -44,8 +44,8 @@ class BBox:
     def set_range(self, index, rrange):
         if index != 0 and index != 1:
             raise ValueError(f"bad tuple index {index}")
-        val0 = float(rrange[0])
-        val1 = float(rrange[1])
+        val0 = int(rrange[0])
+        val1 = int(rrange[1])
         if val1 < val0:
             raise ValueError(f"ranges must be increasing {val0} !<= {val1}")
         self.xy_ranges[index] = [val0, val1]
@@ -108,7 +108,8 @@ class BBox:
 
     def add_to_range(self, index, rrange, coord):
         """if coord outside range , expand range
-        :param index:
+
+        :param index: 0 or  =1 for axis
         :param rrange: x or y range
         :param coord: x or y coord
         :return: None (changes range)
@@ -128,16 +129,50 @@ class BBox:
     def create_box(cls, xy, width, height):
         if xy is None or width is None or height is None:
             raise ValueError("All params must be not None")
-        width = float(width)
-        height = float(height)
+        width = int(width)
+        height = int(height)
         if len(xy) != 2:
             raise ValueError("xy must be an array of 2 values")
         if width < 0 or height < 0:
             raise ValueError("width and height must be non negative")
-        xrange = [xy(0), xy[0] + width]
-        yrange = [xy(1), xy[1] + float(height)]
+        xrange =([xy(0), xy[0] + width])
+        yrange = [xy(1), xy[1] + int(height)]
         bbox = BBox.create_from_ranges(xrange, yrange)
         return bbox
+
+    def expand_by_margin(self, margin):
+        """
+        if margin is scalar, apply to both axes
+        if margin is 2-tuple, apply to x and y separately
+        if margin is negative applies only if current range is >- 2*margin + 1
+        i
+        :param margin: scalar dx or tuple (dx, dy)
+        :return: None
+        """
+
+        if not isinstance(margin, list):
+            margin = [margin, margin]
+        self.change_range(0, margin[0])
+        self.change_range(1, margin[1])
+
+    def change_range(self, index, margin):
+        """
+        change range by margin
+        :param index:
+        :param margin:
+        :return:
+        """
+        if index != 0 and index != 1:
+            raise ValueError(f"Bad index for range {index}")
+        rr = self.xy_ranges[index]
+        rr[0] -= margin[index]
+        rr[1] += margin[index]
+        # range cannot be <= 0
+        if rr[0] >= rr[1]:
+            mid = (rr[0] + rr[1]) / 2
+            rr[0] = int(mid - 0.5)
+            rr[1] = int(mid + 0.5)
+        self.xy_ranges[index] = rr
 
     @classmethod
     def create_from_ranges(cls, xr, yr):

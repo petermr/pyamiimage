@@ -12,6 +12,7 @@ from pyimage.ami_image import AmiImage
 from pyimage.util import Util
 from pyimage.ami_skeleton import AmiSkeleton
 from pyimage.svg import BBox
+from pyimage.flood_fill import FloodFill
 
 
 """
@@ -460,5 +461,23 @@ class AmiIsland:
             coords_xy = self.get_or_create_coords()
             self.bbox = BBox()
             for coord in coords_xy:
+                coord[0] = int(coord[0])
+                coord[1] = int(coord[1])
                 self.bbox.add_coordinate(coord)
         return self.bbox
+
+    def plot_island(self):
+        """
+        Plots a given component
+        :param component:
+        :return:
+        """
+        # start_node_index = list(component)[0]  # take first node
+        # start_node = self.nodes[start_node_index]
+        # start_pixel = start_node[self.NODE_PTS][0]  # may be a list of xy for a complex node always pick first.
+        start_pixel = self.coords_xy[0]
+        flooder = FloodFill()
+        pixels = flooder.flood_fill(self.binary, start_pixel)
+        if self.interactive:
+            flooder.plot_used_pixels()
+
