@@ -15,6 +15,7 @@ from pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph
 from test.resources import Resources
 from pyimage.ami_image import AmiImage
 from pyimage.util import Util
+from pyimage.bbox import BBox
 
 
 class TestAmiGraph:
@@ -213,9 +214,11 @@ plt.show()"""
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         ami_graph = AmiGraph(nx_graph)
         islands = ami_graph.get_or_create_ami_islands()
+        assert len(islands) == 4, "arrows"
         bbox_list = []
         for island in islands:
             bbox = island.get_or_create_bbox()
+            assert type(bbox) is BBox
             bbox_list.append(bbox)
         assert len(bbox_list) == 4
         # this is horrible and fragile, need __eq__ for bbox
