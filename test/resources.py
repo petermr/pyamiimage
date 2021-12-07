@@ -2,6 +2,8 @@
 This may develop into a dataclass"""
 
 from pathlib import Path
+
+
 class Resources:
     TEST_RESOURCE_DIR = Path(Path(__file__).parent, "resources")
     assert TEST_RESOURCE_DIR.exists(), f"dir exists {TEST_RESOURCE_DIR}"

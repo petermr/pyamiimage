@@ -127,7 +127,8 @@ class TestSVG():
     def test_bbox_update(self):
         rect = SVGRect()
         bbox = rect.get_or_create_bbox()
-        assert not bbox.is_valid()
+        assert bbox is None
+        # assert not bbox.is_valid()
         rect.set_xy([1,2])
         rect.set_width(5)
         rect.set_height(10)

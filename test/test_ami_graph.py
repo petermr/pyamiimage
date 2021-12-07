@@ -2,17 +2,20 @@
 tests AmiGraph, AmiNode, AmiEdge, AmiIsland
 """
 
-from pathlib import Path, PosixPath
+from pathlib import PosixPath
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 from skimage.morphology import skeletonize
-from skimage import data, io
+from skimage import data
 import sknw
 
+from pyimage.ami_skeleton import AmiSkeleton
+from pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph
 from test.resources import Resources
-from pyimage.graph_lib import AmiGraph, AmiSkeleton, AmiIsland
-from .test_ami_skeleton import check_type_and_existence
+from pyimage.ami_image import AmiImage
+from pyimage.util import Util
+
 
 class TestAmiGraph:
 
@@ -29,7 +32,8 @@ build net work from nd skeleton image
 
 graph = sknw.build_sknw(ske， multi=False)
 ske: should be a nd skeleton image
-multi: if True，a multigraph is retured, which allows more than one edge between two nodes and self-self edge. default is False.
+multi: if True，a multigraph is retured, which allows more than one edge between 
+two nodes and self-self edge. default is False.
 
 return: is a networkx Graph object
 
@@ -39,7 +43,8 @@ graph.nodes[id]['o']: Numpy(n), centried of the node
 graph.edges(id1, id2)['pts']: Numpy(x, n), sequence of the edge point
 graph.edges(id1, id2)['weight']: float, length of this edge
 
-if it's a multigraph, you must add a index after two node id to get the edge, like: graph.edge(id1, id2)[0].
+if it's a multigraph, you must add a index after two node id to get the edge, 
+like: graph.edge(id1, id2)[0].
 
 build Graph by Skeleton, then plot as a vector Graph in matplotlib.
 
@@ -110,7 +115,6 @@ plt.show()"""
         ps = np.array([nodes[i]['o'] for i in nodes])
         plt.plot(ps[:, 1], ps[:, 0], 'r.')
 
-
         # title and show
         plt.title('Build Graph')
         if show_plot:
@@ -131,7 +135,6 @@ plt.show()"""
         assert connected_components == [{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}]
         assert connected_components[0] == {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}
 
-
     def test_sknw_5_islands(self):
         """
         This checks all the fields that sknw returns
@@ -141,25 +144,28 @@ plt.show()"""
         # print (f"island5_skel = {island5_skel}")
         # assert type(island5_skel) is str, f"type {type(island5_skel)} {island5_skel} should be {str}"
         skel_path = Resources.BIOSYNTH1_ARROWS
-        check_type_and_existence(skel_path, PosixPath)
+        Util.check_type_and_existence(skel_path, PosixPath)
 
-        ami_skel = AmiSkeleton()
-        skeleton_array = ami_skel.create_white_skeleton_image_from_file_IMAGE(skel_path)
-        check_type_and_existence(skeleton_array, np.ndarray)
+        skeleton_array = AmiImage.create_white_skeleton_from_file(skel_path)
+        Util.check_type_and_existence(skeleton_array, np.ndarray)
 
         nx_graph = AmiSkeleton.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
-        check_type_and_existence(nx_graph, nx.classes.graph.Graph)
+        Util.check_type_and_existence(nx_graph, nx.classes.graph.Graph)
 
-        check_type_and_existence(nx_graph.nodes, nx.classes.reportviews.NodeView)
-        assert list(nx_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
-        check_type_and_existence(nx_graph.edges, nx.classes.reportviews.EdgeView)
-        assert list(nx_graph.edges) == [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6), (8, 19), (9, 19), (10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20), (19, 26), (21, 24), (22, 24), (23, 24), (24, 25)]
+        Util.check_type_and_existence(nx_graph.nodes, nx.classes.reportviews.NodeView)
+        assert list(nx_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                                        18, 19, 20, 21, 22, 23, 24, 25, 26]
+        Util.check_type_and_existence(nx_graph.edges, nx.classes.reportviews.EdgeView)
+        assert list(nx_graph.edges) == [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6),
+                                        (8, 19), (9, 19), (10, 12), (11, 13), (12, 13), (12, 18),
+                                        (13, 14), (13, 15), (16, 18), (17, 18), (18, 20), (19, 26),
+                                        (21, 24), (22, 24), (23, 24), (24, 25)]
 
         node1ps = nx_graph.nodes[1]["pts"]
-        print(f"node1ps {node1ps}")
+        # print(f"node1ps {node1ps}")
         node1ps0 = node1ps[0]
-        print("node1ps0", node1ps0)
-        assert str(node1ps) ==  "[[ 83 680]]"
+        # print("node1ps0", node1ps0)
+        assert str(node1ps) == "[[ 83 680]]"
 
         if False:
             pts_ = nx_graph.edges[(1, 2)]["pts"]
@@ -167,15 +173,11 @@ plt.show()"""
             assert str(pts_) == "[[ 83, 680]]"
 
     def test_islands(self):
-        ami_skel = AmiSkeleton()
-        assert Resources.BIOSYNTH1_ARROWS.exists() and not Resources.BIOSYNTH1_ARROWS.is_dir(), f"{Resources.BIOSYNTH1_ARROWS} should be existing file"
-        check_type_and_existence(Resources.BIOSYNTH1_ARROWS, PosixPath)
-        image1 = io.imread(Resources.BIOSYNTH1_ARROWS)
-        check_type_and_existence(image1, np.ndarray)
-        ami_skel.image = ami_skel.create_gray_image_from_image_IMAGE(image1)
-        skeleton_array = ami_skel.create_white_skeleton_from_image_IMAGE(ami_skel.image)
-        nx_graph = ami_skel.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
-
+        """
+        Create island_node_id_sets using sknw/NetworkX and check basic properties
+        :return:
+        """
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
 
         assert nx.algorithms.components.number_connected_components(nx_graph) == 4
         connected_components = list(nx.algorithms.components.connected_components(nx_graph))
@@ -184,9 +186,37 @@ plt.show()"""
                                         {10, 11, 12, 13, 14, 15, 16, 17, 18, 20},
                                         {21, 22, 23, 24, 25}]
 
-        ami_graph = AmiGraph()
+        ami_graph = AmiGraph(nx_graph)
         ami_graph.read_nx_graph(nx_graph)
-        islands = ami_graph.get_or_create_islands()
-        assert len(islands) == 4
-        assert type(islands[0]) is AmiIsland
-        assert islands[0].get_or_create_nodes() == {0, 1, 2, 3, 4, 5, 6, 7}
+        island_node_id_sets = ami_graph.get_or_create_ami_islands()
+        assert len(island_node_id_sets) == 4
+        assert type(island_node_id_sets[0]) is AmiIsland
+        assert island_node_id_sets[0].node_ids == {0, 1, 2, 3, 4, 5, 6, 7}
+
+    def test_nodes(self):
+        """
+        Tests
+        :return:
+        """
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        ami_graph = AmiGraph(nx_graph)
+        ami_graph.read_nx_graph(nx_graph)
+        nodex = AmiNode(nx_graph=nx_graph, node_id=(list(nx_graph.nodes)[0]))
+        xy = nodex.get_or_create_centroid_xy()
+        assert xy == [844.0, 82.0]
+
+    def test_bboxes(self):
+        """
+        Create bounding boxes for islands
+        :return:
+        """
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        ami_graph = AmiGraph(nx_graph)
+        islands = ami_graph.get_or_create_ami_islands()
+        bbox_list = []
+        for island in islands:
+            bbox = island.get_or_create_bbox()
+            bbox_list.append(bbox)
+        assert len(bbox_list) == 4
+        # this is horrible and fragile, need __eq__ for bbox
+        assert str(bbox_list[0]) == "[[661, 863], [82, 102]]", f"bbox_list[0] is {bbox_list[0]}"

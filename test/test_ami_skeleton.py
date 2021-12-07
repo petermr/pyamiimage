@@ -7,11 +7,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 from PIL import Image
-
-from ..pyimage.graph_lib import AmiSkeleton, AmiGraph
-from ..pyimage.preprocessing import ImageProcessor
 from pathlib import Path
 import unittest
+
+
+from pyimage.ami_graph_all import AmiGraph
+from pyimage.ami_skeleton import AmiSkeleton
+from pyimage.ami_image import AmiImage
+from pyimage.util import Util
 
 
 def ensure_skeleton_file(file, file_name):
@@ -46,6 +49,8 @@ class TestAmiSkeleton:
     skip_not_iterable = False  # 1 cases
 
     skip_will_be_refactored = True
+
+    old = True
 
     # @unittest.skipIf(skip_OK, "already runs")
     def test_example_basics_biosynth1_no_text(self):
@@ -126,7 +131,7 @@ class TestAmiSkeleton:
         file = Resources.BIOSYNTH1_ARROWS
         assert file.exists()
         ami_skeleton = AmiSkeleton()
-        skeleton_image = ami_skeleton.create_white_skeleton_image_from_file_IMAGE(file)
+        skeleton_image = AmiImage.create_white_skeleton_from_file(file)
         assert type(skeleton_image) is np.ndarray, f"skeleton type shoukd be np.ndarray, is {type(skeleton_image)}"
         assert np.count_nonzero(skeleton_image) == 1378
         # will be white on gray
@@ -139,15 +144,15 @@ class TestAmiSkeleton:
     def test_skeleton_to_graph_arrows1_WORKS(self):
         """creates nodes and edges for already clipped """
         ami_skel = AmiSkeleton()
-        skeleton_array = ami_skel.create_white_skeleton_image_from_file_IMAGE(Resources.BIOSYNTH1_ARROWS)
-        check_type_and_existence(skeleton_array, np.ndarray)
+        skeleton_array = AmiImage.create_white_skeleton_from_file(Resources.BIOSYNTH1_ARROWS)
+        Util.check_type_and_existence(skeleton_array, np.ndarray)
         # build graph from skeleton
         ami_skel.nx_graph = ami_skel.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
-        check_type_and_existence(ami_skel.nx_graph, nx.classes.graph.Graph)
+        Util.check_type_and_existence(ami_skel.nx_graph, nx.classes.graph.Graph)
         print(f" nx {ami_skel.nx_graph}, {ami_skel.nx_graph.nodes} {ami_skel.nx_graph.edges}")
-        check_type_and_existence(ami_skel.nx_graph.nodes, nx.classes.reportviews.NodeView)
+        Util.check_type_and_existence(ami_skel.nx_graph.nodes, nx.classes.reportviews.NodeView)
         assert list(ami_skel.nx_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
-        check_type_and_existence(ami_skel.nx_graph.edges, nx.classes.reportviews.EdgeView)
+        Util.check_type_and_existence(ami_skel.nx_graph.edges, nx.classes.reportviews.EdgeView)
         assert list(ami_skel.nx_graph.edges) == [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6), (8, 19), (9, 19), (10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20), (19, 26), (21, 24), (22, 24), (23, 24), (24, 25)]
         if self.plot_plot:
             ami_skel.plot_nx_graph_NX(ami_skel.nx_graph)
@@ -237,7 +242,7 @@ class TestAmiSkeleton:
         ax.imshow(image, cmap='gray')
         return
 
-    @unittest.skipIf(skip_not_subscriptable, "'NoneType' object is not subscriptable")
+    @unittest.skipIf(old or skip_not_subscriptable, "'NoneType' object is not subscriptable")
     def test_remove_pixels_in_bounding_boxes_from_islands_arrows1(self):
         image = io.imread(Resources.BIOSYNTH1_ARROWS)
         ami_skeleton = AmiSkeleton()
@@ -256,8 +261,35 @@ class TestAmiSkeleton:
         ax.imshow(image, cmap='gray')
         return
 
-    @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptabl")
+    @unittest.skipIf(skip_not_subscriptable, "'NoneType' object is not subscriptable")
+    def test_remove_pixels_in_bounding_boxes_from_islands_arrows1_NEW(self):
+        image = io.imread(Resources.BIOSYNTH1_ARROWS)
+        ami_skeleton = AmiSkeleton()
+        nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw_NX_GRAPH(Resources.BIOSYNTH1_ARROWS)
+        ami_graph = AmiGraph(nx_graph)
+
+        islands = ami_graph.get_ami_islands_from_nx_graph()
+        # print("island", islands[0])
+        margin = 2  # to overcome some of the antialiasing
+        for island in islands:
+            bbox = island.get_or_create_bbox()
+            bbox.expand_by_margin((20,30))
+            print(f"bbox {bbox}")
+            image = AmiGraph.set_bbox_pixels_to_color(bbox.xy_ranges, image, colorx=255)
+            plt.imshow(image)
+            plt.show
+
+        fig, ax = plt.subplots()
+        ax.imshow(image, cmap='gray')
+        plt.show()
+        return
+
+    @unittest.skipIf(old or skip_not_subscriptable, "'AmiIsland' object is not subscriptabl")
     def test_remove_all_pixels_in_bounding_boxes_from_islands(self):
+        """
+        Don't think this is working yet
+        :return:
+        """
         image = io.imread(Resources.BIOSYNTH1)
         ami_skeleton = AmiSkeleton()
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw_NX_GRAPH(Resources.BIOSYNTH1)
@@ -271,16 +303,16 @@ class TestAmiSkeleton:
         ax.imshow(image, cmap='gray')
         return
 
-    @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
+    @unittest.skipIf(old or skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
     def test_remove_pixels_in_arrow_bounding_boxes_from_islands_text1(self):
         ami_skeleton = AmiSkeleton()
         # arrows_image = io.imread(Resources.BIOSYNTH1_ARROWS)
-        arrows_image = ami_skeleton.create_grayscale_from_file_IMAGE(Resources.BIOSYNTH1_ARROWS)
+        arrows_image = AmiImage.create_grayscale_from_file(Resources.BIOSYNTH1_ARROWS)
 
-        cropped_image = ami_skeleton.create_grayscale_from_file_IMAGE(Resources.BIOSYNTH1_CROPPED)
+        cropped_image = AmiImage.create_grayscale_from_file(Resources.BIOSYNTH1_CROPPED)
         nx_graph = ami_skeleton.create_nx_graph_via_skeleton_sknw_NX_GRAPH(Resources.BIOSYNTH1_ARROWS)
-        assert ami_skeleton.nx_graph is not None
-        ami_skeleton.islands = ami_skeleton.get_ami_islands_from_nx_graph_GRAPH()
+        assert nx_graph is not None
+        ami_skeleton.islands = ami_skeleton.get_ami_islands_from_nx_graph()
         bboxes_arrows = ami_skeleton.islands
         dd = 2  # to overcome some of the antialiasing
         for bbox in bboxes_arrows:
@@ -296,7 +328,7 @@ class TestAmiSkeleton:
     def test_flood_fill_first_component(self):
         ami_skeleton = AmiSkeleton()
         component_index = 0  # as example
-        ami_skeleton.read_image_plot_component_TEST(component_index, Resources.BIOSYNTH1_ARROWS)
+        ami_skeleton.read_image_plot_component(component_index, Resources.BIOSYNTH1_ARROWS)
         return
 
     @unittest.skipIf(skip_not_subscriptable, "'AmiIsland' object is not subscriptable")
@@ -373,12 +405,13 @@ class TestAmiSkeleton:
 # Utils
 
     def binarize_and_skeletonize_arrows(self):
-        image_preprocessor = ImageProcessor()
         TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
         BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
-        image_preprocessor.load_image(BIOSYNTH_PATH_IMAGE)
-
-        skeleton = image_preprocessor.invert_threshold_skeletonize()
+        image = AmiImage.create_grayscale_from_file(BIOSYNTH_PATH_IMAGE)
+        skeleton = AmiImage.create_white_skeleton_from_image(image)
+        # image_preprocessor.load_image(BIOSYNTH_PATH_IMAGE)
+        #
+        # skeleton = image_preprocessor.invert_threshold_skeletonize()
         return skeleton
 
     def set_bbox_to_color(self, bbox, dd, image):
@@ -406,18 +439,3 @@ class TestAmiSkeleton:
         ami_skeleton.create_and_plot_all_components_TEST(Resources.BIOSYNTH8, min_size=[30, 30])
         return
 
-def check_type_and_existence(target, expected_type):
-    """
-    asserts not None for object and its type
-    if path asserts existence
-
-
-    :param target: object to check
-    :param expected_type: type of object
-    :return: None
-    """
-    assert target is not None
-    typ = type(target)
-    assert typ is expected_type, f"type {typ} should be {expected_type}"
-    if expected_type is Path:
-        assert target.exists(), f"{target} should exist"

@@ -1,8 +1,8 @@
 from pathlib import Path
 
 from PIL import Image
-from ..pyimage import octree
-from ..pyimage.image_lib import Quantizer
+from pyimage.old_code import octree
+from pyimage.old_code.image_lib import Quantizer
 
 
 class TestOctree:

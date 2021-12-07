@@ -1,4 +1,3 @@
-from networkx.classes.function import subgraph
 import numpy as np
 from skimage import io
 from skimage.color.colorconv import rgb2gray
@@ -8,11 +7,13 @@ from skimage import filters
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-from ..pyimage.graph_lib import AmiGraph
+from pyimage.old_code.graph_lib import AmiGraph
 
 """
 The ImageProcessor class is current in development by PMR and Anuv for preprocessing images
 as a part of the project: "Extraction of biosynthetic pathway from images"
+
+probably obsolete and being moved to AmiImage
 
 Some part of the code has been copied from ImageLib written by PMR for openDiagram
 We decided against continuing development on openDiagram library because the size
@@ -34,6 +35,7 @@ class ImageProcessor:
         self.image = None
         self.inverted = None
 
+    # TODO is this required?
     def load_image(self, path):
         """
         loads image with io.imread
@@ -45,7 +47,8 @@ class ImageProcessor:
         if path is not None:
             self.image = io.imread(path)
         return self.image
-        
+
+    # TODO classmethod
     def to_gray(self):
         """convert existing self.image to grayscale
         uses rgb2gray from skimage.color.colorconv
@@ -55,11 +58,13 @@ class ImageProcessor:
             self.image_gray = rgb2gray(self.image)
         return self.image_gray
 
+    # TODO classmethod
     def invert(self, image):
         """Inverts the brightness values of the image"""
         self.inverted = skimage.util.invert(image)
         return self.inverted
-    
+
+    # TODO class method
     def skeletonize(self, image):
         """Returns a skeleton of the image"""
         mask = morphology.skeletonize(image)
@@ -94,7 +99,7 @@ class ImageProcessor:
 
     def example1(self):
         TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
-        assert TEST_RESOURCES_DIR.isdir() , f"{TEST_RESOURCES_DIR} must be existing directory"
+        assert TEST_RESOURCES_DIR.isdir(), f"{TEST_RESOURCES_DIR} must be existing directory"
         # BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")
         BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
         print(BIOSYNTH_PATH_IMAGE)
@@ -114,16 +119,12 @@ class ImageProcessor:
         skeleton = self.skeletonize(binary_image)
         self.show_image(skeleton)
 
-    def binarize_and_skeletonize_arrows(self):
-        TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
-        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
-        self.load_image(BIOSYNTH_PATH_IMAGE)
-
-        skeleton = self.invert_threshold_skeletonize()
-        return skeleton
-
     def example_skeletonize_extract_subgraphs(self):
-        skeleton = self.binarize_and_skeletonize_arrows()
+        resources_dir = Path(Path(__file__).parent.parent, "test/resources")
+        image = Path(resources_dir, "biosynth_path_1_cropped_text_removed.png")
+        self.load_image(image)
+        skeleton1 = self.invert_threshold_skeletonize()
+        skeleton = skeleton1
         skeleton = skeleton.astype(np.uint16)
         # print("skeleton values: ", skeleton)
         print("skeleton type: ", type(skeleton))
@@ -139,19 +140,6 @@ class ImageProcessor:
         #     self.plot_line(node_dict, edge[0], edge[1], maxy)
         # fig.savefig(Path(Path(__file__).parent.parent, "temp", "plotarrows.png"))
 
-    def get_maxx_maxy_non_pythonic(self, node_dict, nodes):
-        maxx = -999999
-        maxy = -999999
-        for node, i in enumerate(nodes):
-            # certainly a more pythonic way exists
-            x = node_dict[i][0]
-            if x > maxx:
-                maxx = x
-            y = node_dict[i][1]
-            if y > maxy:
-                maxy = y
-        return maxx, maxy
-
     @classmethod
     def plot_line(cls, node_dict, node0, node1, ymax):
         # print("node", node0, type(node0))
@@ -162,35 +150,12 @@ class ImageProcessor:
         plt.plot([xy0[1], xy1[1]], [ymax - xy0[0], ymax - xy1[0]], marker="")
         # print(type(node0))
 
-    def invert_threshold_skeletonize(self, show=False):
-        """Inverts Thresholds and Skeletonize a single channel grayscale image
-        :show: display images for invert, threshold and skeletonize 
-        :return: skeletonized image
-        """
-        if show:
-            self.show_image(self.image)
-
-        inverted_image = self.invert(self.image)
-        if show:
-            self.show_image(inverted_image)
-        
-        binary_image = self.threshold(inverted_image)
-        binary_image = binary_image.astype(np.uint16)
-        if show:
-            self.show_image(binary_image)
-        
-        skeleton = self.skeletonize(binary_image)
-        
-        if show:
-            self.show_image(skeleton)
-
-        return skeleton
 
 
 def main():
     image_processor = ImageProcessor()
     image_processor.example1()
-    #image_processor.example_skeletonize_extract_subgraphs()
+    # image_processor.example_skeletonize_extract_subgraphs()
 
 
 if __name__ == '__main__':
