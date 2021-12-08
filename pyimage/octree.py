@@ -228,7 +228,7 @@ def create_palette_image(size, octree, width, height):
     for i, color in enumerate(palette):
         rgb = (color.red, color.green, color.blue)
         palette_pixels[i % size, i // size] = rgb
-        print("rgb", rgb)
+        # print("rgb", rgb)
     print("palette time", time.perf_counter()-time0)
     return palette, palette_image
 
