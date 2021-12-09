@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from skimage.morphology import skeletonize
 from skimage import data
 import sknw
+import unittest
+from skimage import io
 
 from pyimage.ami_skeleton import AmiSkeleton
 from pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph
@@ -20,6 +22,13 @@ from pyimage.bbox import BBox
 
 class TestAmiGraph:
 
+    def setup_method(self, method):
+        arrows1 = io.imread(Resources.BIOSYNTH1_ARROWS)
+        assert arrows1.shape == (315, 1512)
+        pass
+
+
+    @unittest.skip("background")
     def test_sknw_example(self):
         """
         From the SKNW docs
@@ -136,6 +145,7 @@ plt.show()"""
         assert connected_components == [{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}]
         assert connected_components[0] == {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}
 
+    @unittest.skip("exploration")
     def test_sknw_5_islands(self):
         """
         This checks all the fields that sknw returns
@@ -150,7 +160,7 @@ plt.show()"""
         skeleton_array = AmiImage.create_white_skeleton_from_file(skel_path)
         Util.check_type_and_existence(skeleton_array, np.ndarray)
 
-        nx_graph = AmiSkeleton.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
+        nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)
         Util.check_type_and_existence(nx_graph, nx.classes.graph.Graph)
 
         Util.check_type_and_existence(nx_graph.nodes, nx.classes.reportviews.NodeView)
@@ -180,12 +190,21 @@ plt.show()"""
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
 
+
+        connected_components = list(nx.algorithms.components.connected_components(nx_graph))
+        print("components", connected_components)
         assert nx.algorithms.components.number_connected_components(nx_graph) == 4
         connected_components = list(nx.algorithms.components.connected_components(nx_graph))
+        assert type(connected_components) is list, f"type of connected components should be list"
         assert connected_components == [{0, 1, 2, 3, 4, 5, 6, 7},
                                         {8, 9, 26, 19},
                                         {10, 11, 12, 13, 14, 15, 16, 17, 18, 20},
                                         {21, 22, 23, 24, 25}]
+
+
+        assert type(connected_components[0]) is set and len(connected_components[0]) == 8, \
+            f"components should be sets and first len == 8"
+        assert type(list(connected_components[0])[0]) is int, f"members should be int"
 
         ami_graph = AmiGraph(nx_graph)
         ami_graph.read_nx_graph(nx_graph)
@@ -193,6 +212,14 @@ plt.show()"""
         assert len(island_node_id_sets) == 4
         assert type(island_node_id_sets[0]) is AmiIsland
         assert island_node_id_sets[0].node_ids == {0, 1, 2, 3, 4, 5, 6, 7}
+
+    def test_set(self):
+        """
+        basic syntax
+        :return:
+        """
+        sss = set({1,2})
+        assert type(sss) is set, f"sss should be set, found {type(sss)})"
 
     def test_nodes(self):
         """

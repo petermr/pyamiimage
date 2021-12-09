@@ -10,7 +10,6 @@ from pathlib import PosixPath
 
 from pyimage.ami_image import AmiImage
 from pyimage.util import Util
-from pyimage.ami_skeleton import AmiSkeleton
 from pyimage.svg import BBox
 from pyimage.flood_fill import FloodFill
 
@@ -176,7 +175,7 @@ class AmiGraph:
         :return:
         """
         # self.nodes_as_dicts = [nx_graph.node[ndidx] for ndidx in (nx_graph.nodes())]
-        # self.nodes_yx = [nx_graph.node[ndidx][AmiSkeleton.CENTROID] for ndidx in (nx_graph.nodes())]
+        # self.nodes_yx = [nx_graph.node[ndidx][AmiNode.CENTROID] for ndidx in (nx_graph.nodes())]
         self.read_nx_edges(nx_graph)
         self.read_nx_nodes(nx_graph)
         # this may be the critical data structure and the others are convenience
@@ -193,14 +192,14 @@ class AmiGraph:
             node_dict = node_ids[node_id]
             assert len(str(node_id)) < 4, f"node_id is {node_id}"
             ami_node = AmiNode(ami_graph=self, node_id=node_id, nx_graph=nx_graph)
-            ami_node.set_centroid_yx(nx_graph.nodes[node_id][AmiSkeleton.CENTROID])
+            ami_node.set_centroid_yx(nx_graph.nodes[node_id][AmiNode.CENTROID])
             ami_node.read_nx_node(node_dict)
             self.ami_nodes.append(ami_node)
 
     def read_nx_edges(self, nx_graph):
         self.ami_edges = []
         for (start, end) in nx_graph.edges():
-            points_yx = nx_graph[start][end][AmiSkeleton.NODE_PTS]
+            points_yx = nx_graph[start][end][AmiNode.NODE_PTS]
             ami_edge = AmiEdge()
             ami_edge.read_nx_edge_points_yx(points_yx)
             self.ami_edges.append(ami_edge)
@@ -222,9 +221,25 @@ class AmiGraph:
         image1 = io.imread(path)
         Util.check_type_and_existence(image1, np.ndarray)
         gray_image = AmiImage.create_grayscale_from_image(image1)
-        skeleton_array = AmiImage.create_white_skeleton_from_image(gray_image)
-        nx_graph = AmiSkeleton.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
+        # io.imshow(gray_image)
+        # io.show()
+        skeleton_array = AmiImage.invert_binarize_skeletonize(gray_image)
+        assert np.max(skeleton_array) == 255, f"max skeleton should be 255 found {np.max(skeleton_array)}"
+
+        nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)
         return nx_graph
+
+    @classmethod
+    def create_nx_graph_from_skeleton(cls, skeleton_image):
+        """
+        DO NOT INLINE
+        :param skeleton_image:
+        :return:
+        """
+        Util.check_type_and_existence(skeleton_image, np.ndarray)
+        nx_graph = sknw.build_sknw(skeleton_image)
+        return nx_graph
+
 
     def get_ami_islands_from_nx_graph(self):
         """
@@ -249,7 +264,7 @@ class AmiGraph:
         :return:
         """
         node_data = self.nx_graph.nodes[idx]
-        centroid = node_data[AmiSkeleton.CENTROID]
+        centroid = node_data[AmiNode.CENTROID]
         centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
         return centroid
 
@@ -344,12 +359,13 @@ class AmiEdge:
 
 class AmiNode:
     """Node holds coordinates
-    ["o"] for centrois (AmiSkeleton.CENTROID)
-    ["pts"] for multiple points (AmiSkeleton.POINTS)
+    ["o"] for centrois (AmiNode.CENTROID)
+    ["pts"] for multiple points (AmiNode.POINTS)
     ALL COORDINATES COMMUNICATED BY/TO USER ARE X,Y
     (SKNW uses y,x coordinates)
     """
     CENTROID = "o"
+    NODE_PTS = "pts"
 
     def __init__(self, node_id=None, ami_graph=None, nx_graph=None):
         """

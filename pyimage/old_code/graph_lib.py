@@ -223,7 +223,7 @@ class AmiGraph:
         Util.check_type_and_existence(image1, np.ndarray)
         gray_image = AmiImage.create_grayscale_from_image(image1)
         skeleton_array = AmiImage.create_white_skeleton_from_image(gray_image)
-        nx_graph = AmiSkeleton.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
+        nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)
         return nx_graph
 
     def get_ami_islands_from_nx_graph(self):

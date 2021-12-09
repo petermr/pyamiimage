@@ -9,13 +9,14 @@ import networkx as nx
 import sknw  # must pip install sknw
 import os
 import matplotlib.pyplot as plt
+from skimage import io
 
 from pyimage.ami_image import AmiImage
 from pyimage.util import Util
 
 from pyimage.bbox import BBox
 from pyimage.flood_fill import FloodFill
-# from pyimage.ami_graph_all import AmiGraph
+from pyimage.ami_graph_all import AmiGraph
 
 
 class AmiSkeleton:
@@ -31,8 +32,8 @@ class AmiSkeleton:
 
     May need rationalizatiom with AmiGraph
     """
-    NODE_PTS = "pts"
-    CENTROID = "o"
+    # NODE_PTS = "pts"
+    # CENTROID = "o"
 
     logger = logging.getLogger("ami_skeleton")
 
@@ -57,7 +58,8 @@ class AmiSkeleton:
         self.node_dict = {}
         self.edge_dict = {}
 
-    def binarize_skeletonize_sknw_nx_graph_plot_TEST(self, path, plot_plot=True):
+    @classmethod
+    def binarize_skeletonize_sknw_nx_graph_plot_TEST(cls, path, plot_plot=True):
         """
         Creates skeleton and nx_graph and plots it
 
@@ -67,12 +69,12 @@ class AmiSkeleton:
         """
         assert path is not None
         path = Path(path)
-        self.skeleton_image = AmiImage.create_white_skeleton_from_file(path)
+        skeleton_image = AmiImage.create_white_skeleton_from_file(path)
         # build graph from skeleton
-        nx_graph = self.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(self.skeleton_image)
+        nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_image)
         if plot_plot:
             self.plot_nx_graph_NX(nx_graph)
-        return self.skeleton_image
+        return skeleton_image
 
     def create_nx_graph_via_skeleton_sknw_NX_GRAPH(self, path):
         """
@@ -84,20 +86,11 @@ class AmiSkeleton:
         assert path is not None
         path = Path(path)
         self.skeleton_image = AmiImage.create_white_skeleton_from_file(path)
+        io.imshow(self.skeleton_image)
+        io.show()
         assert self.skeleton_image is not None
         # build graph from skeleton
-        nx_graph = self.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(self.skeleton_image)
-        return nx_graph
-
-    @classmethod
-    def create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(cls, skeleton_image):
-        """
-        DO NOT INLINE
-        :param skeleton_image:
-        :return:
-        """
-        Util.check_type_and_existence(skeleton_image, np.ndarray)
-        nx_graph = sknw.build_sknw(skeleton_image)
+        nx_graph = AmiGraph.create_nx_graph_from_skeleton(self.skeleton_image)
         return nx_graph
 
     def plot_nx_graph_NX(self, nx_graph, title="skeleton"):
@@ -114,7 +107,7 @@ graph.edge(id1, id2)['pts']: Numpy(x, n), sequence of the edge point
 graph.edge(id1, id2)['weight']: float, length of this edge        """
 
         assert nx_graph is not None
-        self.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH(nx_graph)
+        AmiSkeleton.get_coords_for_nodes_and_edges_from_nx_graph_GRAPH(nx_graph)
         self.plot_edges_nodes_and_title_GRAPH(title)
         return None
 

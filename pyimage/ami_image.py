@@ -115,7 +115,9 @@ class AmiImage:
         :return: AmiSkeleton
         """
         assert image is not None
+
         binary = AmiImage.create_white_binary_from_image(image)
+        print("min, max", np.min(binary), np.max(binary))
         binary = binary/255
         mask = morphology.skeletonize(binary)
         skeleton = np.zeros(image.shape)
@@ -158,6 +160,7 @@ class AmiImage:
         inverted_image = cls.create_inverted_image(image)
         # skeletonize has inbuilt binarization
         skeleton = cls.create_white_skeleton_from_image(inverted_image)
+        assert np.max(skeleton) == 255, f"skeleton should have max 255 , found {np.max(skeleton)}"
 
         return skeleton
 
