@@ -1,6 +1,7 @@
 from pathlib import Path
 from pyimage.ami_image import AmiImage
 from skimage import io
+import os
 
 RESOURCE_DIR = Path(Path(__file__).parent, "resources")
 COMPARE_DIR = Path(Path(__file__).parent, "comparison_images")
@@ -12,6 +13,9 @@ class AmiImageFileGenerator():
     
     def __init__(self, image_path) -> None:
         self.image = io.imread(image_path)
+        if not COMPARE_DIR.exists():
+            print("Comparison directory does not exist, making one now...")
+            os.mkdir(COMPARE_DIR)
 
     def save_original(self):
         filename = "original.png"
