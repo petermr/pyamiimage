@@ -58,6 +58,8 @@ class AmiImage:
 
         if gray is None and AmiImage.has_rgb_shape(image):
             gray = color.rgb2gray(image)
+        
+        gray = skimage.img_as_ubyte(gray)
         return gray
 
 

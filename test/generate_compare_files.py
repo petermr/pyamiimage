@@ -13,6 +13,12 @@ class AmiImageFileGenerator():
     def __init__(self, image_path) -> None:
         self.image = io.imread(image_path)
 
+    def save_original(self):
+        filename = "original.png"
+        filepath = Path(COMPARE_DIR, filename)
+        self.write_image_to_path(self.image, filepath)
+        print(f"Saved {filename} to comparison dir")
+
     def generate_rbg2gray_image(self):
         filename = "gray.png"
         gray = AmiImage.create_grayscale_from_image(self.image)
@@ -43,6 +49,7 @@ class AmiImageFileGenerator():
         print(f"Saved {filename} to comparion dir")
 
     def generate_all(self):
+        self.save_original()
         self.generate_rbg2gray_image()
         self.generate_inverted_image()
         self.generate_white_binary_image()
