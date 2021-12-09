@@ -5,7 +5,7 @@ from skimage import io
 RESOURCE_DIR = Path(Path(__file__).parent, "resources")
 COMPARE_DIR = Path(Path(__file__).parent, "comparison_images")
 
-RGB_SNIPPET = Path(RESOURCE_DIR, "biosynth_3_snippet_1.png")
+RGB_SNIPPET = Path(RESOURCE_DIR, "snippet_rgb.png")
 
 class AmiImageFileGenerator():
     """This class generates image files for comparison in test_ami_image"""
@@ -22,22 +22,22 @@ class AmiImageFileGenerator():
 
     def generate_inverted_image(self):
         filename = "inverted.png"
-        inverted = AmiImage.invert(self.image)
+        inverted = AmiImage.create_inverted_image(self.image)
         filepath = Path(COMPARE_DIR, filename)
         self.write_image_to_path(inverted, filepath)
         print(f"Saved {filename} to comparion dir")
 
     def generate_white_binary_image(self):
         filename = "white_binary.png"
-        # white_binary = AmiImage.create_white_binary_from_image(self.image)
-        white_binary = AmiImage.create_white_binary(self.image)
+        white_binary = AmiImage.create_white_binary_from_image(self.image)
         filepath = Path(COMPARE_DIR, filename)
         self.write_image_to_path(white_binary, filepath)
         print(f"Saved {filename} to comparion dir")
 
     def generate_white_skeleton_image(self):
         filename = "white_skeleton.png"
-        white_skeleton = AmiImage.create_white_skeleton_from_image(self.image)
+        inverted = AmiImage.create_inverted_image(self.image)
+        white_skeleton = AmiImage.create_white_skeleton_from_image(inverted)
         filepath = Path(COMPARE_DIR, filename)
         self.write_image_to_path(white_skeleton, filepath)
         print(f"Saved {filename} to comparion dir")
