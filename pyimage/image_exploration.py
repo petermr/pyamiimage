@@ -144,6 +144,43 @@ class Exploration:
                 a.axis('off')
         fig.tight_layout()
 
+# =========== palettes ============
+
+"""
+From https://stackoverflow.com/questions/45523205/get-rgb-colors-from-color-palette-image-and-apply-to-binary-image
+
+You can use a combination of a reshape and np.unique to extract the unique RGB values from your color palette image:
+"""
+# Load the color palette
+from skimage import io
+palette = io.imread(os.path.join(os.getcwd(), 'color_palette.png'))
+
+# Use `np.unique` following a reshape to get the RGB values
+palette = palette.reshape(palette.shape[0]*palette.shape[1], palette.shape[2])
+palette_colors = np.unique(palette, axis=0)
+"""
+(Note that the axis argument for np.unique was added in numpy version 1.13.0, so you may need to upgrade numpy for this to work.)
+
+Once you have palette_colors, you can pretty much use the code you already have to save the image, except you now add the different RGB values instead of copies of ~img to your img_rgba array.
+"""
+img = None  # TODO
+for p in range(palette_colors.shape[0]):
+
+    # Create an MxNx4 array (RGBA)
+    img_rgba = np.zeros((img.shape[0], img.shape[1], 4), dtype=np.uint8)
+
+    # Fill R, G and B with appropriate colors
+    for c in range(3):
+        img_rgba[:,:,c] = img.astype(np.uint8) * palette_colors[p,c]
+
+    # For alpha just use the image again (makes background transparent)
+    img_rgba[:,:,3] = img.astype(np.uint8) * 255
+
+    # Save image
+    io.imsave('img_col'+str(p)+'.png', img_rgba)
+
+# (Note that you need to use np.uint8 as datatype for your image, since binary images obviously cannot represent different colors.)
+"""
 
 if __name__ == '__main__':
     Exploration().sharpen_explore(axis=True)
