@@ -108,17 +108,20 @@ class TextBox:
         text_boxes = []
         phrases, bboxes = TesseractOCR.find_phrases(elem)
         # TODO mend this
-        # for phrase, bbox in phrases, bboxes:
-        #     text_box = TextBox.create_text_box(phrase, bbox)
-        #     text_boxes.append(text_box)
+        for phrase, bbox in zip(phrases, bboxes):
+            assert type(phrase) is str, f"type of phrase {type(phrase)}"
+            text_box = TextBox.create_text_box(phrase, bbox)
+            text_boxes.append(text_box)
         return text_boxes
 
     @classmethod
     def create_text_box(cls, text, bbox):
-        assert text is str and bbox is list and len(bbox) == 4
+        assert type(text) is str, f"{type(text)} of {text} should be str"
+        assert type(bbox) is list
+        assert len(bbox) == 4
         text_box = TextBox()
         text_box.text = text
-        text_box.bbox = bbox
+        text_box.bbox = [[bbox[0], bbox[2]], [bbox[1], bbox[3]]]
         return text_box
 
 
