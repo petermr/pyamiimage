@@ -11,6 +11,12 @@ Documentation on Wiki.
 
 Demos on ipynb Notebooks.
 
+# components
+
+## AmiImage
+
+Tools for image reading, conversion and writing. Most are based on skimage
+
 ## branches
 
 * tess_anuv - tezseract to create weords and phrases
