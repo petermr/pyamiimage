@@ -2,10 +2,10 @@
 
 Mainly class routines
 """
-import unittest
 from pathlib import Path
-from skimage import io
+
 import numpy as np
+from skimage import io
 
 from ..pyimage.ami_image import AmiImage
 
@@ -46,8 +46,7 @@ class TestAmiImage:
     def test_check_image_values(self):
         """check the values of imported image against comparison"""
 
-        compare_filename = "original.png"
-        TestAmiImage.assert_image_equals_repository_image_file(self.image, compare_filename, COMPARE_DIR)
+        TestAmiImage.assert_image_equals_repository_image_file(self.image, "original.png", COMPARE_DIR)
 
     def test_rgb2gray(self):
         """convert raw "gray" image to grayscale"""
@@ -75,29 +74,7 @@ class TestAmiImage:
 
         TestAmiImage.assert_image_equals_repository_image_file(white_skeleton, "white_skeleton.png", COMPARE_DIR)
 
-        ### THese functions below are either redundant or bloated we've moved to a newer method for comparing images
-### Thse functinos will eventually be removed, right now they have been retained incase they have anything useful
-
-    # def test_rgb2gray(self):
-        """convert raw "gray" image to grayscale"""
-        # TODO create pure rgb image
-        # ***POSSIBLY REDUNDANT***
-        # assert gray_image.shape == (152, 625)  # gray
-        # print(gray_image)
-        # assert np.count_nonzero(gray_image) == 93408  # zero == black
-        # assert np.size(gray_image) == 95000
-        # assert np.max(gray_image) == 1.0, "image from 0.0 to 1.0"
-        # assert np.min(gray_image) == 0.0
-        # black_lim = 0.1
-        # non_black = np.where(0.1 < gray_image)
-
-        # # print(np.count(non_black))
-        # non_black_pixels = np.where(gray_image > black_lim)
-        # # this is a 2-tuple of [x,y] values
-        # print(f"non black pixels {non_black_pixels}")
-        # print(f"num non_black {len(non_black_pixels[0])}")
-        # black_pixels = np.where(gray_image < black_lim)
-
+# ========== helper methods ==============
     @classmethod
     def assert_image_equals_repository_image_file(cls, original_image, expected_filename, repository_dir):
         """
@@ -127,5 +104,3 @@ class TestAmiImage:
         """
         msg = f"{expected_filename} image" if expected_filename is not None else ""
         assert np.array_equal(comparable_image, compare_image), f"Image does not match {msg}"
-
-
