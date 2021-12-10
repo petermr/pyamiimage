@@ -1,5 +1,4 @@
-from ..pyimage.preprocessing import ImageProcessor
-import pytest
+from pyimage.old_code.preprocessing import ImageProcessor
 import numpy
 from pathlib import Path
 
@@ -24,7 +23,7 @@ class TestImageCode():
     assert ASSETS_DIR.exists(), "assets dir should exist"
     OCIMUM_IMAGE = Path(ASSETS_DIR, "purple_ocimum_basilicum.png")
     assert OCIMUM_IMAGE.exists(), "ocimum image should exist"
-    TEST_RESOURCES_DIR = Path(Path(__file__).parent, "resources")
+    TEST_RESOURCES_DIR = Path(Path(__file__).parent, "../../test/resources")
     RED_BLACK_IMAGE = Path(TEST_RESOURCES_DIR, "red_black_cv.png")
     assert RED_BLACK_IMAGE.exists(), f"red_black_image {RED_BLACK_IMAGE} should exist"
     BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")

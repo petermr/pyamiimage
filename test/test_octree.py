@@ -1,8 +1,11 @@
 from pathlib import Path
 
+import PIL
 from PIL import Image
-from ..pyimage import octree
-from ..pyimage.image_lib import Quantizer
+from pyimage import octree
+from pyimage.old_code.image_lib import Quantizer
+import numpy as np
+
 
 
 class TestOctree:
@@ -28,19 +31,21 @@ class TestOctree:
         """old octree"""
         size = 6
         path = Path(Path(__file__).parent.parent, "test/alex_pico/emss-81481-f001.png")
-        out_image = self.octree_and_show(path, size)
-
-    def octree_and_show(self, path, size):
-        """old octree"""
         assert path.exists()
         # img = imageio.imread(path)
         img = Image.open(path)
-        out_image, palette, palette_image = octree.quantize(img, size=size)
-        print(f"image {type(out_image)} ... {out_image}")
-        out_image.save(Path(path.parent, "test1.png"), "png")
-        out_image.show()
-        out_image.getcolors(maxcolors=256)
-        return out_image
+        pil_rgb_image, palette, palette_image = octree.quantize(img, size=size)
+        print(f"\npalette {type(palette)}  {palette}")
+        assert type(pil_rgb_image) is PIL.Image.Image
+        nparray = np.asarray(pil_rgb_image)
+        assert nparray.shape == (555, 572, 3)
+        print(f"image {type(pil_rgb_image)} ... {pil_rgb_image}")
+        print(f"palette image {type(pil_rgb_image)}")
+        palette_array = np.asarray(pil_rgb_image)
+        assert palette_array.shape == (555, 572, 3)
+        pil_rgb_image.save(Path(path.parent, "test1.png"), "png")
+        pil_rgb_image.show()
+        pil_rgb_image.getcolors(maxcolors=256)
 
     def test_81481_octree_new(self):
 
@@ -77,7 +82,8 @@ Returns A new image
             quantizer.extract_color_streams()
 
     def test_green_battery(self):
-        Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/resources"), method="octree", root="green").extract_color_streams()
+        Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/resources"), method="octree",
+                  root="green").extract_color_streams()
 
     def test_example_anuv_pathways(self):
         roots = [
@@ -92,7 +98,8 @@ Returns A new image
         ]
         for root in roots:
             print(f"\n=====root: {root}=====")
-            Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/resources"), method="octree", root=root).extract_color_streams()
+            Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/resources"), method="octree",
+                      root=root).extract_color_streams()
 
     # -------- Utility --------
     @classmethod

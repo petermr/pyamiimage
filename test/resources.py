@@ -2,6 +2,8 @@
 This may develop into a dataclass"""
 
 from pathlib import Path
+
+
 class Resources:
     TEST_RESOURCE_DIR = Path(Path(__file__).parent, "resources")
     assert TEST_RESOURCE_DIR.exists(), f"dir exists {TEST_RESOURCE_DIR}"
@@ -42,3 +44,6 @@ class Resources:
     assert BIOSYNTH7_HOCR.exists(), f"file exists {BIOSYNTH7_HOCR}"
     BIOSYNTH8_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_8.hocr")
     assert BIOSYNTH8_HOCR.exists(), f"file exists {BIOSYNTH8_HOCR}"
+
+    ISLANDS_5_SKEL = Path(TEST_RESOURCE_DIR, "islands_5.png")
+    assert ISLANDS_5_SKEL.exists(), f"file exists {ISLANDS_5_SKEL}"

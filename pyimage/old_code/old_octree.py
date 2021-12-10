@@ -6,6 +6,7 @@ from pathlib import Path
 from pyimage.old_code.ColorModule import Color
 from PIL import Image
 
+
 class OctreeNode(object):
     """
     Octree Node class for color quantization
@@ -101,7 +102,8 @@ class OctreeNode(object):
                 result += 1
         return result - 1
 
-    def get_color_index_for_level(self, color, level):
+    @classmethod
+    def get_color_index_for_level(cls, color, level):
         """
         Get index of `color` for next `level`
         """
@@ -194,9 +196,11 @@ class OctreeQuantizer(object):
         """
         return self.root.get_palette_index(color, 0)
 
+
 def quantize(image, size=4):
     import time
-    # from octree import OctreeQuantizer
+    from ColorModule import Color
+    # from Octree import OctreeQuantizer
 
     # size = 16 => 256 colors for 8 bits per pixel output image
 
@@ -218,6 +222,7 @@ def quantize(image, size=4):
     out_image = create_output_image(width, height, octree, palette, pixels)
     return out_image, palette, palette_image
 
+
 def create_palette_image(size, octree, width, height):
     from PIL import Image
     import time
@@ -228,9 +233,10 @@ def create_palette_image(size, octree, width, height):
     for i, color in enumerate(palette):
         rgb = (color.red, color.green, color.blue)
         palette_pixels[i % size, i // size] = rgb
-        # print("rgb", rgb)
+        print("rgb", rgb)
     print("palette time", time.perf_counter()-time0)
     return palette, palette_image
+
 
 def create_output_image(width, height, octree, palette, pixels):
     from PIL import Image
@@ -247,8 +253,9 @@ def create_output_image(width, height, octree, palette, pixels):
     print("output time", time.perf_counter()-time0)
     return out_image
 
+
 def main():
-    image_name = "red_black_cv.png"
+    # image_name = "red_black_cv.png"
     image_name = "purple_ocimum_basilicum.png"
     path = Path(Path(__file__).parent.parent, "assets", image_name)
     assert path.exists()
@@ -259,6 +266,7 @@ def main():
     # print(img)
 
     quantize(img, size=4)
+
 
 if __name__ == "__main__":
     main()

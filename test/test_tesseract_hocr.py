@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from pathlib import Path
 import numpy as np
 from skan.pre import threshold
-
+import unittest
 
 """
 These tests are desinged to test tesseract hocr
@@ -14,8 +14,11 @@ These tests are desinged to test tesseract hocr
 These tests are for Test Driven Development
 """
 
+skip_long_tests = True
+
 class TestTesseractHOCR():
-        
+    interactive = False
+
     def setup_method(self, method):
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
@@ -41,8 +44,9 @@ class TestTesseractHOCR():
         file = Resources.BIOSYNTH3
         assert file.exists()
         image = io.imread(file)
-        # io.imshow(image)
-        # io.show()
+        if self.interactive:
+            io.imshow(image)
+            io.show()
         assert image.shape == (972, 1020)
         npix = image.size
         nwhite = np.sum(image == 255)
@@ -58,7 +62,8 @@ class TestTesseractHOCR():
         # print(image)
         # images are not shown in tests, I think
         fig, ax = plt.subplots()
-        ax.imshow(image, cmap='gray')
+        if self.interactive:
+            ax.imshow(image, cmap='gray')
 
         binary = threshold(image)
         assert binary.shape == (972, 1020)
@@ -74,8 +79,9 @@ class TestTesseractHOCR():
         binary = np.invert(binary)
         nwhite = np.count_nonzero(binary)
         assert nwhite == 31048
-        ax.imshow(binary, cmap="gray")
-        plt.show()
+        if self.interactive:
+            ax.imshow(binary, cmap="gray")
+            plt.show()
 
         return
 
@@ -94,7 +100,7 @@ class TestTesseractHOCR():
         assert len(phrases) == 29
         assert len(bbox_for_phrases) == 29
 
-
+    @unittest.skipIf(skip_long_tests, "wikidata lookup")
     def test_phrase_wikidata_search(self):
         path = Resources.BIOSYNTH3
         hocr = self.ocr.hocr_from_image_path(path)

@@ -1,31 +1,34 @@
 from pathlib import Path
 from tesseract_hocr import TesseractOCR
-from ..pyimage.preprocessing import ImageProcessor
+from pyimage.old_code.preprocessing import ImageProcessor
+
 
 def example_extract_bbox_for_image_without_arrows():
     ocr = TesseractOCR()
-    RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
-    IMAGE_PATH = Path(RESOURCES_DIR, "biosynth_path_1_cropped_arrows_removed.png")
-    bbox_coordinates = ocr.extract_bbox_from_image(IMAGE_PATH)
+    resources_dir = Path(Path(__file__).parent.parent, "test/resources")
+    image_path = Path(resources_dir, "biosynth_path_1_cropped_arrows_removed.png")
+    bbox_coordinates = ocr.extract_bbox_from_image(image_path)
     print("bbox coordinates: ", bbox_coordinates)
+
 
 def example_extract_bbox_from_hocr_file():
     ocr = TesseractOCR()
-    RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
-    HOCR_PATH = Path(RESOURCES_DIR, "hocr1.html")
-    root = ocr.read_hocr_file(HOCR_PATH)
+    resources_dir = Path(Path(__file__).parent.parent, "test/resources")
+    hocr_path = Path(resources_dir, "hocr1.html")
+    root = ocr.read_hocr_file(hocr_path)
     bbox_coordinates = ocr.extract_bbox_from_hocr(root)
     print("bbox coordinates: ", bbox_coordinates)
 
+
 def example_fill_bbox_in_image():
     ocr = TesseractOCR()
-    RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
-    IMAGE_PATH = Path(RESOURCES_DIR, "biosynth_path_1_cropped_arrows_removed.png")
-    # IMAGE_PATH = Path(RESOURCES_DIR, "biosynth_path_1_cropped.png")
+    resources_dir = Path(Path(__file__).parent.parent, "test/resources")
+    image_path = Path(resources_dir, "biosynth_path_1_cropped_arrows_removed.png")
+    # image_path = Path(resources_dir, "biosynth_path_1_cropped.png")
     image_processor = ImageProcessor()
     
-    image = image_processor.load_image(IMAGE_PATH)
-    bbox_coordinates = ocr.extract_bbox_from_image(IMAGE_PATH)
+    image = image_processor.load_image(image_path)
+    bbox_coordinates = ocr.extract_bbox_from_image(image_path)
     
     bbox_around_words_image = ocr.draw_bbox_around_words(image, bbox_coordinates)
     image_processor.show_image(bbox_around_words_image)
@@ -33,31 +36,32 @@ def example_fill_bbox_in_image():
 
 def example_2_fill_bbox_in_image():
     ocr = TesseractOCR()
-    RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
-    IMAGE_PATH = Path(RESOURCES_DIR, "biosynth_path_3.png")
-    # IMAGE_PATH = Path(RESOURCES_DIR, "biosynth_path_1_cropped.png")
+    resources_dir = Path(Path(__file__).parent.parent, "test/resources")
+    image_path = Path(resources_dir, "biosynth_path_3.png")
+    # image_path = Path(resources_dir, "biosynth_path_1_cropped.png")
     image_processor = ImageProcessor()
     
-    image = image_processor.load_image(IMAGE_PATH)
-    bbox_coordinates, words = ocr.extract_bbox_from_image(IMAGE_PATH)
+    image = image_processor.load_image(image_path)
+    bbox_coordinates, words = ocr.extract_bbox_from_image(image_path)
     
     bbox_around_words_image = ocr.draw_bbox_around_words(image, bbox_coordinates)
     image_processor.show_image(bbox_around_words_image)
 
+
 def example_2_fill_bbox_for_phrases():
-    RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
-    IMAGE_PATH = Path(RESOURCES_DIR, "biosynth_path_3.png")
-    # IMAGE_PATH = Path(RESOURCES_DIR, "biosynth_path_1_cropped.png")
+    resources_dir = Path(Path(__file__).parent.parent, "test/resources")
+    image_path = Path(resources_dir, "biosynth_path_3.png")
+    # image_path = Path(resources_dir, "biosynth_path_1_cropped.png")
     image_processor = ImageProcessor()
     
     ocr = TesseractOCR()
 
-    image = image_processor.load_image(IMAGE_PATH)
+    image = image_processor.load_image(image_path)
     print(image.shape)
-    # bbox_coordinates, words = extract_bbox_from_image(IMAGE_PATH)
-    hocr = ocr.hocr_from_image_path(IMAGE_PATH)
+    # bbox_coordinates, words = extract_bbox_from_image(image_path)
+    hocr = ocr.hocr_from_image_path(image_path)
     root = ocr.parse_hocr_string(hocr)
-    phrases, bbox_coordinates  = ocr.find_phrases(root)
+    phrases, bbox_coordinates = ocr.find_phrases(root)
 
     words, bbox_coordinates_words = ocr.extract_bbox_from_hocr(root)
 
@@ -68,18 +72,19 @@ def example_2_fill_bbox_for_phrases():
     bbox_around_words_image = ocr.draw_bbox_around_words(image, bbox_coordinates)
     image_processor.show_image(bbox_around_words_image)
 
+
 def example_find_phrases():
     ocr = TesseractOCR()
-    RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
+    resources_dir = Path(Path(__file__).parent.parent, "test/resources")
     image_processor = ImageProcessor()
     for num in range(4, 9):
         print(f"Now processing biosynth_path_{num}.jpeg")
-        IMAGE_PATH = Path(RESOURCES_DIR, f"biosynth_path_{num}.jpeg")
-        image = image_processor.load_image(IMAGE_PATH)
+        image_path = Path(resources_dir, f"biosynth_path_{num}.jpeg")
+        image = image_processor.load_image(image_path)
     
-        hocr = ocr.hocr_from_image_path(IMAGE_PATH)
+        hocr = ocr.hocr_from_image_path(image_path)
         root = ocr.parse_hocr_string(hocr)
-        phrases, bbox_coordinates  = ocr.find_phrases(root)
+        phrases, bbox_coordinates = ocr.find_phrases(root)
 
         words, bbox_coordinates_words = ocr.extract_bbox_from_hocr(root)
 
@@ -91,8 +96,12 @@ def example_find_phrases():
         bbox_around_words_image = ocr.draw_bbox_around_words(image, bbox_coordinates)
         image_processor.show_image(bbox_around_words_image)
 
+
 def example_alex_pico_images():
-     # not yet working
+    pass
+
+
+# not yet working
 """
 Hi all,
 
@@ -140,11 +149,13 @@ PMC6475556	Protective Effect of the Total Triterpenes of Eusc...	Wei Huang, Hui 
 PMC6486373	Emerging Antitumor Activities of the Bitter Melon ...	Evandro Fei EF ...	2019	Fig. (1)	Possible mechanisms of the anti-tum...
 """
 
+
 def main():
     # example_extract_bbox_for_image_without_arrows()
     # example_extract_bbox_from_hocr_file()
     # example_2_fill_bbox_in_image()
     example_find_phrases()
+
 
 if __name__ == '__main__':
     main()
