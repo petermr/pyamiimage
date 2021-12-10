@@ -13,7 +13,7 @@ Demos on ipynb Notebooks.
 
 ## branches
 
-* tess_anuv - tezseract to create weords and phrases
+* tess_anuv - tesseract to create weords and phrases
 * nodes_and_islands 
   analysis of components using sknw and nx_graph
 
