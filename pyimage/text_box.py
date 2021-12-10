@@ -1,6 +1,7 @@
 from lxml import etree
 from lxml.etree import Element, QName
 from pathlib import Path
+from pyimage.tesseract_hocr import TesseractOCR
 
 
 class HocrText:
@@ -97,6 +98,29 @@ class HocrText:
         text.text = txt
         g.append(text)
         return g
+
+class TextBox:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def find_text_boxes(cls, elem):
+        text_boxes = []
+        phrases, bboxes = TesseractOCR.find_phrases(elem)
+        # TODO mend this
+        # for phrase, bbox in phrases, bboxes:
+        #     text_box = TextBox.create_text_box(phrase, bbox)
+        #     text_boxes.append(text_box)
+        return text_boxes
+
+    @classmethod
+    def create_text_box(cls, text, bbox):
+        assert text is str and bbox is list and len(bbox) == 4
+        text_box = TextBox()
+        text_box.text = text
+        text_box.bbox = bbox
+        return text_box
+
 
 
 class XMLNamespaces:

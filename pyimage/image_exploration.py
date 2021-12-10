@@ -153,7 +153,7 @@ You can use a combination of a reshape and np.unique to extract the unique RGB v
 """
 # Load the color palette
 from skimage import io
-palette = io.imread(os.path.join(os.getcwd(), 'color_palette.png'))
+palette = io.imread(os.biosynth3.join(os.getcwd(), 'color_palette.png'))
 
 # Use `np.unique` following a reshape to get the RGB values
 palette = palette.reshape(palette.shape[0]*palette.shape[1], palette.shape[2])

@@ -1,49 +1,56 @@
-from ..pyimage import tesseract_hocr
-
+# from ..pyimage import tesseract_hocr
 from ..test.resources import Resources
+
 from skimage import io
 from matplotlib import pyplot as plt
 from pathlib import Path
 import numpy as np
 from skan.pre import threshold
 import unittest
+from lxml import etree as ET
+
+from pyimage.tesseract_hocr import TesseractOCR
 
 """
-These tests are desinged to test tesseract hocr
+Tests for tesseract_hocr.py
 
-These tests are for Test Driven Development
+(to run tesseract:
+tesseract <pathname> <output_root> hocr
+e.g.,
+tesseract test/resources/biosynth_path_1_cropped_arrows_removed.png arrows_removed hocr
+creates:
+arrows_removed.hocr (actually html file)
+we may have to manually rename these to .html
 """
 
 skip_long_tests = True
 
-class TestTesseractHOCR():
+
+class TestTesseractHOCR:
     interactive = False
 
     def setup_method(self, method):
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
         """
-        self.path = Resources.BIOSYNTH3
-        self.ocr = tesseract_hocr.TesseractOCR()
-        self.hocr = self.ocr.hocr_from_image_path(self.path)
-        self.root = self.ocr.parse_hocr_string(self.hocr)
+        self.biosynth3 = Resources.BIOSYNTH3
+        self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(self.biosynth3)
+        self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
 
     def teardown_method(self, method):
         """teardown any state that was previously setup with a setup_method
         call."""
-        self.path = None
-        self.ocr = None
-        self.hocr = None
-        self.root = None
+        self.biosynth3 = None
+        self.biosynth3_hocr = None
+        self.biosynth3_elem = None
 
     def test_basics_biosynth3(self):
         """Primarily for validating the image data which will be used elsewhere
         Uncomment for debug-like printing
         The values of assertion are specific to the image used"""
 
-        file = Resources.BIOSYNTH3
-        assert file.exists()
-        image = io.imread(file)
+        assert self.biosynth3.exists()
+        image = io.imread(self.biosynth3)
         if self.interactive:
             io.imshow(image)
             io.show()
@@ -59,7 +66,6 @@ class TestTesseractHOCR():
         assert nlight == 962552
         print(f"\nnpix {npix}, nwhite {nwhite}, nblack {nblack}  nother {npix - nwhite - nblack}, ndark {ndark}, "
               f"nlight {nlight}")
-        # print(image)
         # images are not shown in tests, I think
         fig, ax = plt.subplots()
         if self.interactive:
@@ -71,7 +77,6 @@ class TestTesseractHOCR():
         assert nwhite == 960392
         nblack = npix - nwhite
         print(f"npix {npix}, nwhite {nwhite} nblack {nblack} nother {npix - nwhite - nblack}")
-        print(binary)
 
         fig, ax = plt.subplots()
         ax.imshow(binary, cmap="gray")
@@ -86,52 +91,64 @@ class TestTesseractHOCR():
         return
 
     def test_pretty_print_html(self):
-        self.ocr.pretty_print_hocr(self.root)
+        TesseractOCR.pretty_print_hocr(self.biosynth3_elem)
 
     def test_extract_bbox_from_hocr(self):
-        bbox, words = self.ocr.extract_bbox_from_hocr(self.root)
-        print("Words: ", words)
+        """
+
+        :return:
+        """
+        bbox, words = TesseractOCR.extract_bbox_from_hocr(self.biosynth3_elem)
+        assert len(words) == 60
+        assert words[:3] == ['Straight', 'chain', 'ester']
+        assert len(bbox) == 60
+        assert list(bbox[0]) == [201, 45, 302, 75]
 
     def test_find_phrases(self):
-        phrases, bbox_for_phrases = self.ocr.find_phrases(self.root)
-        print("Phrases:", phrases)
-        print("Bounding Boxes for phrases:", bbox_for_phrases)
+        phrases, bboxes = TesseractOCR.find_phrases(self.biosynth3_elem)
         assert phrases is not None
         assert len(phrases) == 29
-        assert len(bbox_for_phrases) == 29
+        assert len(bboxes) == 29
+        assert bboxes[0] == [201, 45, 830, 68]
+        assert phrases[0] == "Straight chain ester biosynthesis from fatty acids"
 
     @unittest.skipIf(skip_long_tests, "wikidata lookup")
     def test_phrase_wikidata_search(self):
         path = Resources.BIOSYNTH3
-        hocr = self.ocr.hocr_from_image_path(path)
-        root = self.ocr.parse_hocr_string(hocr)
-        phrases, bbox_for_phrases = self.ocr.find_phrases(root)
+        hocr = TesseractOCR.hocr_from_image_path(path)
+        root = TesseractOCR.parse_hocr_string(hocr)
+        phrases, bbox_for_phrases = TesseractOCR.find_phrases(root)
         try:
-            qitems, desc = self.ocr.wikidata_lookup(phrases)
-            print("qitems: ", qitems)
-            print("desc: ", desc)
-        except:
+            qitems, desc = TesseractOCR.wikidata_lookup(phrases)
+        except Exception:
             print("Wikidata lookup not working")
-
 
     def test_output_phrases_to_file(self):
         sample_phrases = ["test phrase", "more test phrase", "one more"]
-        file = self.ocr.output_phrases_to_file(sample_phrases, 'test_file.txt')
-        phrases = []
+        file = TesseractOCR.output_phrases_to_file(sample_phrases, 'test_file.txt')
+        # phrases = []
         with open(file, 'r') as f:
             phrases = f.read().split('\n')
-        phrases.pop(-1) # remove empty string associated with last \n
+        phrases.pop(-1)  # remove empty string associated with last \n
         assert file.exists()
         assert phrases == sample_phrases
 
-    def test_extract_bbox_from_hocr(self):
+    def test_extract_bbox_from_hocr3(self):
         test_hocr_file = Path(Path(__file__).parent, 'resources/tesseract_biosynth_path_3.hocr.html')
-        root = self.ocr.read_hocr_file(test_hocr_file)
-        bboxes, words = self.ocr.extract_bbox_from_hocr(root)
+        root = TesseractOCR.read_hocr_file(test_hocr_file)
+        bboxes, words = TesseractOCR.extract_bbox_from_hocr(root)
         assert len(bboxes) == 60
 
-    def test_extract_bbox_from_image(self):
+    def test_extract_bboxes_from_image(self):
         image_path = Path(Path(__file__).parent, 'resources/biosynth_path_3.png')
-        bboxes, words = self.ocr.extract_bbox_from_image(image_path)
+        bboxes, words = TesseractOCR.extract_bbox_from_image(image_path)
         assert len(bboxes) == 60
-        
+        assert str(bboxes[0]) == "[201  45 302  75]"
+        assert words[0] == "Straight"
+
+    def test_create_svg_rect_from_bbox(self):
+        bbox = [[10, 20], [30, 50]]
+        svg_rect = TesseractOCR.create_svg_rect_from_bbox(bbox, height=None)
+        svg_str = ET.tostring(svg_rect).decode('utf-8')
+        assert svg_str == '<svg:rect xmlns:svg="http://www.w3.org/2000/svg" x="10" width="10" ' \
+                          'y="30" height="20" stroke-width="1.0" stroke="red" fill="none"/>'
