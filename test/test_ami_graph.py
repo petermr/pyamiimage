@@ -287,14 +287,6 @@ plt.show()"""
         assert type(island_node_id_sets[0]) is AmiIsland
         assert island_node_id_sets[0].node_ids == {0, 1, 2, 3, 4, 5, 6, 7}
 
-    def test_set(self):
-        """
-        basic syntax
-        :return:
-        """
-        sss = set({1,2})
-        assert type(sss) is set, f"sss should be set, found {type(sss)})"
-
     def test_nodes(self):
         """
         Tests
@@ -304,8 +296,11 @@ plt.show()"""
         # ami_graph = AmiGraph(nx_graph)
         # ami_graph.read_nx_graph(nx_graph)
         ami_graph = AmiGraph.create_ami_graph_from_file(Resources.BIOSYNTH1_ARROWS)
-        nodex = AmiNode(nx_graph=nx_graph, node_id=(list(nx_graph.nodes)[0]))
-        nodex = ami_graph.get_or_create_node(0)
+        nodex = AmiNode(nx_graph=ami_graph.nx_graph, node_id=(list(ami_graph.nx_graph.nodes)[0]))
+        node_id = 0
+        # nodex = ami_graph.get_or_create_node(0)
+        nodex = AmiNode(ami_graph=ami_graph, node_id=node_id)
+
         xy = nodex.get_or_create_centroid_xy()
         assert xy == [844.0, 82.0]
 
@@ -402,6 +397,7 @@ plt.show()"""
 
     def test_plot_line(self):
         """straightens lines buy Douglas Peucker and plots"""
+        nx_graph = self.nx_graph_arrows1
         tolerance = 1
         lines = [
             [(21, 24), (22, 24), (23, 24), (24, 25)],
@@ -409,18 +405,23 @@ plt.show()"""
             [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6)],
             [(8, 19), (9, 19), (19, 26),]
             ]
+        TestAmiGraph.plot_all_lines(nx_graph, lines, tolerance)
+
+    @classmethod
+    def plot_all_lines(cls, nx_graph, lines, tolerance):
         fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
         ax1.set_aspect('equal')
         ax2.set_aspect('equal')
         for line in lines:
             # fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
             for i, j in line:
-                self.plot_dp(i, j, tolerance, ax1, ax2)
+                TestAmiGraph.douglas_peucker_plot_line(nx_graph, i, j, tolerance, ax1, ax2)
             # plt.show()
         plt.show()
 
-    def plot_dp(self, i, j, tolerance, ax1, ax2):
-        points = self.nx_graph_arrows1[i][j]["pts"]
+    @classmethod
+    def douglas_peucker_plot_line(cls, nx_graph, i, j, tolerance, ax1, ax2):
+        points = nx_graph[i][j]["pts"]
         ax1.plot(points[:, 1], -points[:, 0])
         points2 = approximate_polygon(points, tolerance=tolerance)
         ax2.plot(points2[:, 1], -points2[:, 0])  # x and y are reversed in sknw

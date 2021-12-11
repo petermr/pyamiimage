@@ -278,11 +278,12 @@ class AmiGraph:
         centroid = (centroid[1], centroid[0])  # swap y,x as sknw seems to have this unusual order
         return centroid
 
+# -------- AmiIsland routines
+
     def create_ami_island(self, node_ids):
 
         """
         create from a list of node_ids (maybe from sknw)
-        maybe should be instance method of ami_graph
         :param node_ids: set of node ids
         :param skeleton:
         :return: AmiIsland object
@@ -292,8 +293,8 @@ class AmiGraph:
 
         ami_island = AmiIsland()
         ami_island.node_ids = node_ids
-        ami_island.edges
         ami_island.ami_graph = self
+        ami_island.create_edges()
         return ami_island
 
 # -------- AmiGraph/AmiNode routines
@@ -443,6 +444,7 @@ class AmiIsland:
     def __init__(self, ami_graph=None):
         # self.ami_skeleton = None
         self.node_ids = None
+        self.edge_ids = None
         self.ami_graph = ami_graph
         self.coords_xy = None
         self.bbox = None
@@ -500,4 +502,14 @@ class AmiIsland:
         pixels = flooder.flood_fill(self.binary, start_pixel)
         if self.interactive:
             flooder.plot_used_pixels()
+
+    def create_edges(self):
+        assert self.ami_graph.nx_graph is not None
+        nx_graph = self.ami_graph.nx_graph
+        self.edges = []
+        for node_id in self.node_ids:
+            edges = nx_graph.edges(node_id)
+            for e in edges:
+                if e[0] < e[1]:
+                    self.edges.append(e)
 
