@@ -25,8 +25,12 @@ class AmiGraph:
     """holds AmiNodes and AmiEdges
     may also hold subgraphs
     """
+    """nx_graph is a NetworkX graph which holds nodes and edges
+     and which can be used to compute oher graph functionality (e.g. edges on nodes
+     """
 
     logger = logging.getLogger("ami_graph")
+
 
     def __init__(self, nx_graph, generate_nodes=False, nd_skeleton=None):
         """create fro nodes and edges"""
@@ -45,6 +49,12 @@ class AmiGraph:
         self.read_nx_graph(nx_graph)
         assert self.nx_graph is not None, f"ami_graph.nx_graph should not be None"
         return
+
+    @classmethod
+    def create_ami_graph_from_file(cls, file):
+        assert file.exists()
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(file)
+        return AmiGraph(nx_graph)
 
     def get_nx_graph(self):
         """try to avoid circular imports or attribute not found"""
@@ -282,20 +292,14 @@ class AmiGraph:
 
         ami_island = AmiIsland()
         ami_island.node_ids = node_ids
+        ami_island.edges
         ami_island.ami_graph = self
         return ami_island
 
+# -------- AmiGraph/AmiNode routines
+        def get_or_create_ami_node(node_index):
+            nodex = AmiNode(nx_graph=self.nx_graph, node_id=(list(self.nx_graph.nodes)[node_index]))
 
-    # def create_islands(self):
-    #     """
-    #     needs nx_graph to exist
-    #
-    #     :return: list of islands
-    #     """
-    #
-    #     assert self.nx_graph is not None
-    #     islands = self.get_ami_islands_from_nx_graph()
-    #     return islands
 
 
 class AmiGraphError(Exception):

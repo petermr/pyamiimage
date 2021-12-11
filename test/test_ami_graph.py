@@ -11,9 +11,10 @@ from skimage import data
 import sknw
 import unittest
 from skimage import io
+from skimage.measure import approximate_polygon, subdivide_polygon
 
 from pyimage.ami_skeleton import AmiSkeleton
-from pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph
+from pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
 from test.resources import Resources
 from pyimage.ami_image import AmiImage
 from pyimage.util import Util
@@ -25,8 +26,7 @@ class TestAmiGraph:
     def setup_method(self, method):
         arrows1 = io.imread(Resources.BIOSYNTH1_ARROWS)
         assert arrows1.shape == (315, 1512)
-        pass
-
+        self.nx_graph_arrows1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
 
     @unittest.skip("background")
     def test_sknw_example(self):
@@ -101,17 +101,20 @@ plt.show()"""
         assert str(graph.nodes[0].keys()) == "dict_keys(['pts', 'o'])",\
             "nodes have 'pts' and 'o "
         # this is a 2-array with ["pts", "weights'] Not sure what th structure is
-        assert f"{list(graph[0][2])[:1]}" == "['pts']"
-        assert len(graph[0][2]['pts']) == 18
-        assert str(graph[0][2].keys()) == "dict_keys(['pts', 'weight'])"
+        # this is an edges generator, so may need wrapping in a list
+        edges_gen = graph[0][2]  # plural because there may be multiple edges between nodes
+        assert f"{list(edges_gen)[:1]}" == "['pts']"  # pts are connected points in an edge
+        assert len(edges_gen['pts']) == 18
+        assert str(edges_gen.keys()) == "dict_keys(['pts', 'weight'])"
 
         print(f"\n=========nodes=========")
         prnt = True
         nprint = 3  # print first nprint
         for i, (s, e) in enumerate(graph.edges()):
+            edge = graph[s][e]
             if i < nprint and prnt:
-                print(f"{s} {e} {graph[s][e].keys()}")
-            ps = graph[s][e]['pts']
+                print(f"{s} {e} {edge.keys()}")
+            ps = edge[AmiEdge.PTS]
             plt.plot(ps[:, 1], ps[:, 0], 'green')
 
         # draw node by o
@@ -183,6 +186,77 @@ plt.show()"""
             print(f"pts_ {pts_}")
             assert str(pts_) == "[[ 83, 680]]"
 
+    def test_segmented_edges(self):
+        """
+        analyse 4 arrows and convert to lines
+
+
+        Note:
+        nx_graph[i][j]["pts"] seens to be the same as nx_graph[j][i]["pts"]
+        :return:
+        """
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        print ("0", nx_graph.nodes[0]["o"])
+        print ("2", nx_graph.nodes[2]["o"])
+
+        """
+        {0, 1, 2, 3, 4, 5, 6, 7},  # double arrow
+            0         6
+          /            \
+    3----2-------------4----5
+          \            /
+           7          1
+         [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6),
+        """
+        # print("\n0 2", nx_graph[0][2]["pts"][:2:-2])
+        print("\n2 0", nx_graph[2][0]["pts"][:2:-2])
+        print("\n2 7", nx_graph[2][7])
+        print("\n2 3", nx_graph[2][3])
+
+        print("\n2 4", nx_graph[2][4])
+
+        print("\n4 5", nx_graph[4][5])
+        print("\n4 6", nx_graph[4][6])
+        print("\n1 4", nx_graph[1][4])
+
+        points0_2 = nx_graph[2][0]["pts"]
+
+        """
+        {8, 9, 26, 19},            # y-shaped arrow-less
+         (8, 19), (9, 19), (19, 26),
+        8        26
+        |         |
+        ----19-----
+             |
+            26
+        """
+        """
+        {10, 11, 12, 13, 14, 15, 16, 17, 18, 20}, # bifurcated arrow
+         (10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20),
+        """
+        """
+        {21, 22, 23, 24, 25}]      # simple arrow
+        (21, 24), (22, 24), (23, 24), (24, 25)]
+                  
+                  21
+                  |
+                  |
+                  |
+          22      |      23
+             \    |    /
+                \ |  /
+                  24
+                  |
+                  |
+                  25
+        """
+        # print("21 24", nx_graph[21][24])
+        # print("24 25", nx_graph[24][25])
+        # print("22 24", nx_graph[22][24])
+        # print("23 24", nx_graph[23][24])
+
+        return
+
     def test_islands(self):
         """
         Create island_node_id_sets using sknw/NetworkX and check basic properties
@@ -226,6 +300,20 @@ plt.show()"""
         Tests
         :return:
         """
+        # nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        # ami_graph = AmiGraph(nx_graph)
+        # ami_graph.read_nx_graph(nx_graph)
+        ami_graph = AmiGraph.create_ami_graph_from_file(Resources.BIOSYNTH1_ARROWS)
+        nodex = AmiNode(nx_graph=nx_graph, node_id=(list(nx_graph.nodes)[0]))
+        nodex = ami_graph.get_or_create_node(0)
+        xy = nodex.get_or_create_centroid_xy()
+        assert xy == [844.0, 82.0]
+
+    def test_edges(self):
+        """
+        Tests
+        :return:
+        """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         ami_graph = AmiGraph(nx_graph)
         ami_graph.read_nx_graph(nx_graph)
@@ -250,3 +338,91 @@ plt.show()"""
         assert len(bbox_list) == 4
         # this is horrible and fragile, need __eq__ for bbox
         assert str(bbox_list[0]) == "[[661, 863], [82, 102]]", f"bbox_list[0] is {bbox_list[0]}"
+
+    def test_line_segments(self):
+
+        hand = np.array([[1.64516129, 1.16145833],
+                         [1.64516129, 1.59375],
+                         [1.35080645, 1.921875],
+                         [1.375, 2.18229167],
+                         [1.68548387, 1.9375],
+                         [1.60887097, 2.55208333],
+                         [1.68548387, 2.69791667],
+                         [1.76209677, 2.56770833],
+                         [1.83064516, 1.97395833],
+                         [1.89516129, 2.75],
+                         [1.9516129, 2.84895833],
+                         [2.01209677, 2.76041667],
+                         [1.99193548, 1.99479167],
+                         [2.11290323, 2.63020833],
+                         [2.2016129, 2.734375],
+                         [2.25403226, 2.60416667],
+                         [2.14919355, 1.953125],
+                         [2.30645161, 2.36979167],
+                         [2.39112903, 2.36979167],
+                         [2.41532258, 2.1875],
+                         [2.1733871, 1.703125],
+                         [2.07782258, 1.16666667]])
+
+        # subdivide polygon using 2nd degree B-Splines (green)
+        new_hand = hand.copy()
+        ncycle = 5  # doubles the number of points/splines each cycle
+        for _ in range(ncycle):
+            # print(new_hand.shape)
+            new_hand = subdivide_polygon(new_hand, degree=2, preserve_ends=True)
+
+        # approximate subdivided polygon with Douglas-Peucker algorithm (orange line)
+        tolerance = 0.02
+        # tolerance = 0.001
+        appr_hand = approximate_polygon(new_hand, tolerance=tolerance)
+
+        print("Number of coordinates:", len(hand), len(new_hand), len(appr_hand))
+
+        fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
+
+        ax1.plot(hand[:, 0], hand[:, 1])
+        # ax1.plot(new_hand[:, 0], new_hand[:, 1])
+        ax1.plot(appr_hand[:, 0], appr_hand[:, 1])
+
+        points = np.array([
+            [1., 1.],
+            [1.1, 2.],
+            [0.9, 3.],
+            [2., 2.9],
+            [3., 3.],
+
+        ])
+        ax2.plot(points[:,0], points[:,1])
+        tolerance = 0.02
+        tolerance = 0.5
+        points2 = approximate_polygon(points, tolerance=tolerance)
+        ax2.plot(points2[:,0], points2[:,1])
+        print(f"orig {len(points)}, fitted {len(points2)}")
+        plt.show()
+
+    def test_plot_line(self):
+        """straightens lines buy Douglas Peucker and plots"""
+        tolerance = 1
+        lines = [
+            [(21, 24), (22, 24), (23, 24), (24, 25)],
+            [(10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20)],
+            [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6)],
+            [(8, 19), (9, 19), (19, 26),]
+            ]
+        fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
+        ax1.set_aspect('equal')
+        ax2.set_aspect('equal')
+        for line in lines:
+            # fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
+            for i, j in line:
+                self.plot_dp(i, j, tolerance, ax1, ax2)
+            # plt.show()
+        plt.show()
+
+    def plot_dp(self, i, j, tolerance, ax1, ax2):
+        points = self.nx_graph_arrows1[i][j]["pts"]
+        ax1.plot(points[:, 1], -points[:, 0])
+        points2 = approximate_polygon(points, tolerance=tolerance)
+        ax2.plot(points2[:, 1], -points2[:, 0])  # x and y are reversed in sknw
+        print(f"orig {len(points)}, fitted {len(points2)}")
+

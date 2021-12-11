@@ -19,6 +19,7 @@ class TestTextBox:
     def test_extract_text_bboxes(self):
         text_boxes = TextBox.find_text_boxes(self.cropped1_elem)
         assert len(text_boxes) == 12
+        assert type(text_boxes[0]) is TextBox
         assert text_boxes[0].text == "Isomerase (?)"
         assert text_boxes[0].bbox == [[684, 843], [38, 65]]
         assert text_boxes[4].text == "Dimethylallyl diphosphate"
