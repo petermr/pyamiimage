@@ -12,13 +12,18 @@ import sknw
 import unittest
 from skimage import io
 from skimage.measure import approximate_polygon, subdivide_polygon
+import math
+import logging
 
-from pyimage.ami_skeleton import AmiSkeleton
 from pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
 from test.resources import Resources
 from pyimage.ami_image import AmiImage
 from pyimage.util import Util
 from pyimage.bbox import BBox
+
+logger = logging.getLogger(__name__)
+interactive = True
+interactive = False
 
 
 class TestAmiGraph:
@@ -84,8 +89,6 @@ plt.plot(ps[:,1], ps[:,0], 'r.')
 plt.title('Build Graph')
 plt.show()"""
 
-        show_plot = False
-        show_plot = True
         # open and skeletonize
         multi = False  # edge/node access needs an array for True
         img = data.horse()
@@ -96,7 +99,8 @@ plt.show()"""
         # theres a cycle 9, 13, 14
 
         # draw image
-        plt.imshow(img, cmap='gray')
+        if interactive:
+            plt.imshow(img, cmap='gray')
 
         assert str(graph.nodes[0].keys()) == "dict_keys(['pts', 'o'])",\
             "nodes have 'pts' and 'o "
@@ -130,7 +134,7 @@ plt.show()"""
 
         # title and show
         plt.title('Build Graph')
-        if show_plot:
+        if interactive:
             plt.show()
 
         print("================")
@@ -196,8 +200,8 @@ plt.show()"""
         :return:
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        print ("0", nx_graph.nodes[0]["o"])
-        print ("2", nx_graph.nodes[2]["o"])
+        print("0", nx_graph.nodes[0]["o"])
+        print("2", nx_graph.nodes[2]["o"])
 
         """
         {0, 1, 2, 3, 4, 5, 6, 7},  # double arrow
@@ -264,17 +268,17 @@ plt.show()"""
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
 
-
         connected_components = list(nx.algorithms.components.connected_components(nx_graph))
         print("components", connected_components)
         assert nx.algorithms.components.number_connected_components(nx_graph) == 4
         connected_components = list(nx.algorithms.components.connected_components(nx_graph))
         assert type(connected_components) is list, f"type of connected components should be list"
-        assert connected_components == [{0, 1, 2, 3, 4, 5, 6, 7},
-                                        {8, 9, 26, 19},
-                                        {10, 11, 12, 13, 14, 15, 16, 17, 18, 20},
-                                        {21, 22, 23, 24, 25}]
-
+        assert connected_components == [
+            {0, 1, 2, 3, 4, 5, 6, 7},
+            {8, 9, 26, 19},
+            {10, 11, 12, 13, 14, 15, 16, 17, 18, 20},
+            {21, 22, 23, 24, 25}
+        ]
 
         assert type(connected_components[0]) is set and len(connected_components[0]) == 8, \
             f"components should be sets and first len == 8"
@@ -387,43 +391,86 @@ plt.show()"""
             [3., 3.],
 
         ])
-        ax2.plot(points[:,0], points[:,1])
+        ax2.plot(points[:, 0], points[:, 1])
         tolerance = 0.02
         tolerance = 0.5
         points2 = approximate_polygon(points, tolerance=tolerance)
-        ax2.plot(points2[:,0], points2[:,1])
+        ax2.plot(points2[:, 0], points2[:, 1])
         print(f"orig {len(points)}, fitted {len(points2)}")
-        plt.show()
+        if interactive:
+            plt.show()
 
     def test_plot_line(self):
-        """straightens lines buy Douglas Peucker and plots"""
+        """straightens lines by Douglas Peucker and plots"""
         nx_graph = self.nx_graph_arrows1
-        tolerance = 1
+        tolerance = 2
         lines = [
             [(21, 24), (22, 24), (23, 24), (24, 25)],
             [(10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20)],
             [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6)],
-            [(8, 19), (9, 19), (19, 26),]
+            [(8, 19), (9, 19), (19, 26)]
             ]
         TestAmiGraph.plot_all_lines(nx_graph, lines, tolerance)
 
+    def test_plot_lines_with_nodes(self):
+        """adds nodes straightens lines by Douglas Peucker and plots"""
+        nx_graph = self.nx_graph_arrows1
+        tolerance = 2
+        lines = [
+            [(21, 24), (22, 24), (23, 24), (24, 25)],
+            [(10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20)],
+            [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6)],
+            [(8, 19), (9, 19), (19, 26)]
+            ]
+        nodes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 26, 19, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25}
+        print(f"nx graph {nx_graph[0].keys()}")
+        TestAmiGraph.plot_all_lines(nx_graph, lines, tolerance, nodes=nodes)
+
     @classmethod
-    def plot_all_lines(cls, nx_graph, lines, tolerance):
+    def plot_all_lines(cls, nx_graph, lines, tolerance, nodes=None):
+        assert type(lines) is list, f"lines should be list {lines}"
         fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
         ax1.set_aspect('equal')
         ax2.set_aspect('equal')
+
         for line in lines:
             # fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
             for i, j in line:
-                TestAmiGraph.douglas_peucker_plot_line(nx_graph, i, j, tolerance, ax1, ax2)
+                assert type(i) is int, f"i should be int {type(i)}"
+                assert type(j) is int, f"j should be int {type(j)}"
+                TestAmiGraph.douglas_peucker_plot_line(nx_graph, i, j, tolerance, ax1, ax2, nodes=nodes)
             # plt.show()
-        plt.show()
+        if interactive:
+            plt.show()
 
     @classmethod
-    def douglas_peucker_plot_line(cls, nx_graph, i, j, tolerance, ax1, ax2):
-        points = nx_graph[i][j]["pts"]
-        ax1.plot(points[:, 1], -points[:, 0])
-        points2 = approximate_polygon(points, tolerance=tolerance)
-        ax2.plot(points2[:, 1], -points2[:, 0])  # x and y are reversed in sknw
-        print(f"orig {len(points)}, fitted {len(points2)}")
+    def douglas_peucker_plot_line(cls, nx_graph, i, j, tolerance, ax1, ax2, nodes=None):
+        points = nx_graph[i][j][AmiEdge.PTS]
 
+        # original wiggly line
+        # x and y are reversed in sknw
+        ax1.plot(points[:, 1], -points[:, 0])  # negative since down the page
+        points2 = approximate_polygon(points, tolerance=tolerance)
+
+        # the line is not directed so find which end fits which node is best
+        distij = cls.move_line_ends_to_closest_node(nx_graph, (i, j), points2, move=False)
+        distji = cls.move_line_ends_to_closest_node(nx_graph, (j, i), points2, move=False)
+        ij = (i, j) if distij < distji else (j, i)
+        cls.move_line_ends_to_closest_node(nx_graph, ij, points2, move=True)
+        ax2.plot(points2[:, 1], -points2[:, 0])
+
+    @classmethod
+    def move_line_ends_to_closest_node(cls, nx_graph, ij, points, move=False):
+        pts = [points[0], points[-1]]
+        node_pts = [nx_graph.nodes[ij[0]]["o"], nx_graph.nodes[ij[1]]["o"]]
+        delta_dist = None
+        if move:
+            # print(f"line end {points[0]} moved to {node_pts[0]}")
+            points[0] = node_pts[0]
+            # print(f"line end {points[-1]} moved to {node_pts[1]}")
+            points[-1] = node_pts[1]
+        else:
+            # print("node_pts", node_pts)
+            delta_dist = math.dist(pts[0], node_pts[0]) + math.dist(pts[1], node_pts[1])
+
+        return delta_dist

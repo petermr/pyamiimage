@@ -31,7 +31,6 @@ class AmiGraph:
 
     logger = logging.getLogger("ami_graph")
 
-
     def __init__(self, nx_graph, generate_nodes=False, nd_skeleton=None):
         """create fro nodes and edges"""
         if nx_graph is None:
@@ -120,29 +119,29 @@ class AmiGraph:
             self.logger.warning("No islands")
             return
 
-        self.assert_nx_island_info(nx_island_list)
+        AmiGraph.assert_nx_island_info(nx_island_list)
         nx_edgelist = self.get_edge_list_through_mininum_spanning_tree()
-        self.debug_edges_and_nodes(nx_edgelist, debug_count=7)
+        AmiGraph.debug_edges_and_nodes(nx_edgelist, debug_count=7)
         nodes = self.nx_graph.nodes
         self.ami_node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
 
         self.ami_island_list = []
         for nx_island in nx_island_list:
-            ami_island = self.create_ami_island(nx_island, skeleton=self.nd_skeleton)
+            ami_island = self.create_ami_island(nx_island)
             self.ami_island_list.append(ami_island)
 
         return
 
-    def assert_nx_island_info(self, nx_island_list):
+    @classmethod
+    def assert_nx_island_info(cls, nx_island_list):
         nx_island0 = nx_island_list[0]
         assert type(nx_island0) is set
         assert len(nx_island0) > 0
         elem0 = list(nx_island0)[0]
         assert type(elem0) is int, f"island elem are {type(elem0)}"
 
-    def debug_edges_and_nodes(self, nx_edgelist, debug_count=5):
-        start_node = 0
-        end_node = 1
+    @classmethod
+    def debug_edges_and_nodes(cls, nx_edgelist, debug_count=5):
         pts_index = 2
         for edge in nx_edgelist[:debug_count]:
             pts_ = edge[pts_index]['pts']
@@ -250,7 +249,6 @@ class AmiGraph:
         nx_graph = sknw.build_sknw(skeleton_image)
         return nx_graph
 
-
     def get_ami_islands_from_nx_graph(self):
         """
         Get the pixel-disjoint "islands" as from NetworkX
@@ -285,7 +283,6 @@ class AmiGraph:
         """
         create from a list of node_ids (maybe from sknw)
         :param node_ids: set of node ids
-        :param skeleton:
         :return: AmiIsland object
         """
         assert type(node_ids) is set, "componente mus be of type set"
@@ -298,9 +295,9 @@ class AmiGraph:
         return ami_island
 
 # -------- AmiGraph/AmiNode routines
-        def get_or_create_ami_node(node_index):
-            nodex = AmiNode(nx_graph=self.nx_graph, node_id=(list(self.nx_graph.nodes)[node_index]))
-
+    def get_or_create_ami_node(self, node_index):
+        """NYI """
+        nodex = AmiNode(nx_graph=self.nx_graph, node_id=(list(self.nx_graph.nodes)[node_index]))
 
 
 class AmiGraphError(Exception):
@@ -321,6 +318,8 @@ if __name__ == '__main__':
 
 
 class AmiEdge:
+    PTS = "pts"
+
     def __init__(self):
         self.points_xy = None
         self.bbox = None
@@ -448,6 +447,7 @@ class AmiIsland:
         self.ami_graph = ami_graph
         self.coords_xy = None
         self.bbox = None
+        self.edges = None
 
     def __str__(self):
         s = "" + \
@@ -491,7 +491,6 @@ class AmiIsland:
     def plot_island(self):
         """
         Plots a given component
-        :param component:
         :return:
         """
         # start_node_index = list(component)[0]  # take first node
@@ -499,7 +498,7 @@ class AmiIsland:
         # start_pixel = start_node[self.NODE_PTS][0]  # may be a list of xy for a complex node always pick first.
         start_pixel = self.coords_xy[0]
         flooder = FloodFill()
-        pixels = flooder.flood_fill(self.binary, start_pixel)
+        flooder.flood_fill(self.binary, start_pixel)
         if self.interactive:
             flooder.plot_used_pixels()
 
@@ -512,4 +511,3 @@ class AmiIsland:
             for e in edges:
                 if e[0] < e[1]:
                     self.edges.append(e)
-

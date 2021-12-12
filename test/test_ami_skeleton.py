@@ -279,7 +279,7 @@ class TestAmiSkeleton:
         print("island", islands[0])
         margin = 2  # to overcome some of the antialiasing
         for island in islands:
-            raw_bbox = island.get_raw_box()
+            raw_bbox = island.get_raw_box()  # not used
             sub_image = ((raw_bbox[0][0]-margin, raw_bbox[0][1]+margin), (raw_bbox[1][0]-margin, raw_bbox[1][1]+margin))
             AmiGraph.set_bbox_pixels_to_color(sub_image, image)
         fig, ax = plt.subplots()
