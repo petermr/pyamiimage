@@ -5,7 +5,7 @@ Mainly class routines
 from pathlib import Path
 
 import numpy as np
-from skimage import io
+from skimage import io, morphology
 
 from ..pyimage.ami_image import AmiImage
 

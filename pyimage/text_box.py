@@ -101,7 +101,8 @@ class HocrText:
 
 class TextBox:
     def __init__(self):
-        pass
+        self.text = None
+        self.bbox = None
 
     @classmethod
     def find_text_boxes(cls, elem):
@@ -124,7 +125,8 @@ class TextBox:
         text_box.bbox = [[bbox[0], bbox[2]], [bbox[1], bbox[3]]]
         return text_box
 
-
+    def create_svg(self):
+        logger.warning("SVG NYI")
 
 class XMLNamespaces:
     svg = "http://www.w3.org/2000/svg"

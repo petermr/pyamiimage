@@ -47,3 +47,6 @@ class Resources:
 
     ISLANDS_5_SKEL = Path(TEST_RESOURCE_DIR, "islands_5.png")
     assert ISLANDS_5_SKEL.exists(), f"file exists {ISLANDS_5_SKEL}"
+
+    PRISMA = Path(TEST_RESOURCE_DIR, "prisma.png")
+    assert PRISMA.exists(), f"file exists {PRISMA}"

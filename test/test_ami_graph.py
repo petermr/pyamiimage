@@ -8,9 +8,10 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from skimage.morphology import skeletonize
 from skimage import data
+from skimage import filters
 import sknw
 import unittest
-from skimage import io
+from skimage import io, morphology
 from skimage.measure import approximate_polygon, subdivide_polygon
 import logging
 
@@ -28,9 +29,16 @@ interactive = False
 class TestAmiGraph:
 
     def setup_method(self, method):
-        arrows1 = io.imread(Resources.BIOSYNTH1_ARROWS)
-        assert arrows1.shape == (315, 1512)
+        self.arrows1 = io.imread(Resources.BIOSYNTH1_ARROWS)
+        assert self.arrows1.shape == (315, 1512)
+        self.arrows1 = np.where(self.arrows1 < 127, 0, 255)
         self.nx_graph_arrows1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        # self.arrows1 = filters.threshold_mean(self.arrows1)
+        # assert self.arrows1.shape == (1,2,3)
+
+        prisma = io.imread(Resources.PRISMA)
+        assert prisma.shape == (667, 977, 4)
+        self.nx_graph_prisma = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRISMA)
 
     @unittest.skip("background")
     def test_sknw_example(self):
@@ -190,6 +198,7 @@ plt.show()"""
 
         Note:
         nx_graph[i][j]["pts"] seens to be the same as nx_graph[j][i]["pts"]
+        Note: double backslash is an escape, not meaningful
         :return:
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
@@ -197,9 +206,9 @@ plt.show()"""
         """
         {0, 1, 2, 3, 4, 5, 6, 7},  # double arrow
             0         6
-          /            \
+          /            \\
     3----2-------------4----5
-          \            /
+          \\            /
            7          1
          [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6),
         """
@@ -237,8 +246,8 @@ plt.show()"""
                   |
                   |
           22      |      23
-             \    |    /
-                \ |  /
+             \\    |    /
+                \\ |  /
                   24
                   |
                   |
@@ -259,7 +268,6 @@ plt.show()"""
         * half arrow. point with one edge backwards (e.g. in chemical equilibrium
         :return:
         """
-
 
     def test_islands(self):
         """
@@ -422,4 +430,41 @@ plt.show()"""
             # TODO split into line segmentattion and plotting
             logger.warning("skipping line segmentation test")
             AmiGraph.plot_all_lines(nx_graph, lines, tolerance, nodes=nodes)
+
+    def test_prisma(self):
+        """extract primitives from partial prisma diagram"""
+        assert Resources.PRISMA.exists()
+        ami_graph = AmiGraph(self.nx_graph_prisma)
+        islands = ami_graph.get_or_create_ami_islands()
+        assert len(islands) == 349
+        big_islands = []
+        for island in islands:
+            bbox = island.get_or_create_bbox()
+            if bbox.get_height() > 40:
+                big_islands.append(island)
+        assert len(big_islands) == 10
+
+    def test_extract_raw_image(self):
+        """extract the raw pixels (not the skeletonm) underlying the extracted lines
+        """
+        nx_graph = self.nx_graph_arrows1
+        islands = AmiGraph(nx_graph).get_ami_islands_from_nx_graph()
+        arrows1 = self.arrows1
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, figsize=(9, 6))
+
+        ax1.set_title("raw image")
+        ax1.imshow(arrows1)
+
+        arrows_inv = np.invert(arrows1)
+        AmiGraph.plot_axis(arrows_inv, ax2, islands, title="inverted")
+
+        arrows_dil = morphology.dilation(arrows_inv, morphology.disk(3))
+        AmiGraph.plot_axis(arrows_dil, ax3, islands, title="dilated")
+
+        arrows_erod = morphology.erosion(arrows_inv, morphology.disk(3))
+        AmiGraph.plot_axis(arrows_erod, ax4, islands, title="eroded")
+
+        fig.tight_layout()
+        plt.show()
+
 

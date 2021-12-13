@@ -1,4 +1,4 @@
-"""supports/wraps nx_graphs from N etworkX"""
+"""supports/wraps nx_graphs from NetworkX"""
 import numpy as np
 import networkx as nx
 import copy
@@ -10,6 +10,7 @@ from pathlib import PosixPath
 from skimage.measure import approximate_polygon
 import math
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 from pyimage.ami_image import AmiImage
 from pyimage.util import Util
@@ -349,6 +350,31 @@ class AmiGraph:
             delta_dist = math.dist(pts[0], node_pts[0]) + math.dist(pts[1], node_pts[1])
 
         return delta_dist
+
+    @classmethod
+    def add_bbox_rect(cls, axis, bbox, linewidth=1, edgecolor="red", facecolor="none"):
+        """
+        adds rectangle to axis subplot
+        :param axis: axis from matplotlib subplots
+        :param bbox: BBox from pyamiimage
+        :param linewidth: linewidth of plotted rect (1)
+        :param edgecolor: stroke color of line ("red")
+        :param facecolor: fill of rect ("none")
+        :return:
+        """
+        xyr = bbox.xy_ranges
+        rect = patches.Rectangle((xyr[0][0], xyr[1][0]), bbox.get_width(), bbox.get_height(),
+                                 linewidth=linewidth, edgecolor=edgecolor, facecolor=facecolor)
+        axis.add_patch(rect)
+
+    @classmethod
+    def plot_axis(cls, img_array, axis, islands, title=None):
+        if title:
+            axis.set_title(title)
+        for island in islands:
+            bbox = island.get_or_create_bbox()
+            AmiGraph.add_bbox_rect(axis, bbox)
+        axis.imshow(img_array)
 
 
 class AmiGraphError(Exception):
