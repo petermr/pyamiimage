@@ -7,6 +7,9 @@ from skimage import io
 import sknw  # must pip install sknw
 import logging
 from pathlib import PosixPath
+from skimage.measure import approximate_polygon
+import math
+import matplotlib.pyplot as plt
 
 from pyimage.ami_image import AmiImage
 from pyimage.util import Util
@@ -298,6 +301,54 @@ class AmiGraph:
     def get_or_create_ami_node(self, node_index):
         """NYI """
         nodex = AmiNode(nx_graph=self.nx_graph, node_id=(list(self.nx_graph.nodes)[node_index]))
+
+# -------- segmentation and plotting
+    @classmethod
+    def plot_all_lines(cls, nx_graph, lines, tolerance, nodes=None):
+
+        assert type(lines) is list, f"lines should be list {lines}"
+        fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
+        ax1.set_aspect('equal')
+        ax2.set_aspect('equal')
+
+        for line in lines:
+            # fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
+            for i, j in line:
+                assert type(i) is int, f"i should be int {type(i)}"
+                assert type(j) is int, f"j should be int {type(j)}"
+                AmiGraph.douglas_peucker_plot_line(nx_graph, i, j, tolerance, ax1, ax2, nodes=nodes)
+            plt.show()
+
+    @classmethod
+    def douglas_peucker_plot_line(cls, nx_graph, i, j, tolerance, ax1, ax2, nodes=None):
+        points = nx_graph[i][j][AmiEdge.PTS]
+
+        # original wiggly line
+        # x and y are reversed in sknw
+        ax1.plot(points[:, 1], -points[:, 0])  # negative since down the page
+        points2 = approximate_polygon(points, tolerance=tolerance)
+
+        # the line is not directed so find which end fits which node is best
+        distij = cls.move_line_ends_to_closest_node(nx_graph, (i, j), points2, move=False)
+        distji = cls.move_line_ends_to_closest_node(nx_graph, (j, i), points2, move=False)
+        ij = (i, j) if distij < distji else (j, i)
+        cls.move_line_ends_to_closest_node(nx_graph, ij, points2, move=True)
+        ax2.plot(points2[:, 1], -points2[:, 0])
+
+    @classmethod
+    def move_line_ends_to_closest_node(cls, nx_graph, ij, points, move=False):
+        pts = [points[0], points[-1]]
+        node_pts = [nx_graph.nodes[ij[0]]["o"], nx_graph.nodes[ij[1]]["o"]]
+        delta_dist = None
+        if move:
+            # print(f"line end {points[0]} moved to {node_pts[0]}")
+            points[0] = node_pts[0]
+            # print(f"line end {points[-1]} moved to {node_pts[1]}")
+            points[-1] = node_pts[1]
+        else:
+            delta_dist = math.dist(pts[0], node_pts[0]) + math.dist(pts[1], node_pts[1])
+
+        return delta_dist
 
 
 class AmiGraphError(Exception):

@@ -12,7 +12,6 @@ import sknw
 import unittest
 from skimage import io
 from skimage.measure import approximate_polygon, subdivide_polygon
-import math
 import logging
 
 from pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
@@ -158,9 +157,6 @@ plt.show()"""
         This checks all the fields that sknw returns
         :return:
         """
-        # island5_skel = AmiGraph.create_ami_graph(Resources.ISLANDS_5_SKEL)
-        # print (f"island5_skel = {island5_skel}")
-        # assert type(island5_skel) is str, f"type {type(island5_skel)} {island5_skel} should be {str}"
         skel_path = Resources.BIOSYNTH1_ARROWS
         Util.check_type_and_existence(skel_path, PosixPath)
 
@@ -179,16 +175,13 @@ plt.show()"""
                                         (13, 14), (13, 15), (16, 18), (17, 18), (18, 20), (19, 26),
                                         (21, 24), (22, 24), (23, 24), (24, 25)]
 
-        node1ps = nx_graph.nodes[1]["pts"]
+        node1ps = nx_graph.nodes[1][AmiNode.PTS]
         # print(f"node1ps {node1ps}")
         node1ps0 = node1ps[0]
         # print("node1ps0", node1ps0)
         assert str(node1ps) == "[[ 83 680]]"
 
-        if False:
-            pts_ = nx_graph.edges[(1, 2)]["pts"]
-            print(f"pts_ {pts_}")
-            assert str(pts_) == "[[ 83, 680]]"
+        assert str(nx_graph.edges[(1, 2)][AmiEdge.PTS]) == "[[ 83, 680]]"
 
     def test_segmented_edges(self):
         """
@@ -200,8 +193,6 @@ plt.show()"""
         :return:
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        print("0", nx_graph.nodes[0]["o"])
-        print("2", nx_graph.nodes[2]["o"])
 
         """
         {0, 1, 2, 3, 4, 5, 6, 7},  # double arrow
@@ -212,7 +203,6 @@ plt.show()"""
            7          1
          [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6),
         """
-        # print("\n0 2", nx_graph[0][2]["pts"][:2:-2])
         print("\n2 0", nx_graph[2][0]["pts"][:2:-2])
         print("\n2 7", nx_graph[2][7])
         print("\n2 3", nx_graph[2][3])
@@ -261,6 +251,16 @@ plt.show()"""
 
         return
 
+    def test_arrows(self):
+        """
+        looks for arrowheads, three types
+        * point with shaft and two edges going "backwards" symmetrically
+        * point with shaft, 2 edges backward and short one forward (result of thinning filled triangle)
+        * half arrow. point with one edge backwards (e.g. in chemical equilibrium
+        :return:
+        """
+
+
     def test_islands(self):
         """
         Create island_node_id_sets using sknw/NetworkX and check basic properties
@@ -269,7 +269,6 @@ plt.show()"""
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
 
         connected_components = list(nx.algorithms.components.connected_components(nx_graph))
-        print("components", connected_components)
         assert nx.algorithms.components.number_connected_components(nx_graph) == 4
         connected_components = list(nx.algorithms.components.connected_components(nx_graph))
         assert type(connected_components) is list, f"type of connected components should be list"
@@ -296,13 +295,9 @@ plt.show()"""
         Tests
         :return:
         """
-        # nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        # ami_graph = AmiGraph(nx_graph)
-        # ami_graph.read_nx_graph(nx_graph)
         ami_graph = AmiGraph.create_ami_graph_from_file(Resources.BIOSYNTH1_ARROWS)
         nodex = AmiNode(nx_graph=ami_graph.nx_graph, node_id=(list(ami_graph.nx_graph.nodes)[0]))
         node_id = 0
-        # nodex = ami_graph.get_or_create_node(0)
         nodex = AmiNode(ami_graph=ami_graph, node_id=node_id)
 
         xy = nodex.get_or_create_centroid_xy()
@@ -339,6 +334,10 @@ plt.show()"""
         assert str(bbox_list[0]) == "[[661, 863], [82, 102]]", f"bbox_list[0] is {bbox_list[0]}"
 
     def test_line_segments(self):
+        """
+        split edges into segments (Douglas-Paucker) - Python tutorial
+        :return:
+        """
 
         hand = np.array([[1.64516129, 1.16145833],
                          [1.64516129, 1.59375],
@@ -367,20 +366,15 @@ plt.show()"""
         new_hand = hand.copy()
         ncycle = 5  # doubles the number of points/splines each cycle
         for _ in range(ncycle):
-            # print(new_hand.shape)
             new_hand = subdivide_polygon(new_hand, degree=2, preserve_ends=True)
 
         # approximate subdivided polygon with Douglas-Peucker algorithm (orange line)
         tolerance = 0.02
-        # tolerance = 0.001
         appr_hand = approximate_polygon(new_hand, tolerance=tolerance)
-
-        print("Number of coordinates:", len(hand), len(new_hand), len(appr_hand))
 
         fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
 
         ax1.plot(hand[:, 0], hand[:, 1])
-        # ax1.plot(new_hand[:, 0], new_hand[:, 1])
         ax1.plot(appr_hand[:, 0], appr_hand[:, 1])
 
         points = np.array([
@@ -396,10 +390,10 @@ plt.show()"""
         tolerance = 0.5
         points2 = approximate_polygon(points, tolerance=tolerance)
         ax2.plot(points2[:, 0], points2[:, 1])
-        print(f"orig {len(points)}, fitted {len(points2)}")
         if interactive:
             plt.show()
 
+    @unittest.skipUnless(interactive, "ignorte plotting in routine tests")
     def test_plot_line(self):
         """straightens lines by Douglas Peucker and plots"""
         nx_graph = self.nx_graph_arrows1
@@ -410,7 +404,7 @@ plt.show()"""
             [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6)],
             [(8, 19), (9, 19), (19, 26)]
             ]
-        TestAmiGraph.plot_all_lines(nx_graph, lines, tolerance)
+        AmiGraph.plot_all_lines(nx_graph, lines, tolerance)
 
     def test_plot_lines_with_nodes(self):
         """adds nodes straightens lines by Douglas Peucker and plots"""
@@ -423,54 +417,9 @@ plt.show()"""
             [(8, 19), (9, 19), (19, 26)]
             ]
         nodes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 26, 19, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25}
-        print(f"nx graph {nx_graph[0].keys()}")
-        TestAmiGraph.plot_all_lines(nx_graph, lines, tolerance, nodes=nodes)
-
-    @classmethod
-    def plot_all_lines(cls, nx_graph, lines, tolerance, nodes=None):
-        assert type(lines) is list, f"lines should be list {lines}"
-        fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
-        ax1.set_aspect('equal')
-        ax2.set_aspect('equal')
-
-        for line in lines:
-            # fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
-            for i, j in line:
-                assert type(i) is int, f"i should be int {type(i)}"
-                assert type(j) is int, f"j should be int {type(j)}"
-                TestAmiGraph.douglas_peucker_plot_line(nx_graph, i, j, tolerance, ax1, ax2, nodes=nodes)
-            # plt.show()
+        # TODO make this tidying routine universal
         if interactive:
-            plt.show()
+            # TODO split into line segmentattion and plotting
+            logger.warning("skipping line segmentation test")
+            AmiGraph.plot_all_lines(nx_graph, lines, tolerance, nodes=nodes)
 
-    @classmethod
-    def douglas_peucker_plot_line(cls, nx_graph, i, j, tolerance, ax1, ax2, nodes=None):
-        points = nx_graph[i][j][AmiEdge.PTS]
-
-        # original wiggly line
-        # x and y are reversed in sknw
-        ax1.plot(points[:, 1], -points[:, 0])  # negative since down the page
-        points2 = approximate_polygon(points, tolerance=tolerance)
-
-        # the line is not directed so find which end fits which node is best
-        distij = cls.move_line_ends_to_closest_node(nx_graph, (i, j), points2, move=False)
-        distji = cls.move_line_ends_to_closest_node(nx_graph, (j, i), points2, move=False)
-        ij = (i, j) if distij < distji else (j, i)
-        cls.move_line_ends_to_closest_node(nx_graph, ij, points2, move=True)
-        ax2.plot(points2[:, 1], -points2[:, 0])
-
-    @classmethod
-    def move_line_ends_to_closest_node(cls, nx_graph, ij, points, move=False):
-        pts = [points[0], points[-1]]
-        node_pts = [nx_graph.nodes[ij[0]]["o"], nx_graph.nodes[ij[1]]["o"]]
-        delta_dist = None
-        if move:
-            # print(f"line end {points[0]} moved to {node_pts[0]}")
-            points[0] = node_pts[0]
-            # print(f"line end {points[-1]} moved to {node_pts[1]}")
-            points[-1] = node_pts[1]
-        else:
-            # print("node_pts", node_pts)
-            delta_dist = math.dist(pts[0], node_pts[0]) + math.dist(pts[1], node_pts[1])
-
-        return delta_dist
