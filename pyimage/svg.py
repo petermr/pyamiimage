@@ -3,7 +3,7 @@ from lxml.etree import ElementTree, Element
 import lxml.etree
 from abc import abstractmethod, ABC
 
-from pyimage.bbox import BBox
+from ..pyimage.bbox import BBox
 
 """Seems that it's hard to subclass lxml so this is based on delegation.py
 None of the SVG libraries (svgwrite, Cairo) are good for creating subclassed

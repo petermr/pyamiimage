@@ -10,13 +10,13 @@ import sknw  # must pip install sknw
 import os
 import matplotlib.pyplot as plt
 from skimage import io
+# local
+from ..pyimage.ami_image import AmiImage
+from ..pyimage.util import Util
 
-from pyimage.ami_image import AmiImage
-from pyimage.util import Util
-
-from pyimage.bbox import BBox
-from pyimage.flood_fill import FloodFill
-from pyimage.ami_graph_all import AmiGraph
+from ..pyimage.bbox import BBox
+from ..pyimage.flood_fill import FloodFill
+from ..pyimage.ami_graph_all import AmiGraph
 
 
 class AmiSkeleton:

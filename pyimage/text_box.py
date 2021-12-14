@@ -1,10 +1,13 @@
 from lxml import etree
 from lxml.etree import Element, QName
 from pathlib import Path
+import logging
 
-from pyimage.bbox import BBox
-from pyimage.tesseract_hocr import TesseractOCR
+from ..pyimage.bbox import BBox
+from ..pyimage.tesseract_hocr import TesseractOCR
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 class HocrText:
 
@@ -129,6 +132,36 @@ class TextBox:
 
     def create_svg(self):
         logger.warning("SVG NYI")
+
+
+class TextUtil:
+    @classmethod
+    def is_text_from_tesseract(cls, text):
+        """
+        some empirical acceptance of Tesseract output
+        allows isalnum characters, spaces, commas
+        :param text_box:
+        :return: False if probably a garble
+        """
+        # print("text util ", text)
+        # logger.warning(f"txt: {text}")
+        txt = text
+        if len(txt) <= 1:
+            return False
+        # fail on repeated '-' or '.' as probably a garble from horizontal graphic line
+        if '--' in txt or '..' in txt:
+            return False
+        # remove common punctuation
+        for s in "-.,;?()[]+ ":
+            txt = txt.replace(s, "")
+        # fail on any non-alphanum string (includin
+        if not txt.isalnum():
+            logger.warning(f"{__name__} rejected {text}")
+            return False
+
+        return True
+
+
 
 class XMLNamespaces:
     svg = "http://www.w3.org/2000/svg"

@@ -1,5 +1,4 @@
 # from ..pyimage import tesseract_hocr
-from ..test.resources import Resources
 
 from skimage import io
 from matplotlib import pyplot as plt
@@ -9,7 +8,8 @@ from skan.pre import threshold
 import unittest
 from lxml import etree as ET
 
-from pyimage.tesseract_hocr import TesseractOCR
+from ..pyimage.tesseract_hocr import TesseractOCR
+from ..test.resources import Resources
 
 """
 Tests for tesseract_hocr.py

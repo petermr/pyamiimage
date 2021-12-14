@@ -2,26 +2,27 @@
 tests AmiGraph, AmiNode, AmiEdge, AmiIsland
 """
 
+# library
 from pathlib import PosixPath
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 from skimage.morphology import skeletonize
 from skimage import data
-from skimage import filters
 import sknw
 import unittest
 from skimage import io, morphology
 from skimage.measure import approximate_polygon, subdivide_polygon
 import logging
-
-from pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
-from test.resources import Resources
-from pyimage.ami_image import AmiImage
-from pyimage.text_box import TextBox
-from pyimage.util import Util
-from pyimage.bbox import BBox
-from pyimage.tesseract_hocr import TesseractOCR
+# local
+from ..pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
+from ..test.resources import Resources
+from ..pyimage.ami_image import AmiImage
+from ..pyimage.text_box import TextBox
+from ..pyimage.util import Util
+from ..pyimage.bbox import BBox
+from ..pyimage.tesseract_hocr import TesseractOCR
+from ..pyimage.text_box import TextUtil
 
 logger = logging.getLogger(__name__)
 interactive = True
@@ -476,7 +477,7 @@ plt.show()"""
         fig.tight_layout()
         plt.show()
 
-    def test_remove_bboxes_with_text(self):
+    def test_find_bboxes_with_text(self):
         """find text boxes and remove those with more than one character
         so the remaining lines can be analyses
         """
@@ -484,12 +485,11 @@ plt.show()"""
         assert len(text_boxes) == 38
         text_boxes1 = []
         for text_box in text_boxes:
-            print(len(text_box.text), text_box.text, text_box.bbox)
-            if len(text_box.text) > 1:
+            if TextUtil.is_text_from_tesseract(text_box.text):
                 assert type(text_box) is TextBox, f"cannot add {type(text_box)} as TextBox"
                 text_boxes1.append(text_box)
-
-        print(f"plotting {len(text_boxes1)} text_boxes of type {type(text_boxes1[0])}")
+        assert len(text_boxes1) > 0, "require non_zero count of text_boxes"
+        logger.info(f"{__name__} plotting {len(text_boxes1)} text_boxes of type {type(text_boxes1[0])}")
 
         fig, ax = plt.subplots()
         AmiGraph.plot_text_box_boxes(self.biosynth1, ax, text_boxes1)

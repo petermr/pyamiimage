@@ -1,5 +1,5 @@
 
-from pyimage.svg import SVGRect, SVGTitle, SVGText, SVGTextBox, SVGG, SVGSVG, SVGCircle, SVGPath, BBox
+from ..pyimage.svg import SVGRect, SVGTitle, SVGText, SVGTextBox, SVGG, SVGSVG, SVGCircle, SVGPath, BBox
 
 
 class TestSVG():

@@ -117,7 +117,6 @@ class AmiImage:
         assert image is not None
 
         binary = AmiImage.create_white_binary_from_image(image)
-        print("min, max", np.min(binary), np.max(binary))
         binary = binary/255
         mask = morphology.skeletonize(binary)
         skeleton = np.zeros(image.shape)

@@ -1,8 +1,8 @@
 from skimage import io
 
-from test.resources import Resources
-from pyimage.tesseract_hocr import TesseractOCR
-from pyimage.text_box import TextBox
+from ..test.resources import Resources
+from ..pyimage.tesseract_hocr import TesseractOCR
+from ..pyimage.text_box import TextBox
 
 class TestTextBox:
     def setup_method(self, method):
@@ -30,12 +30,14 @@ class TestTextBox:
         assert text_boxes[10].text == "GPP synthase"
         assert text_boxes[10].bbox.xy_ranges == [[568, 732], [281, 308]]
         for text_box in text_boxes:
-            print(text_box.text)
+            # print(text_box.text)
+            pass
 
     def test_extract_text_path2(self):
         text_boxes = TextBox.find_text_boxes(self.biosynth2_elem)
         assert len(text_boxes) == 65
         for text_box in text_boxes:
-            print(text_box.text, text_box.bbox)
+            # print(text_box.text, text_box.bbox)
+            pass
 
 

@@ -1,20 +1,18 @@
 """Integration of image processing, binarization, skeletonization and netwprk analysis"""
 from skan.pre import threshold
-
-from ..test.resources import Resources
+# library
 from skimage import io
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
-from PIL import Image
 from pathlib import Path
 import unittest
-
-
-from pyimage.ami_graph_all import AmiGraph
-from pyimage.ami_skeleton import AmiSkeleton
-from pyimage.ami_image import AmiImage
-from pyimage.util import Util
+# local
+from ..test.resources import Resources
+from ..pyimage.ami_graph_all import AmiGraph
+from ..pyimage.ami_skeleton import AmiSkeleton
+from ..pyimage.ami_image import AmiImage
+from ..pyimage.util import Util
 
 
 class TestAmiSkeleton:

@@ -1,11 +1,11 @@
+# library imports
 from pathlib import Path
-
 import PIL
 from PIL import Image
-from pyimage import octree
-from pyimage.old_code.image_lib import Quantizer
 import numpy as np
-
+# local imports
+from ..pyimage import octree
+from ..pyimage.old_code.image_lib import Quantizer
 
 
 class TestOctree:

@@ -1,9 +1,9 @@
 from skimage import io
 
-from test.resources import Resources
-from pyimage.tesseract_hocr import TesseractOCR
-from pyimage.text_box import TextBox
-from pyimage.ami_graph_all import AmiGraph
+from ..test.resources import Resources
+from ..pyimage.tesseract_hocr import TesseractOCR
+from ..pyimage.text_box import TextBox
+from ..pyimage.ami_graph_all import AmiGraph
 
 class TestArrow:
     def setup_method(self, method):

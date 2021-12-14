@@ -1,4 +1,5 @@
 """supports/wraps nx_graphs from NetworkX"""
+# library
 import numpy as np
 import networkx as nx
 import copy
@@ -11,12 +12,12 @@ from skimage.measure import approximate_polygon
 import math
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-
-from pyimage.ami_image import AmiImage
-from pyimage.util import Util
-from pyimage.svg import BBox
-from pyimage.text_box import TextBox
-from pyimage.flood_fill import FloodFill
+# local
+from ..pyimage.ami_image import AmiImage
+from ..pyimage.util import Util
+from ..pyimage.svg import BBox
+from ..pyimage.text_box import TextBox
+from ..pyimage.flood_fill import FloodFill
 
 
 """
