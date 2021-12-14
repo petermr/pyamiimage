@@ -18,8 +18,10 @@ import logging
 from pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
 from test.resources import Resources
 from pyimage.ami_image import AmiImage
+from pyimage.text_box import TextBox
 from pyimage.util import Util
 from pyimage.bbox import BBox
+from pyimage.tesseract_hocr import TesseractOCR
 
 logger = logging.getLogger(__name__)
 interactive = True
@@ -33,8 +35,13 @@ class TestAmiGraph:
         assert self.arrows1.shape == (315, 1512)
         self.arrows1 = np.where(self.arrows1 < 127, 0, 255)
         self.nx_graph_arrows1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        # self.arrows1 = filters.threshold_mean(self.arrows1)
-        # assert self.arrows1.shape == (1,2,3)
+
+        self.biosynth1 = io.imread(Resources.BIOSYNTH1)
+        assert self.biosynth1.shape == (1167, 1515)
+        self.biosynth1 = np.where(self.biosynth1 < 127, 0, 255)
+        self.nx_graph_biosynth1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
+        self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH1)
+        self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
 
         prisma = io.imread(Resources.PRISMA)
         assert prisma.shape == (667, 977, 4)
@@ -442,10 +449,12 @@ plt.show()"""
             bbox = island.get_or_create_bbox()
             if bbox.get_height() > 40:
                 big_islands.append(island)
-        assert len(big_islands) == 10
+        assert len(big_islands) == 1
 
     def test_extract_raw_image(self):
         """extract the raw pixels (not the skeletonm) underlying the extracted lines
+        plot boxes
+        erode and dilate
         """
         nx_graph = self.nx_graph_arrows1
         islands = AmiGraph(nx_graph).get_ami_islands_from_nx_graph()
@@ -463,6 +472,27 @@ plt.show()"""
 
         arrows_erod = morphology.erosion(arrows_inv, morphology.disk(3))
         AmiGraph.plot_axis(arrows_erod, ax4, islands, title="eroded")
+
+        fig.tight_layout()
+        plt.show()
+
+    def test_remove_bboxes_with_text(self):
+        """find text boxes and remove those with more than one character
+        so the remaining lines can be analyses
+        """
+        text_boxes = TextBox.find_text_boxes(self.biosynth1_elem)
+        assert len(text_boxes) == 38
+        text_boxes1 = []
+        for text_box in text_boxes:
+            print(len(text_box.text), text_box.text, text_box.bbox)
+            if len(text_box.text) > 1:
+                assert type(text_box) is TextBox, f"cannot add {type(text_box)} as TextBox"
+                text_boxes1.append(text_box)
+
+        print(f"plotting {len(text_boxes1)} text_boxes of type {type(text_boxes1[0])}")
+
+        fig, ax = plt.subplots()
+        AmiGraph.plot_text_box_boxes(self.biosynth1, ax, text_boxes1)
 
         fig.tight_layout()
         plt.show()

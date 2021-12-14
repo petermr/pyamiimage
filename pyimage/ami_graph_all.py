@@ -15,6 +15,7 @@ import matplotlib.patches as patches
 from pyimage.ami_image import AmiImage
 from pyimage.util import Util
 from pyimage.svg import BBox
+from pyimage.text_box import TextBox
 from pyimage.flood_fill import FloodFill
 
 
@@ -356,12 +357,13 @@ class AmiGraph:
         """
         adds rectangle to axis subplot
         :param axis: axis from matplotlib subplots
-        :param bbox: BBox from pyamiimage
+        :param bbox: BBox from pyamiimage or its ranges
         :param linewidth: linewidth of plotted rect (1)
         :param edgecolor: stroke color of line ("red")
         :param facecolor: fill of rect ("none")
         :return:
         """
+        assert type(bbox) is BBox, f"bbox should be BBox, found {type(bbox)}"
         xyr = bbox.xy_ranges
         rect = patches.Rectangle((xyr[0][0], xyr[1][0]), bbox.get_width(), bbox.get_height(),
                                  linewidth=linewidth, edgecolor=edgecolor, facecolor=facecolor)
@@ -375,6 +377,14 @@ class AmiGraph:
             bbox = island.get_or_create_bbox()
             AmiGraph.add_bbox_rect(axis, bbox)
         axis.imshow(img_array)
+
+    @classmethod
+    def plot_text_box_boxes(cls, img_array, ax, text_boxes1):
+        for text_box in text_boxes1:
+            assert type(text_box) is TextBox, f"should be TextBox found {type(text_box)}"
+            assert type(text_box.bbox) is BBox, f"expected BBox found {type(text_box.bbox)}"
+            AmiGraph.add_bbox_rect(ax, text_box.bbox)
+        ax.imshow(img_array)
 
 
 class AmiGraphError(Exception):

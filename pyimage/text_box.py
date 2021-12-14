@@ -1,6 +1,8 @@
 from lxml import etree
 from lxml.etree import Element, QName
 from pathlib import Path
+
+from pyimage.bbox import BBox
 from pyimage.tesseract_hocr import TesseractOCR
 
 
@@ -122,7 +124,7 @@ class TextBox:
         assert len(bbox) == 4
         text_box = TextBox()
         text_box.text = text
-        text_box.bbox = [[bbox[0], bbox[2]], [bbox[1], bbox[3]]]
+        text_box.bbox = BBox([[bbox[0], bbox[2]], [bbox[1], bbox[3]]])
         return text_box
 
     def create_svg(self):

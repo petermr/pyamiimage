@@ -24,11 +24,11 @@ class TestTextBox:
         assert len(text_boxes) == 12
         assert type(text_boxes[0]) is TextBox
         assert text_boxes[0].text == "Isomerase (?)"
-        assert text_boxes[0].bbox == [[684, 843], [38, 65]]
+        assert text_boxes[0].bbox.xy_ranges == [[684, 843], [38, 65]]
         assert text_boxes[4].text == "Dimethylallyl diphosphate"
-        assert text_boxes[4].bbox == [[895, 1214], [70, 98]]
+        assert text_boxes[4].bbox.xy_ranges == [[895, 1214], [70, 98]]
         assert text_boxes[10].text == "GPP synthase"
-        assert text_boxes[10].bbox == [[568, 732], [281, 308]]
+        assert text_boxes[10].bbox.xy_ranges == [[568, 732], [281, 308]]
         for text_box in text_boxes:
             print(text_box.text)
 
