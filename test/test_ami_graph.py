@@ -3,7 +3,7 @@ tests AmiGraph, AmiNode, AmiEdge, AmiIsland
 """
 
 # library
-from pathlib import PosixPath
+from pathlib import PosixPath, WindowsPath
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -174,7 +174,11 @@ plt.show()"""
         :return:
         """
         skel_path = Resources.BIOSYNTH1_ARROWS
-        Util.check_type_and_existence(skel_path, PosixPath)
+        
+        # Hacky code #TODO find better solution for checking paths
+        system_path_type = type(skel_path)
+        # Util.check_type_and_existence(skel_path, PosixPath)
+        Util.check_type_and_existence(skel_path, system_path_type)
 
         skeleton_array = AmiImage.create_white_skeleton_from_file(skel_path)
         Util.check_type_and_existence(skeleton_array, np.ndarray)

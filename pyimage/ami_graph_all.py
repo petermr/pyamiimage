@@ -7,7 +7,7 @@ from networkx.algorithms import tree
 from skimage import io
 import sknw  # must pip install sknw
 import logging
-from pathlib import PosixPath
+from pathlib import Path, PosixPath, WindowsPath
 from skimage.measure import approximate_polygon
 import math
 import matplotlib.pyplot as plt
@@ -232,7 +232,12 @@ class AmiGraph:
     @classmethod
     def create_nx_graph_from_arbitrary_image_file(cls, path):
         assert path.exists() and not path.is_dir(), f"{path} should be existing file"
-        Util.check_type_and_existence(path, PosixPath)
+        
+        # Hacky solution, TODO make better solution for checking system path type
+        test_path = Path(__file__)
+        system_path_type = type(test_path)
+        Util.check_type_and_existence(path, system_path_type)
+
         image1 = io.imread(path)
         Util.check_type_and_existence(image1, np.ndarray)
         gray_image = AmiImage.create_grayscale_from_image(image1)
