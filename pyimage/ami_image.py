@@ -112,7 +112,7 @@ class AmiImage:
         create skeleton_image based on white components of image
 
         :param image:
-        :return: AmiSkeleton
+        :return: skeleton image
         """
         assert image is not None
 

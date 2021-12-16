@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from skimage import io
 # local
 from ..pyimage.ami_image import AmiImage
-from ..pyimage.util import Util
+from ..pyimage.ami_util import AmiUtil
 
 from ..pyimage.bbox import BBox
 from ..pyimage.flood_fill import FloodFill

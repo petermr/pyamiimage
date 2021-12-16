@@ -8,7 +8,7 @@ import logging
 from pathlib import PosixPath
 
 from pyimage.ami_image import AmiImage
-from pyimage.util import Util
+from pyimage.ami_util import AmiUtil
 from pyimage.ami_island import AmiIsland
 from pyimage.ami_node import AmiNode
 from pyimage.ami_skeleton import AmiSkeleton
@@ -218,9 +218,9 @@ class AmiGraph:
     @classmethod
     def create_nx_graph_from_arbitrary_image_file(cls, path):
         assert path.exists() and not path.is_dir(), f"{path} should be existing file"
-        Util.check_type_and_existence(path, PosixPath)
+        AmiUtil.check_type_and_existence(path, PosixPath)
         image1 = io.imread(path)
-        Util.check_type_and_existence(image1, np.ndarray)
+        AmiUtil.check_type_and_existence(image1, np.ndarray)
         gray_image = AmiImage.create_grayscale_from_image(image1)
         skeleton_array = AmiImage.create_white_skeleton_from_image(gray_image)
         nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)

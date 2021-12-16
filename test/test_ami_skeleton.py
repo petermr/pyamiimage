@@ -12,7 +12,7 @@ from ..test.resources import Resources
 from ..pyimage.ami_graph_all import AmiGraph
 from ..pyimage.ami_skeleton import AmiSkeleton
 from ..pyimage.ami_image import AmiImage
-from ..pyimage.util import Util
+from ..pyimage.ami_util import AmiUtil
 
 
 class TestAmiSkeleton:
@@ -159,12 +159,12 @@ class TestAmiSkeleton:
 
 
 
-        Util.check_type_and_existence(self.arrows1_graph, nx.classes.graph.Graph)
+        AmiUtil.check_type_and_existence(self.arrows1_graph, nx.classes.graph.Graph)
         print(f" nx {self.arrows1_graph}, {self.arrows1_graph.nodes} {self.arrows1_graph.edges}")
-        Util.check_type_and_existence(self.arrows1_graph.nodes, nx.classes.reportviews.NodeView)
+        AmiUtil.check_type_and_existence(self.arrows1_graph.nodes, nx.classes.reportviews.NodeView)
         assert list(self.arrows1_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
                                                  19, 20, 21, 22, 23, 24, 25, 26]
-        Util.check_type_and_existence(self.arrows1_graph.edges, nx.classes.reportviews.EdgeView)
+        AmiUtil.check_type_and_existence(self.arrows1_graph.edges, nx.classes.reportviews.EdgeView)
         assert list(self.arrows1_graph.edges) == [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6), (8, 19),
                                                  (9, 19), (10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15),
                                                  (16, 18), (17, 18), (18, 20), (19, 26), (21, 24), (22, 24), (23, 24),

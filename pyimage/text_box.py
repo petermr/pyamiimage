@@ -2,12 +2,15 @@ from lxml import etree
 from lxml.etree import Element, QName
 from pathlib import Path
 import logging
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 from ..pyimage.bbox import BBox
 from ..pyimage.tesseract_hocr import TesseractOCR
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
 
 class HocrText:
 
@@ -104,6 +107,7 @@ class HocrText:
         g.append(text)
         return g
 
+
 class TextBox:
     def __init__(self):
         self.text = None
@@ -133,6 +137,46 @@ class TextBox:
     def create_svg(self):
         logger.warning("SVG NYI")
 
+    @classmethod
+    def find_and_plot_text_boxes(cls, elem, image):
+        text_boxes = TextBox.find_text_boxes(elem)
+        text_boxes1 = []
+        for text_box in text_boxes:
+            if TextUtil.is_text_from_tesseract(text_box.text):
+                assert type(text_box) is TextBox, f"cannot add {type(text_box)} as TextBox"
+                text_boxes1.append(text_box)
+        assert len(text_boxes1) > 0, "require non_zero count of text_boxes"
+        logger.info(f"{__name__} plotting {len(text_boxes1)} text_boxes of type {type(text_boxes1[0])}")
+        fig, ax = plt.subplots()
+        TextBox.plot_text_box_boxes(image, ax, text_boxes1)
+        fig.tight_layout()
+        plt.show()
+
+    @classmethod
+    def plot_text_box_boxes(cls, img_array, ax, text_boxes1):
+        for text_box in text_boxes1:
+            assert type(text_box) is TextBox, f"should be TextBox found {type(text_box)}"
+            assert type(text_box.bbox) is BBox, f"expected BBox found {type(text_box.bbox)}"
+            TextBox.add_bbox_rect(ax, text_box.bbox)
+        ax.imshow(img_array)
+
+    @classmethod
+    def add_bbox_rect(cls, axis, bbox, linewidth=1, edgecolor="red", facecolor="none"):
+        """
+        adds rectangle to axis subplot
+        :param axis: axis from matplotlib subplots
+        :param bbox: BBox from pyamiimage or its ranges
+        :param linewidth: linewidth of plotted rect (1)
+        :param edgecolor: stroke color of line ("red")
+        :param facecolor: fill of rect ("none")
+        :return:
+        """
+        assert type(bbox) is BBox, f"bbox should be BBox, found {type(bbox)}"
+        xyr = bbox.xy_ranges
+        rect = patches.Rectangle((xyr[0][0], xyr[1][0]), bbox.get_width(), bbox.get_height(),
+                                 linewidth=linewidth, edgecolor=edgecolor, facecolor=facecolor)
+        axis.add_patch(rect)
+
 
 class TextUtil:
     @classmethod
@@ -140,7 +184,7 @@ class TextUtil:
         """
         some empirical acceptance of Tesseract output
         allows isalnum characters, spaces, commas
-        :param text_box:
+        :param text: extracted text
         :return: False if probably a garble
         """
         # print("text util ", text)
@@ -160,7 +204,6 @@ class TextUtil:
             return False
 
         return True
-
 
 
 class XMLNamespaces:

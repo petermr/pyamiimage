@@ -3,9 +3,10 @@ Utilities (mainly classmethods)
 """
 from pathlib import Path
 import numpy as np
+import numpy.linalg as LA
 
 
-class Util:
+class AmiUtil:
 
     @classmethod
     def check_type_and_existence(cls, target, expected_type):
@@ -32,8 +33,8 @@ class Util:
         :return: True tuple[1] > tuple[2]
         """
         return limits2 is not None and len(limits2) == 2 \
-            and Util.is_number(limits2[0]) and Util.is_number(limits2[1]) \
-            and limits2[1] > limits2[0]
+               and AmiUtil.is_number(limits2[0]) and AmiUtil.is_number(limits2[1]) \
+               and limits2[1] > limits2[0]
 
     @classmethod
     def is_number(cls, s):
@@ -55,17 +56,17 @@ class Util:
         :param yx:
         :return: [x,y]
         """
-        assert yx is not None;
+        assert yx is not None
         assert len(yx) == 2 and type(yx) is np.ndarray, f"xy was {yx}"
         return [yx[1], yx[0]]
 
     @classmethod
-    def make_numpy_assert(cls, numpy_array, shape=None, max=None, dtype=None):
+    def make_numpy_assert(cls, numpy_array, shape=None, maxx=None, dtype=None):
         """
         Asserts properties of numpy_array
         :param numpy_array:
         :param shape:
-        :param max: max value (e.g. 255, or 1.0 for images)
+        :param maxx: max value (e.g. 255, or 1.0 for images)
         :param dtype:
         :return:
         """
@@ -74,8 +75,32 @@ class Util:
             print(f"object should be numpy.darray, found {type(numpy_array)} \n {numpy_array}")
         if shape:
             assert numpy_array.shape == shape, f"shape should be {numpy_array.shape}"
-        if max:
-            assert np.max(numpy_array) == max, f"max should be {np.max(numpy_array)}"
+        if maxx:
+            assert np.max(numpy_array) == maxx, f"max should be {np.max(numpy_array)}"
         if dtype:
             assert numpy_array.dtype == dtype, f"dtype should be {numpy_array.dtype}"
 
+
+class Vector2:
+
+    def __init__(self, v2):
+        # self.vec2 = np.array()
+        self.vec2 = v2
+
+    @classmethod
+    def angle_to(cls, vv0, vv1):
+        """
+
+        :param vv0: Vector2
+        :param vv1: Vector2
+        :return: angle(rad) between vectors (maybe unsigned??)
+        """
+        v0 = vv0.vec2
+        v1 = vv1.vec2
+
+        inner = np.inner(v0, v1)
+        norms = LA.norm(v0) * LA.norm(v1)
+
+        cos = inner / norms
+        rad = np.arccos(np.clip(cos, -1.0, 1.0))
+        return rad
