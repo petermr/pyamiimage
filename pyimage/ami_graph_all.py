@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 # local
 from ..pyimage.ami_image import AmiImage
-from ..pyimage.util import Util
+from ..pyimage.ami_util import AmiUtil
 from ..pyimage.svg import BBox
 from ..pyimage.text_box import TextBox
 from ..pyimage.flood_fill import FloodFill
@@ -56,7 +56,7 @@ class AmiGraph:
         return
 
     @classmethod
-    def create_ami_graph_from_file(cls, file):
+    def create_ami_graph_from_arbitrary_image_file(cls, file):
         assert file.exists()
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(file)
         return AmiGraph(nx_graph)
@@ -230,15 +230,18 @@ class AmiGraph:
         return self.ami_island_list
 
     @classmethod
-    def create_nx_graph_from_arbitrary_image_file(cls, path):
+    def create_nx_graph_from_arbitrary_image_file(cls, path, interactive=False):
         assert path.exists() and not path.is_dir(), f"{path} should be existing file"
         assert isinstance(path, PurePath)                              
 
         image1 = io.imread(path)
-        Util.check_type_and_existence(image1, np.ndarray)
+        AmiUtil.check_type_and_existence(image1, np.ndarray)
         gray_image = AmiImage.create_grayscale_from_image(image1)
-        # io.imshow(gray_image)
-        # io.show()
+        assert AmiImage.check_grayscale(gray_image) == True
+
+        if interactive:
+            io.imshow(gray_image)
+            io.show()
         skeleton_array = AmiImage.invert_binarize_skeletonize(gray_image)
         assert np.max(skeleton_array) == 255, f"max skeleton should be 255 found {np.max(skeleton_array)}"
 
@@ -252,7 +255,7 @@ class AmiGraph:
         :param skeleton_image:
         :return:
         """
-        Util.check_type_and_existence(skeleton_image, np.ndarray)
+        AmiUtil.check_type_and_existence(skeleton_image, np.ndarray)
         nx_graph = sknw.build_sknw(skeleton_image)
         return nx_graph
 
@@ -388,6 +391,57 @@ class AmiGraph:
             AmiGraph.add_bbox_rect(ax, text_box.bbox)
         ax.imshow(img_array)
 
+    def get_nx_edge_list_for_node(self, node_id):
+        """.
+
+        :param node_id:
+        :return: list (not view) of edges as (node_id, node_id1) (node_id, node_id2) ...
+        """
+        nx_edges = list(self.nx_graph.edges(node_id))
+        return nx_edges
+
+    def get_angle_to_x(self, edge):
+
+        n0 = self.nx_graph.nodes[edge[0]]
+        n1 = self.nx_graph.nodes[edge[1]]
+        print(f"x0 {n0} x1 {n1}")
+        pass
+
+    def get_direct_length(self, nx_edge):
+        """
+        
+        :param nx_edge: a tuple of node_ids
+        :return: 
+        """
+        assert len(nx_edge) == 2
+        xy0 = self.get_or_create_centroid_xy(nx_edge[0])
+        xy1 = self.get_or_create_centroid_xy(nx_edge[1])
+        # centroid0 = AmiNode(node_id=nx_edge[0], nx_graph=nx_graph).get_or_create_centroid_xy()
+        # centroid1 = AmiNode(node_id=nx_edge[1], nx_graph=nx_graph).get_or_create_centroid_xy()
+        length = math.sqrt((xy0[0] - xy1[0]) ** 2 + (xy0[1] - xy1[1]) ** 2)
+        return length
+
+    def get_nx_edge_lengths_list_for_node(self, node_id):
+        nx_edges = list(self.nx_graph.edges(node_id))
+        lengths = [self.get_direct_length(nx_edge) for nx_edge in nx_edges]
+        return lengths
+
+    @classmethod
+    def calculate_angles_to_edges(cls, nx_graph, edges):
+        for edge in edges:
+            angle = AmiEdge.get_angle_to_x(nx_graph, edge)
+
+    def get_or_create_centroid_xy(self, node_id):
+        """
+        gets centroid from nx_graph.nodes[node_id]
+        :return:
+        """
+        self.centroid_xy = AmiUtil.get_xy_from_sknw_centroid(
+            self.nx_graph.nodes[node_id][AmiNode.CENTROID])
+        return self.centroid_xy
+
+
+
 
 class AmiGraphError(Exception):
     def __init__(self, msg):
@@ -439,7 +493,6 @@ class AmiEdge:
 
         return self.bbox
 
-
 """a warpper for an sknw/nx node, still being developed"""
 
 
@@ -488,17 +541,6 @@ class AmiNode:
         """
         self.node_dict = copy.deepcopy(node_dict)
 
-    def get_or_create_centroid_xy(self):
-        """
-        gets centroid from nx_graph.nodes[node_id]
-        :return:
-        """
-        if self.centroid_xy is None and self.nx_graph is not None:
-            assert len(str(self.node_id)) < 4, f"self.node_id {self.node_id}"
-            self.centroid_xy = Util.get_xy_from_sknw_centroid(
-                self.nx_graph.nodes[self.node_id][self.CENTROID])
-        return self.centroid_xy
-
     def set_centroid_yx(self, point_yx):
         """
         set point in y,x, format
@@ -507,6 +549,7 @@ class AmiNode:
         """
         self.centroid_xy = [point_yx[1], point_yx[0]]  # note coords reverse in sknw
         return
+
 
     def __repr__(self):
         s = str(self.coords_xy) + "\n" + str(self.centroid_xy)
@@ -557,7 +600,7 @@ class AmiIsland:
         if self.coords_xy is None:
             for node_id in self.node_ids:
                 yx = self.ami_graph.nx_graph.nodes[node_id]["o"]
-                xy = Util.get_xy_from_sknw_centroid(yx)
+                xy = AmiUtil.get_xy_from_sknw_centroid(yx)
                 coords.append(xy)
 
         return coords

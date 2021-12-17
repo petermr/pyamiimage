@@ -7,7 +7,7 @@ from ..pyimage.ami_util import Vector2
 
 class TestArrow:
     def setup_method(self, method):
-        self.ami_graph1 = AmiGraph.create_ami_graph_from_file(Resources.BIOSYNTH1_ARROWS)
+        self.ami_graph1 = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         self.islands1 = self.ami_graph1.get_or_create_ami_islands()
         self.double_arrow = self.islands1[0]
         self.no_heads = self.islands1[1]
@@ -36,12 +36,11 @@ class TestArrow:
             f"double arrow should have 10 nodes, found {len(self.branched_two_heads.node_ids)}"
 
     def test_get_longest_edge(self):
-        neighbours = self.one_head_island.get_neighbour_list(24)
-        edges = self.one_head_island.ami_graph.nx_graph.edges()
-
-        for edge in edges:
-            print(f"edges: {edge}")
-        print(f"edges {edges}")
+        # neighbours = self.one_head_island.get_neighbour_list(24)
+        node_id = 24
+        nx_edges = AmiGraph.get_nx_edge_list_for_node(self.one_head_island.ami_graph.nx_graph, node_id)
+        assert [(24, 21), (24, 22), (24, 23), (24, 25)] == nx_edges,  \
+            "edges should be [(24, 21), (24, 22), (24, 23), (24, 25)], found {nx_edges}"
 
     def test_annotate_arrows(self):
         AmiArrow.annotate_island(self.one_head_island)
