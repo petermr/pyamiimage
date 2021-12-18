@@ -80,6 +80,20 @@ class AmiUtil:
         if dtype:
             assert numpy_array.dtype == dtype, f"dtype should be {numpy_array.dtype}"
 
+    @classmethod
+    def get_angle(cls, p0, p1, p2):
+        '''
+        signed angle p0-p1-p2
+        :param p0:
+        :param p1: centre point
+        :param p2:
+        '''
+
+        v0 = np.array(p0) - np.array(p1)
+        v1 = np.array(p2) - np.array(p1)
+
+        angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
+        return angle
 
 class Vector2:
 

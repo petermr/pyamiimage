@@ -100,8 +100,8 @@ class AmiImage:
         # assert grayscale is not None, f"cannot create grayscale image from {path}"
         # skeleton_image = AmiImage.create_white_skeleton_from_image(grayscale)
         image = io.imread(path)
-        print(f"path {path} has shape: {image.shape}")
-        print(f"AmiImage.has_alpha_channel_shape() {AmiImage.has_alpha_channel_shape(path)} for {path} ")
+        # print(f"path {path} has shape: {image.shape}")
+        # print(f"AmiImage.has_alpha_channel_shape() {AmiImage.has_alpha_channel_shape(path)} for {path} ")
         skeleton_image = cls.create_white_skeleton_from_image(image)
 
         return skeleton_image

@@ -53,3 +53,5 @@ class Resources:
 
     BATTERY1 = Path(TEST_RESOURCE_DIR, "green.png")
     assert BATTERY1.exists(), f"file exists {BATTERY1}"
+    BATTERY1BSQUARE = Path(TEST_RESOURCE_DIR, "battery1bsquare.png")
+    assert BATTERY1BSQUARE.exists(), f"file exists {BATTERY1BSQUARE}"

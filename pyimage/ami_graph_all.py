@@ -56,9 +56,9 @@ class AmiGraph:
         return
 
     @classmethod
-    def create_ami_graph_from_arbitrary_image_file(cls, file):
+    def create_ami_graph_from_arbitrary_image_file(cls, file, interactive=False):
         assert file.exists()
-        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(file)
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(file, interactive=interactive)
         return AmiGraph(nx_graph)
 
     def get_nx_graph(self):
@@ -214,7 +214,8 @@ class AmiGraph:
     def read_nx_edges(self, nx_graph):
         self.ami_edges = []
         for (start, end) in nx_graph.edges():
-            points_yx = nx_graph[start][end][AmiNode.NODE_PTS]
+            # take single edge to start with
+            points_yx = nx_graph[start][end][0][AmiNode.NODE_PTS]
             ami_edge = AmiEdge()
             ami_edge.read_nx_edge_points_yx(points_yx)
             self.ami_edges.append(ami_edge)
@@ -243,6 +244,9 @@ class AmiGraph:
             io.imshow(gray_image)
             io.show()
         skeleton_array = AmiImage.invert_binarize_skeletonize(gray_image)
+        if interactive:
+            io.imshow(skeleton_array)
+            io.show()
         assert np.max(skeleton_array) == 255, f"max skeleton should be 255 found {np.max(skeleton_array)}"
 
         nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)
@@ -252,11 +256,17 @@ class AmiGraph:
     def create_nx_graph_from_skeleton(cls, skeleton_image):
         """
         DO NOT INLINE
+        multi: allows for multiple paths between two nodes (almost certainly required)
+        iso: finds isolated points. It would be valuable for dotted lines
+        ring: finds rings without nodes (e.g. boxes)
+        full: makes all edges connect to centre of extended node
+
         :param skeleton_image:
         :return:
         """
         AmiUtil.check_type_and_existence(skeleton_image, np.ndarray)
-        nx_graph = sknw.build_sknw(skeleton_image)
+
+        nx_graph = sknw.build_sknw(skeleton_image, multi=True, iso=True, ring=True, full=True)
         return nx_graph
 
     def get_ami_islands_from_nx_graph(self):
@@ -421,15 +431,36 @@ class AmiGraph:
         length = math.sqrt((xy0[0] - xy1[0]) ** 2 + (xy0[1] - xy1[1]) ** 2)
         return length
 
-    def get_nx_edge_lengths_list_for_node(self, node_id):
+    def get_nx_edge_lengths_by_edge_list_for_node(self, node_id):
+        length_by_nx_edge = {}
         nx_edges = list(self.nx_graph.edges(node_id))
-        lengths = [self.get_direct_length(nx_edge) for nx_edge in nx_edges]
-        return lengths
+        # lengths = [self.get_direct_length(nx_edge)
+        for nx_edge in nx_edges:
+            length = self.get_direct_length(nx_edge)
+            length_by_nx_edge[nx_edge] = length
+        return length_by_nx_edge
 
     @classmethod
     def calculate_angles_to_edges(cls, nx_graph, edges):
         for edge in edges:
             angle = AmiEdge.get_angle_to_x(nx_graph, edge)
+
+    def get_interedge_angle(self, nx_edge0, nx_edge1):
+        """
+        angle between 2 nx_edges meeting at a common point
+        first component of each edge is the common node
+        :param nx_edge0:
+        :param nx_edge1:
+        :return:
+        """
+        assert len(nx_edge0) == 2, f"edge should be 2 integers {nx_edge0}"
+        assert len(nx_edge1) == 2, f"edge should be 2 integers {nx_edge1}"
+        assert nx_edge0[0] == nx_edge1[0], f"edges should have a common node {nx_edge0} {nx_edge1}"
+        xy0 = self.get_or_create_centroid_xy(nx_edge0[1])
+        xyc = self.get_or_create_centroid_xy(nx_edge0[0])
+        xy1 = self.get_or_create_centroid_xy(nx_edge1[1])
+        angle = AmiUtil.get_angle(xy0, xyc, xy1)
+        return angle
 
     def get_or_create_centroid_xy(self, node_id):
         """
@@ -463,9 +494,11 @@ if __name__ == '__main__':
 class AmiEdge:
     PTS = "pts"
 
-    def __init__(self):
+    def __init__(self, points=None):
         self.points_xy = None
         self.bbox = None
+        if points is not None:
+            self.read_nx_edge_points_yx(points)
 
     def read_nx_edge_points_yx(self, points_array_yx):
         """
@@ -473,7 +506,9 @@ class AmiEdge:
         :param points_array_yx:
         :return:
         """
+        assert type(points_array_yx) is np.ndarray, "ppints musy be numpy array"
         # points are in separate columns (y, x)
+        # TODO reshape this better
         assert points_array_yx is not None and points_array_yx.ndim == 2 and points_array_yx.shape[1] == 2
         self.points_xy = []
         for point in points_array_yx:

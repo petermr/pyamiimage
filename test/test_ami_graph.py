@@ -53,8 +53,13 @@ class TestAmiGraph:
         assert self.battery1.shape == (546, 1354, 3)
         self.battery1_binary = np.where(self.battery1 < 127, 0, 255)
         self.nx_graph_battery1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1)
-        # io.imshow(self.battery1_binary)
-        # io.show()
+
+        self.battery1bsquare = io.imread(Resources.BATTERY1BSQUARE)
+        assert self.battery1.shape == (546, 1354, 3)
+        # self.battery1_binary = np.where(self.battery1 < 127, 0, 255)
+        self.nx_graph_battery1bsquare = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1BSQUARE)
+
+
 
     @unittest.skip("background")
     def test_sknw_example(self):
@@ -284,6 +289,8 @@ plt.show()"""
         * half arrow. point with one edge backwards (e.g. in chemical equilibrium
         :return:
         """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+
 
     def test_islands(self):
         """
@@ -345,12 +352,10 @@ plt.show()"""
 
     def test_get_nx_edge_lengths_for_node(self):
         ami_graph = self.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        lengths = ami_graph.get_nx_edge_lengths_list_for_node(24)
+        lengths = ami_graph.get_nx_edge_lengths_by_edge_list_for_node(24)
         assert [0.1 + 0.2, 0.2 + 0.4] == pytest.approx([0.3, 0.6])
-        print("lengths ===", lengths)
         aaa = [30.0041, 9.3941, 9.3941, 12.0104]
         expect = pytest.approx(aaa, 0.001)
-        print(f"lens {expect}, found {lengths}")
         assert lengths == expect, \
             f"found {lengths} expected {expect}"
 
@@ -536,9 +541,20 @@ plt.show()"""
 
 
     def test_get_nx_edge_lengths_list_for_node(self):
+        """
+        asserts lengths of edges to node
+        :return:
+        """
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        edge_lengths = ami_graph.get_nx_edge_lengths_list_for_node(24)
-        print(f"edge lengths ")
+        edge_length_by_nx_edge = ami_graph.get_nx_edge_lengths_by_edge_list_for_node(24)
+        print(edge_length_by_nx_edge)
+        assert {'a': 2.000001} == pytest.approx({'a': 2})
+        assert {'a': 2.01} == pytest.approx({'a': 2}, 0.1)
+        expected1 = pytest.approx(
+            {(24, 21): 30.004166377354995, (24, 22): 9.394147114027968, (24, 23): 9.394147114027968,
+             (24, 25): 12.010412149464313}, 0.001)
+        assert {(24, 21): 30.00, (24, 22): 9.39, (24, 23): 9.39, (24, 25): 12.01} == expected1
+
 
     def test_battery1_elements(self):
         """
@@ -546,18 +562,16 @@ plt.show()"""
         :return:
         """
         # TODO package commands into AmiGraph
-        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BATTERY1, interactive=True)
+        nx_graph = ami_graph.nx_graph
+        assert len(nx_graph.nodes) == 647  # multi, iso, ring full
+        # assert len(nx_graph.nodes) == 569
 
         connected_components = list(nx.algorithms.components.connected_components(nx_graph))
-        assert nx.algorithms.components.number_connected_components(nx_graph) == 261
+        # assert nx.algorithms.components.number_connected_components(nx_graph) == 212  #
+        assert nx.algorithms.components.number_connected_components(nx_graph) == 290  # multyi iso ring full
         connected_components = list(nx.algorithms.components.connected_components(nx_graph))
         assert type(connected_components) is list, f"type of connected components should be list"
-        # assert connected_components == [
-        #     {0, 1, 2, 3, 4, 5, 6, 7},
-        #     {8, 9, 26, 19},
-        #     {10, 11, 12, 13, 14, 15, 16, 17, 18, 20},
-        #     {21, 22, 23, 24, 25}
-        # ]
 
         assert type(connected_components[0]) is set and len(connected_components[0]) == 4, \
             f"components should be sets and first len == 8"
@@ -566,11 +580,93 @@ plt.show()"""
         ami_graph = AmiGraph(nx_graph)
         ami_graph.read_nx_graph(nx_graph)
         island_node_id_sets = ami_graph.get_or_create_ami_islands()
-        assert len(island_node_id_sets) == 261
+#        assert len(island_node_id_sets) == 212  # multi iso ring full
+        assert len(island_node_id_sets) == 290
+
         assert type(island_node_id_sets[0]) is AmiIsland
+        # assert island_node_id_sets[0].node_ids == {0, 9, 4, 5}
         assert island_node_id_sets[0].node_ids == {0, 10, 5, 6}
 
-# utils ----------------
+        islands = ami_graph.get_or_create_ami_islands()
+        for island in islands:
+            bbox = island.get_or_create_bbox()
+            w = bbox.get_width()
+            h = bbox.get_height()
+            if h > 100 or w > 100:
+                print(bbox)
+
+
+        image = io.imread(Resources.BATTERY1)
+        print("image ", image.shape )
+
+    def test_battery1square(self):
+        """
+        tests rings using a single square
+        :return:
+        """
+        # TODO package commands into AmiGraph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BATTERY1BSQUARE, interactive=True)
+        nx_graph = ami_graph.nx_graph
+        assert type(nx_graph) is nx.MultiGraph
+        assert len(nx_graph.nodes) == 3 # multi, iso, ring full  (square has an artificial node)
+        print(nx_graph)
+        print(nx_graph.nodes)
+        print(nx_graph.nodes[0])
+        print(nx_graph.nodes[1])
+        print(nx_graph.nodes[2])
+        print(nx_graph[2][2])
+
+
+        ami_graph = AmiGraph(nx_graph)
+        ami_graph.read_nx_graph(nx_graph)
+        island_node_id_sets = ami_graph.get_or_create_ami_islands()
+        assert len(island_node_id_sets) == 2
+
+        assert type(island_node_id_sets[0]) is AmiIsland
+        assert island_node_id_sets[0].node_ids == {0, 1}
+
+        islands = ami_graph.get_or_create_ami_islands()
+        for island in islands:
+            bbox = island.get_or_create_bbox()
+            w = bbox.get_width()
+            h = bbox.get_height()
+            print(bbox)
+
+        """acces edges 
+        EITHER list(nx_graph.edges(0, 1))[0] (the 3rd index is for mUltigraph
+        OR nx_graph[s][e][0] and then list
+        I think...
+        """
+
+        print("edges", nx_graph.edges)
+        print("=======   -----   =======")
+        print("edges_list", list(nx_graph.edges), len(list(nx_graph.edges)))
+        print("=======  xxxx  =======")
+        print("edges[0]",list(nx_graph.edges)[0], type(list(nx_graph.edges)[0]), len(list(nx_graph.edges)[0]))
+        print("=======  yyyy  =======")
+        print("edges(0, 1)[0]", "tuple->", list(nx_graph.edges(0, 1))[0], type(list(nx_graph.edges(0, 1))[0]))  # start
+        print("=======  edges  =======")
+        for (s, e) in nx_graph.edges():
+            # nx_graph[s][e][0]["nxg"] = AmiGraph(nx_graph=nx_graph)
+            nx_graph[s][e][0]["nxg"] = "foo"
+            ps = nx_graph[s][e][0]['pts']
+            print("ps", type(ps))
+            print("keys",nx_graph[s][e][0].keys(), nx_graph[s][e][0]["nxg"])
+
+            print("points: ", len(ps), ps[:, 1], ps[:, 0])
+
+        pts = nx_graph[0][1][0]["pts"]
+        edge0 = AmiEdge(points=pts)
+        print("bbox0 ", edge0.get_or_create_bbox())
+
+        pts = nx_graph[2][2][0]["pts"]
+        edge22 = AmiEdge(points=pts)
+        print("bbox22 ", edge22.get_or_create_bbox())
+
+        image = io.imread(Resources.BATTERY1)
+        print("image ", image.shape)
+
+    # utils ----------------
 
     def display_erode_dilate(self, image, nx_graph, radius=3, erode=False, dilate=False):
         islands = AmiGraph(nx_graph).get_ami_islands_from_nx_graph()
