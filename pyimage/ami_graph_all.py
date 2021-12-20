@@ -506,7 +506,7 @@ class AmiEdge:
         :param points_array_yx:
         :return:
         """
-        assert type(points_array_yx) is np.ndarray, "ppints musy be numpy array"
+        assert type(points_array_yx) is np.ndarray, "points must be numpy array from sknw"
         # points are in separate columns (y, x)
         # TODO reshape this better
         assert points_array_yx is not None and points_array_yx.ndim == 2 and points_array_yx.shape[1] == 2

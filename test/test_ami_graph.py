@@ -12,7 +12,7 @@ from skimage import data
 import sknw
 import unittest
 import pytest
-from skimage import io, morphology
+from skimage import io, morphology, color
 from skimage.measure import approximate_polygon, subdivide_polygon
 import logging
 # local
@@ -58,6 +58,10 @@ class TestAmiGraph:
         assert self.battery1.shape == (546, 1354, 3)
         # self.battery1_binary = np.where(self.battery1 < 127, 0, 255)
         self.nx_graph_battery1bsquare = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1BSQUARE)
+
+        self.primitives = io.imread(Resources.PRIMITIVES)
+        assert self.primitives.shape == (405, 720, 3)
+        self.nx_graph_primitives = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRIMITIVES)
 
 
 
@@ -667,6 +671,56 @@ plt.show()"""
         print("image ", image.shape)
 
     # utils ----------------
+
+    def test_primitives(self):
+        colors = ["green", "blue", "purple", "cyan"]
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.PRIMITIVES, interactive=True)
+        nx_graph = ami_graph.nx_graph
+        assert type(nx_graph) is nx.MultiGraph
+        assert len(nx_graph.nodes) == 42 # multi, iso, ring full  (square has an artificial node)
+        print(nx_graph)
+        islands = ami_graph.get_or_create_ami_islands()
+        assert len(islands) == 16
+
+        for i, island in enumerate(islands):
+            print("\n", i, island.get_or_create_bbox())
+            print(island.node_ids)
+
+
+        # draw image
+        rgb = io.imread(Resources.PRIMITIVES)
+        img = color.rgb2gray(rgb)
+        disk = morphology.disk(3)
+        img = morphology.erosion(img, disk)
+        plt.imshow(img, cmap='gray')
+        # plt.show()
+
+        # draw edges by pts
+        edge_count = 0
+        for (s, e) in nx_graph.edges():
+            nedges = len(list(nx_graph[s][e]))
+            # print("LEN", nedges)
+            for edge in range(nedges):
+                pts = nx_graph[s][e][edge]['pts']
+                ami_edge = AmiEdge(pts)
+                bbox = ami_edge.get_or_create_bbox()
+                print("bbox ", bbox)
+                axis = plt.gca()
+                AmiGraph.add_bbox_rect(axis, bbox, linewidth=1, edgecolor="red", facecolor="none")
+
+                colorx = colors[edge]
+                plt.plot(pts[:, 1], pts[:, 0], colorx)
+                edge_count+=1
+
+        print("edge count", edge_count)
+        # draw node by o, len
+        nodes = nx_graph.nodes()
+        ps = np.array([nodes[i]['o'] for i in nodes])
+        plt.plot(ps[:, 1], ps[:, 0], 'r.')
+
+        # plt.imshow(img, cmap='gray')
+
+        plt.show()
 
     def display_erode_dilate(self, image, nx_graph, radius=3, erode=False, dilate=False):
         islands = AmiGraph(nx_graph).get_ami_islands_from_nx_graph()
