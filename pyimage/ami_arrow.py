@@ -1,8 +1,10 @@
 
 
 class AmiArrow:
-    def __init__(self):
-        pass
+    def __init__(self, ami_island=None):
+        self.ami_island = ami_island
+        if self.ami_island is None:
+            raise ValueError(f"AmiArrow much have an island")
 
     @classmethod
     def annotate_graph(cls, nx_graph):
@@ -21,6 +23,7 @@ class AmiArrow:
 
     @classmethod
     def find_longest_edge(cls, node_id):
+
         edges = AmiGraph.get_edges(node_id)
 
 

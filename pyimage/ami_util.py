@@ -4,6 +4,7 @@ Utilities (mainly classmethods)
 from pathlib import Path
 import numpy as np
 import numpy.linalg as LA
+import math
 
 
 class AmiUtil:
@@ -71,8 +72,8 @@ class AmiUtil:
         :return:
         """
         assert numpy_array is not None, f"numpy array should not be None"
-        if type(numpy_array) is not np.ndarray:
-            print(f"object should be numpy.darray, found {type(numpy_array)} \n {numpy_array}")
+        assert type(numpy_array) is np.ndarray, \
+            f"object should be numpy.darray, found {type(numpy_array)} \n {numpy_array}"
         if shape:
             assert numpy_array.shape == shape, f"shape should be {numpy_array.shape}"
         if maxx:
@@ -88,12 +89,60 @@ class AmiUtil:
         :param p1: centre point
         :param p2:
         '''
+        AmiUtil.assert_is_float_array(p0)
+        AmiUtil.assert_is_float_array(p1)
+        AmiUtil.assert_is_float_array(p2)
 
-        v0 = np.array(p0) - np.array(p1)
-        v1 = np.array(p2) - np.array(p1)
+        # print(f"p0 {p0} {p0[0]} {type(p0[0])} p1 {p1} {p1[0]} {type(p1[0])} p2 {p2} {p2[0]} {type(p2[0])}")
+        linal = False
+        # print(f"{p0}  {np.array(p0)} {np.array(p1)}")
+        if linal:
+            np0 = np.array(p0, dtype=np.uint8)
+            np1 = np.array(p1, dtype=np.uint8)
+            np2 = np.array(p2, dtype=np.uint8)
+            # print(f"{p0} {np0} {p1} {np1} {p2} {np2}")
+            v0 = np0 - np1
+            v1 = np2 - np1
+            # print(f"{v0}, {v1}")
+            angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
+        else:
+            dx0 = p0[0] - p1[0]
+            dy0 = p0[1] - p1[1]
+            # print(f"dx0 {dx0} {type(dx0)} dx0 {dy0} {type(dy0)}")
+            v01 = [p0[0] - p1[0], p0[1] - p1[1]]
+            v21 = [p2[0] - p1[0], p2[1] - p1[1]]
+            # print(f"v01 {v01} v21 {v21}")
+            ang01 = math.atan2(v01[1], v01[0])
+            ang21 = math.atan2(v21[1], v21[0])
+            # print(f" ang01 {ang01} ang21 {ang21}")
+            angle = ang21 - ang01
+            if angle > math.pi:
+                angle -= 2 * math.pi
 
-        angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
         return angle
+
+    @classmethod
+    def assert_is_float_array(cls, arr, length=2):
+        """
+        assert arr[0] is float and has given length
+        :param arr:
+        :param length:
+        :return:
+        """
+
+        assert len(arr) == length and type(arr[0]) is float, f"arr must be 2-vector float {arr}"
+
+    @classmethod
+    def float_list(cls, int_lst):
+        """
+        converts a list of ints or np.uint16 or np.uint8 to floats
+        :param int_lst: 
+        :return: 
+        """
+        assert int_lst is not None and type(int_lst) is list and len(int_lst) > 0, f"not a list: {int_lst}"
+        tt = type(int_lst[0])
+        assert tt is int or tt is np.uint8 or tt is np.uint16, f"expected int, got {tt}"
+        return [float(i) for i in int_lst]
 
 class Vector2:
 

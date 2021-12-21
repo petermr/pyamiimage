@@ -10,6 +10,7 @@ from skimage import io, color, morphology
 import skimage
 from pathlib import Path
 import os
+import matplotlib.pyplot as plt
 
 
 class AmiImage:
@@ -229,6 +230,24 @@ class AmiImage:
         if image.dtype is bool:
             return False
         return True
+
+    @classmethod
+    def pre_plot_image(cls, image_file, erode_rad=0):
+        """
+        matplotlib plots the gray image, optionally with erosion
+        runs plt.imshow, so will need plt.show() afterwards.
+
+        :param erode_rad: erosion disk radius (0 => no erode)
+        :param image_file:
+        :return:
+        """
+        assert image_file.exists(), f"{image_file} does not exist"
+        rgb = io.imread(image_file)
+        img = color.rgb2gray(rgb)
+        if erode_rad > 0:
+            disk = morphology.disk(erode_rad)
+            img = morphology.erosion(img, disk)
+        plt.imshow(img, cmap='gray')
 
     @classmethod
     def write(cls, path, image, mkdir=False, overwrite=True):

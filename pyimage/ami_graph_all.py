@@ -19,6 +19,7 @@ from ..pyimage.svg import BBox
 from ..pyimage.text_box import TextBox
 from ..pyimage.flood_fill import FloodFill
 
+logger = logging.getLogger(__name__)
 
 """
 ==========================================================================
@@ -308,10 +309,7 @@ class AmiGraph:
         assert type(node_ids) is set, "componente mus be of type set"
         assert len(node_ids) > 0, "components cannot be empty"
 
-        ami_island = AmiIsland()
-        ami_island.node_ids = node_ids
-        ami_island.ami_graph = self
-        ami_island.create_edges()
+        ami_island = AmiIsland(ami_graph=self, node_ids=node_ids)
         return ami_island
 
 # -------- AmiGraph/AmiNode routines
@@ -320,9 +318,50 @@ class AmiGraph:
         nodex = AmiNode(nx_graph=self.nx_graph, node_id=(list(self.nx_graph.nodes)[node_index]))
 
 # -------- segmentation and plotting
+
+    def pre_plot_edges(self, plot_target):
+        """
+        recognizes different edge structures for simple and multigraph and prepares to plot
+        :param nx_graph:
+        :param plot_target:
+        :return:
+        """
+        multi = type(self.nx_graph) is nx.classes.MultiGraph
+        for (s, e) in self.nx_graph.edges():
+            if multi:
+                nedges = len(list(self.nx_graph[s][e]))
+                for edge_id in range(nedges):
+                    pts = self.nx_graph[s][e][edge_id]['pts']
+                    ami_edge = AmiEdge(pts)
+                    ami_edge.plot_edge(pts, plot_target, edge_id=edge_id)
+            else:
+                pts = self.nx_graph[s][e]['pts']
+                ami_edge = AmiEdge(pts)
+                ami_edge.plot_edge(pts, plot_target)
+
+    def pre_plot_nodes(self, node_color="red", plot_ids=False):
+        """prepares to plot matplotlib nodes for
+        :param node_color:
+        """
+        nodes = self.nx_graph.nodes()
+        ps = np.array([nodes[i]['o'] for i in nodes])
+        plt.plot(ps[:, 1], ps[:, 0], 'r.')
+        if plot_ids:
+            # probably a more pythomic approach
+            for i in nodes:
+                plt.text(ps[i, 1], ps[i, 0], str(i))
+
     @classmethod
     def plot_all_lines(cls, nx_graph, lines, tolerance, nodes=None):
-
+        """
+        plots edges as lines
+        compare with above, maybe merge
+        :param nx_graph:
+        :param lines: to plot - where from?
+        :param tolerance:
+        :param nodes:
+        :return:
+        """
         assert type(lines) is list, f"lines should be list {lines}"
         fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
         ax1.set_aspect('equal')
@@ -456,9 +495,10 @@ class AmiGraph:
         assert len(nx_edge0) == 2, f"edge should be 2 integers {nx_edge0}"
         assert len(nx_edge1) == 2, f"edge should be 2 integers {nx_edge1}"
         assert nx_edge0[0] == nx_edge1[0], f"edges should have a common node {nx_edge0} {nx_edge1}"
-        xy0 = self.get_or_create_centroid_xy(nx_edge0[1])
-        xyc = self.get_or_create_centroid_xy(nx_edge0[0])
-        xy1 = self.get_or_create_centroid_xy(nx_edge1[1])
+        xy0 = AmiUtil.float_list(self.get_or_create_centroid_xy(nx_edge0[1]))
+        xyc = AmiUtil.float_list(self.get_or_create_centroid_xy(nx_edge0[0]))
+        xy1 = AmiUtil.float_list(self.get_or_create_centroid_xy(nx_edge1[1]))
+
         angle = AmiUtil.get_angle(xy0, xyc, xy1)
         return angle
 
@@ -528,7 +568,25 @@ class AmiEdge:
 
         return self.bbox
 
-"""a warpper for an sknw/nx node, still being developed"""
+    def plot_edge(self, pts, plot_region, edge_id=None, boxcolor=None):
+        """
+        include bbox
+        :param edge_id:
+        :param pts: points in nx_graph format
+        :param boxcolor: if not None plot edge box in this colour
+        :return:
+        """
+        colors = ["green", "blue", "magenta", "cyan"]
+        # print(f"edge_id {edge_id} pts: {pts[:5]}")
+
+        if boxcolor is not None:
+            bbox = self.get_or_create_bbox()
+            AmiGraph.add_bbox_rect(plot_region, bbox, linewidth=1, edgecolor=boxcolor, facecolor="none")
+        edgecolor = colors[0] if edge_id is None else colors[edge_id % len(colors)]
+        plt.plot(pts[:, 1], pts[:, 0], edgecolor)
+
+
+"""a wrapper for an sknw/nx node, still being developed"""
 
 
 """
@@ -607,14 +665,37 @@ class AmiNode:
 
 
 class AmiIsland:
-    def __init__(self, ami_graph=None):
+    def __init__(self, ami_graph=None, node_ids=None):
         # self.ami_skeleton = None
-        self.node_ids = None
+        self.node_ids = node_ids
         self.edge_ids = None
         self.ami_graph = ami_graph
+        self.island_graph = self.create_island_sub_graph()
         self.coords_xy = None
         self.bbox = None
         self.edges = None
+
+    def create_island_sub_graph(self):
+        """
+        from NetworkX https://networkx.org/documentation/stable/reference/classes/generated/networkx.Graph.subgraph.html
+        essentially a deep copy of the graph components
+        :return:
+        """
+        G = self.ami_graph.nx_graph
+        largest_wcc = self.node_ids
+        SG = G.__class__()
+        SG.add_nodes_from((n, G.nodes[n]) for n in self.node_ids)
+        if SG.is_multigraph():
+            SG.add_edges_from((n, nbr, key, d)
+                              for n, nbrs in G.adj.items() if n in largest_wcc
+                              for nbr, keydict in nbrs.items() if nbr in largest_wcc
+                              for key, d in keydict.items())
+        else:
+            SG.add_edges_from((n, nbr, d)
+                              for n, nbrs in G.adj.items() if n in largest_wcc
+                              for nbr, d in nbrs.items() if nbr in largest_wcc)
+        SG.graph.update(G.graph)
+        self.island_graph = SG
 
     def __str__(self):
         s = "" + \
@@ -670,6 +751,7 @@ class AmiIsland:
             flooder.plot_used_pixels()
 
     def create_edges(self):
+        logger.warning(f"{__name__} use subgraph instead")
         assert self.ami_graph.nx_graph is not None
         nx_graph = self.ami_graph.nx_graph
         self.edges = []

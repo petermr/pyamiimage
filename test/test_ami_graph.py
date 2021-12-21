@@ -600,6 +600,7 @@ plt.show()"""
                 print(bbox)
 
 
+
         image = io.imread(Resources.BATTERY1)
         print("image ", image.shape )
 
@@ -673,8 +674,9 @@ plt.show()"""
     # utils ----------------
 
     def test_primitives(self):
+
         colors = ["green", "blue", "purple", "cyan"]
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.PRIMITIVES, interactive=True)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.PRIMITIVES, interactive=False)
         nx_graph = ami_graph.nx_graph
         assert type(nx_graph) is nx.MultiGraph
         assert len(nx_graph.nodes) == 42 # multi, iso, ring full  (square has an artificial node)
@@ -688,35 +690,13 @@ plt.show()"""
 
 
         # draw image
-        rgb = io.imread(Resources.PRIMITIVES)
-        img = color.rgb2gray(rgb)
-        disk = morphology.disk(3)
-        img = morphology.erosion(img, disk)
-        plt.imshow(img, cmap='gray')
-        # plt.show()
+        AmiImage.pre_plot_image(Resources.PRIMITIVES, erode_rad=2)
 
         # draw edges by pts
-        edge_count = 0
-        for (s, e) in nx_graph.edges():
-            nedges = len(list(nx_graph[s][e]))
-            # print("LEN", nedges)
-            for edge in range(nedges):
-                pts = nx_graph[s][e][edge]['pts']
-                ami_edge = AmiEdge(pts)
-                bbox = ami_edge.get_or_create_bbox()
-                print("bbox ", bbox)
-                axis = plt.gca()
-                AmiGraph.add_bbox_rect(axis, bbox, linewidth=1, edgecolor="red", facecolor="none")
+        ami_graph.pre_plot_edges(plt.gca())
 
-                colorx = colors[edge]
-                plt.plot(pts[:, 1], pts[:, 0], colorx)
-                edge_count+=1
-
-        print("edge count", edge_count)
         # draw node by o, len
-        nodes = nx_graph.nodes()
-        ps = np.array([nodes[i]['o'] for i in nodes])
-        plt.plot(ps[:, 1], ps[:, 0], 'r.')
+        ami_graph.pre_plot_nodes(plot_ids=True)
 
         # plt.imshow(img, cmap='gray')
 
