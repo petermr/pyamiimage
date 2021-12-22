@@ -63,7 +63,9 @@ class TestAmiGraph:
         assert self.primitives.shape == (405, 720, 3)
         self.nx_graph_primitives = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRIMITIVES)
 
-
+    # clear plot
+    #     plt.figure().close("all")
+        plt.clf()
 
     @unittest.skip("background")
     def test_sknw_example(self):
@@ -362,6 +364,25 @@ plt.show()"""
         expect = pytest.approx(aaa, 0.001)
         assert lengths == expect, \
             f"found {lengths} expected {expect}"
+
+    def test_get_nodes_with_degree(self):
+        """
+        uses get_nodes_with_degree on each node to create lists
+        :return:
+        """
+        ami_graph = self.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        self.assert_degrees(ami_graph, 4, [2, 4, 13, 18, 24])
+        self.assert_degrees(ami_graph, 3, [12, 19])
+        self.assert_degrees(ami_graph, 2, [])
+        self.assert_degrees(ami_graph, 1, [0, 1, 3, 5, 6, 7, 8, 9, 10, 11, 14, 15, 16, 17, 20, 21, 22, 23, 25, 26])
+
+    def test_get_neighbours(self):
+        ami_graph = self.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        assert [2] == AmiNode(ami_graph=ami_graph, node_id=0).get_neighbors()
+        assert [4] == AmiNode(ami_graph=ami_graph, node_id=1).get_neighbors()
+        assert [0, 4, 3, 7] == AmiNode(ami_graph=ami_graph, node_id=2).get_neighbors()
+        assert [10, 13, 18] == AmiNode(ami_graph=ami_graph, node_id=12).get_neighbors()
+
 
     def create_ami_graph_from_arbitrary_image_file(self, path):
         """
@@ -671,6 +692,14 @@ plt.show()"""
         image = io.imread(Resources.BATTERY1)
         print("image ", image.shape)
 
+    def test_create_ami_nodes_from_ids(self):
+        """wrap node_ids in AmiNodes"""
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        node_ids = [0, 1, 2, 3, 4, 5, 6, 7]
+        ami_node_list = ami_graph.create_ami_nodes_from_ids(node_ids)
+        assert 8 == len(ami_node_list)
+        assert type(ami_node_list[0]) is AmiNode
+
     # utils ----------------
 
     def test_primitives(self):
@@ -702,6 +731,20 @@ plt.show()"""
 
         plt.show()
 
+    def assert_degrees(self, ami_graph, degree, result_nodes):
+        """
+        tests degree of connectivity of nodes in graph
+        uses ami_graph.get_nodes_with_degree
+
+        :param ami_graph:
+        :param degree:
+        :param result_nodes:
+        :return:
+        """
+        nodes = AmiGraph.get_node_ids_from_graph_with_degree(ami_graph.nx_graph, degree)
+        print(f"nodes of degree {degree} = {nodes}")
+        assert nodes == result_nodes, f"nodes of degree {degree} should be {result_nodes}"
+
     def display_erode_dilate(self, image, nx_graph, radius=3, erode=False, dilate=False):
         islands = AmiGraph(nx_graph).get_ami_islands_from_nx_graph()
         fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, figsize=(9, 6))
@@ -719,4 +762,39 @@ plt.show()"""
         if interactive:
             plt.show()
 
+
+# ----- edges -----
+
+    def test_multigraph_edges(self):
+        """
+        To annotate multiple edges , currently with keys
+        :return:
+        """
+        nx_graph = nx.MultiGraph()
+        nx_graph.add_edge(0, 1, foo=3)
+        nx_graph.add_edge(0, 2, weight=5)
+        nx_graph.add_edge(0, 2, weight=10)
+        nx_graph.add_edge(2, 0, weight=15)
+        assert len(nx_graph.nodes) == 3
+        assert list(nx_graph.edges(0)) == [(0, 1), (0, 2), (0, 2), (0, 2)]
+        assert list(nx_graph.edges(1)) == [(1, 0)]
+        assert list(nx_graph.edges(2)) == [(2, 0), (2, 0), (2, 0)]
+
+        edge_list = list(nx_graph.edges.data())
+        assert edge_list[0] == (0, 1, {'foo': 3})
+        assert edge_list[1] == (0, 2, {'weight': 5})
+        assert edge_list[2] == (0, 2, {'weight': 10})
+        assert edge_list[3] == (0, 2, {'weight': 15})
+        assert list(nx_graph.edges.data('weight', default=1)) == \
+               [(0, 1, 1), (0, 2, 5), (0, 2, 10), (0, 2, 15)]
+        assert list(nx_graph.edges.data(keys=True)) ==  \
+               [(0, 1, 0, {'foo': 3}), (0, 2, 0, {'weight': 5}), (0, 2, 1, {'weight': 10}), (0, 2, 2, {'weight': 15})]
+        edges = list(nx_graph.edges.data(keys=True))
+        assert len(edges) == 4
+        assert edges[0] == (0, 1, 0, {'foo': 3})
+        key = 2
+        assert edges[0][key] == 0
+        assert edges[1][key] == 0
+        assert edges[2][key] == 1
+        assert edges[3][key] == 2
 

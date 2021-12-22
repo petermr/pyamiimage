@@ -7,7 +7,7 @@ from networkx.algorithms import tree
 from skimage import io
 import sknw  # must pip install sknw
 import logging
-from pathlib import Path, PosixPath, WindowsPath, PurePath
+from pathlib import PurePath
 from skimage.measure import approximate_polygon
 import math
 import matplotlib.pyplot as plt
@@ -215,10 +215,14 @@ class AmiGraph:
     def read_nx_edges(self, nx_graph):
         self.ami_edges = []
         for (start, end) in nx_graph.edges():
-            # take single edge to start with
-            points_yx = nx_graph[start][end][0][AmiNode.NODE_PTS]
-            ami_edge = AmiEdge()
-            ami_edge.read_nx_edge_points_yx(points_yx)
+            if nx_graph.is_multigraph:
+                edge_count = len(nx_graph[start][end])
+                for edge_id in range(edge_count):
+                    ami_edge = AmiEdge(self, start, end, edge_id)
+                    self.ami_edges.append(ami_edge)
+            else:
+                ami_edge = AmiEdge(self, start, end)
+            # ami_edge.read_nx_edge_points_yx(points_yx)
             self.ami_edges.append(ami_edge)
 
     def get_or_create_ami_islands(self):
@@ -312,12 +316,17 @@ class AmiGraph:
         ami_island = AmiIsland(ami_graph=self, node_ids=node_ids)
         return ami_island
 
-# -------- AmiGraph/AmiNode routines
-    def get_or_create_ami_node(self, node_index):
-        """NYI """
-        nodex = AmiNode(nx_graph=self.nx_graph, node_id=(list(self.nx_graph.nodes)[node_index]))
+    # -------- AmiGraph/AmiNode routines
 
-# -------- segmentation and plotting
+    # -------- AmiEdge routines
+
+    def find_longest_edge(self, node_id):
+        edges = self.nx_graph.edges(node_id)
+        for edge in edges:
+            ami_edge = AmiEdge(self, edge[0], edge[1])
+            print(f"edge {edge} {ami_edge.get_length()}")
+
+    # -------- segmentation and plotting
 
     def pre_plot_edges(self, plot_target):
         """
@@ -332,11 +341,11 @@ class AmiGraph:
                 nedges = len(list(self.nx_graph[s][e]))
                 for edge_id in range(nedges):
                     pts = self.nx_graph[s][e][edge_id]['pts']
-                    ami_edge = AmiEdge(pts)
+                    ami_edge = AmiEdge(s, e, edge_id)
                     ami_edge.plot_edge(pts, plot_target, edge_id=edge_id)
             else:
                 pts = self.nx_graph[s][e]['pts']
-                ami_edge = AmiEdge(pts)
+                ami_edge = AmiEdge(s, e)
                 ami_edge.plot_edge(pts, plot_target)
 
     def pre_plot_nodes(self, node_color="red", plot_ids=False):
@@ -511,8 +520,35 @@ class AmiGraph:
             self.nx_graph.nodes[node_id][AmiNode.CENTROID])
         return self.centroid_xy
 
+    # def get_node_ids_with_degree(self, degree):
+    #     """
+    #     iterates over self.nx_graph.nodes to find those with given degree
+    #     :param degree:
+    #     :return: list of node_ids (may be empty)
+    #     """
+    #     return [node_id for node_id in self.nx_graph.nodes if self.nx_graph.degree(node_id) == degree]
+
+    @classmethod
+    def get_node_ids_from_graph_with_degree(cls, nx_graph, degree):
+        """
+        iterates over graph.nodes to find those with given degree
+        graph may be a subgraph
+        :param nx_graph: might be a subgraph
+        :param degree:
+        :return: list of node_ids (may be empty)
+        """
+        assert type(nx_graph) is nx.Graph or type(nx_graph) is nx.MultiGraph,f"not a graph {type(nx_graph)} "
+        return [node_id for node_id in nx_graph.nodes if nx_graph.degree(node_id) == degree]
 
 
+    def create_ami_nodes_from_ids(self, node_ids):
+        """
+        creates a list of AmiNodes from a list of node_ids
+
+        :param node_ids:
+        :return: list of AmiNodes
+        """
+        return [AmiNode(ami_graph=self, node_id=node_id) for node_id in node_ids]
 
 class AmiGraphError(Exception):
     def __init__(self, msg):
@@ -534,9 +570,26 @@ if __name__ == '__main__':
 class AmiEdge:
     PTS = "pts"
 
-    def __init__(self, points=None):
+    def __init__(self, ami_graph, start, end, edge_id = None):
+        self.ami_graph = ami_graph
+        self.start = start
+        self.end = end
         self.points_xy = None
         self.bbox = None
+        self.edge_id = edge_id
+        self.nx_graph = ami_graph.nx_graph
+        self.get_points()
+        pass
+
+    def get_points(self):
+        assert self.start is not None
+        assert self.end is not None
+        if self.nx_graph.is_multigraph():
+            assert self.edge_id is not None
+            print(f"{self.start} {self.end} {self.edge_id}")
+            points = self.nx_graph[self.start][self.end][self.edge_id][self.PTS]
+        else:
+            points = self.nx_graph[self.start][self.end][self.PTS]
         if points is not None:
             self.read_nx_edge_points_yx(points)
 
@@ -546,7 +599,7 @@ class AmiEdge:
         :param points_array_yx:
         :return:
         """
-        assert type(points_array_yx) is np.ndarray, "points must be numpy array from sknw"
+        assert type(points_array_yx) is np.ndarray, f"points must be numpy array from sknw, found {type(points_array_yx)}"
         # points are in separate columns (y, x)
         # TODO reshape this better
         assert points_array_yx is not None and points_array_yx.ndim == 2 and points_array_yx.shape[1] == 2
@@ -643,6 +696,12 @@ class AmiNode:
         self.centroid_xy = [point_yx[1], point_yx[0]]  # note coords reverse in sknw
         return
 
+    def get_neighbors(self):
+        """
+        returns list of neighbouts of current node
+        :return: list of neighbours as node_ids
+        """
+        return list(self.nx_graph.neighbors(self.node_id))
 
     def __repr__(self):
         s = str(self.coords_xy) + "\n" + str(self.centroid_xy)
@@ -665,37 +724,49 @@ class AmiNode:
 
 
 class AmiIsland:
-    def __init__(self, ami_graph=None, node_ids=None):
+    def __init__(self, ami_graph, node_ids=None):
         # self.ami_skeleton = None
         self.node_ids = node_ids
         self.edge_ids = None
         self.ami_graph = ami_graph
-        self.island_graph = self.create_island_sub_graph()
+
+        self.island_nx_graph = self.create_island_sub_graph()
+        assert self.island_nx_graph is not None
+        print ("node ids", self.island_nx_graph.nodes)
         self.coords_xy = None
         self.bbox = None
         self.edges = None
 
-    def create_island_sub_graph(self):
+    def create_island_sub_graph(self, deep_copy=False):
         """
         from NetworkX https://networkx.org/documentation/stable/reference/classes/generated/networkx.Graph.subgraph.html
         essentially a deep copy of the graph components
         :return:
         """
-        G = self.ami_graph.nx_graph
-        largest_wcc = self.node_ids
-        SG = G.__class__()
-        SG.add_nodes_from((n, G.nodes[n]) for n in self.node_ids)
-        if SG.is_multigraph():
-            SG.add_edges_from((n, nbr, key, d)
-                              for n, nbrs in G.adj.items() if n in largest_wcc
-                              for nbr, keydict in nbrs.items() if nbr in largest_wcc
-                              for key, d in keydict.items())
+        if deep_copy:
+            nx_graph = self.ami_graph.nx_graph
+            largest_wcc = self.node_ids
+            subgraph = nx_graph.__class__()
+            subgraph.add_nodes_from((n, nx_graph.nodes[n]) for n in self.node_ids)
+            if subgraph.is_multigraph():
+                subgraph.add_edges_from((n, nbr, key, d)
+                                  for n, nbrs in nx_graph.adj.items() if n in largest_wcc
+                                  for nbr, keydict in nbrs.items() if nbr in largest_wcc
+                                  for key, d in keydict.items())
+            else:
+                subgraph.add_edges_from((n, nbr, d)
+                                  for n, nbrs in nx_graph.adj.items() if n in largest_wcc
+                                  for nbr, d in nbrs.items() if nbr in largest_wcc)
+            subgraph.graph.update(nx_graph.graph)
+            self.island_nx_graph = subgraph
         else:
-            SG.add_edges_from((n, nbr, d)
-                              for n, nbrs in G.adj.items() if n in largest_wcc
-                              for nbr, d in nbrs.items() if nbr in largest_wcc)
-        SG.graph.update(G.graph)
-        self.island_graph = SG
+            # shallow subgraph (shares attributes with main nx_graph
+            assert self.ami_graph is not None, f"Null ami_graph"
+            assert self.ami_graph.nx_graph is not None, f"Null nx_graph"
+            self.island_nx_graph = self.ami_graph.nx_graph.subgraph(self.node_ids)
+            assert self.island_nx_graph is not None
+
+        return self.island_nx_graph
 
     def __str__(self):
         s = "" + \

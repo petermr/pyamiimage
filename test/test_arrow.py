@@ -13,10 +13,15 @@ class TestArrow:
     def setup_method(self, method):
         self.ami_graph1 = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         self.islands1 = self.ami_graph1.get_or_create_ami_islands()
+        assert 4 == len(self.islands1)
         self.double_arrow = self.islands1[0]
         self.no_heads = self.islands1[1]
         self.branched_two_heads = self.islands1[2]
         self.one_head_island = self.islands1[3]
+        assert [21, 22, 23, 24, 25] == list(self.one_head_island.node_ids)
+        assert self.one_head_island.ami_graph == self.ami_graph1
+        assert self.one_head_island.island_nx_graph is not None
+
 
     def test_no_heads(self):
         assert len(self.no_heads.node_ids) == 4, \
@@ -26,14 +31,11 @@ class TestArrow:
         ami_graph = self.one_head_island.ami_graph
         assert len(self.one_head_island.node_ids) == 5, \
             f"single arrow should have 5 nodes, found {len(self.one_head_island.node_ids)}"
-        # nlist = self.one_head_island.get_lists_of_neighbour_lists(4)
-        # assert [[21, 22, 23, 25]] == nlist, f"list of lists found {nlist} expected {[[21, 22, 23, 25]]}"
-        list1 = self.one_head_island.get_node_ids_of_degree(1)
-        assert list1 == [21, 22, 23, 25], f"{__name__} ligands found {list1} expected {[21, 22, 23, 25]}"
-        arrow_island = AmiIsland()
-        arrow = AmiArrow(arrow_island)
-        longest_edge = arrow.find_longest_edge(24)
-        angle_dict = ami_graph.get_angle_dict()
+        list1 = AmiGraph.get_node_ids_from_graph_with_degree(ami_graph.nx_graph, 1)
+        assert len(list1) == 20
+        list2 = AmiGraph.get_node_ids_from_graph_with_degree(self.one_head_island.island_nx_graph, 1)
+        assert list2 == [21, 22, 23, 25], f"{__name__} ligands found {list2} expected {[21, 22, 23, 25]}"
+        longest_edge = ami_graph.find_longest_edge(24)
         # ami_graph.get_angles
 
     def test_double_arrow(self):
