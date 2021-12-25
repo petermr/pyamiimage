@@ -7,6 +7,8 @@ import numpy as np
 from ..pyimage import octree
 from ..pyimage.old_code.image_lib import Quantizer
 
+interactive = False
+
 
 class TestOctree:
 
@@ -25,7 +27,8 @@ class TestOctree:
 
         out_image, palette, palette_image = octree.quantize(img, size=4)
         print(f"image {type(out_image)} ... {out_image}")
-        out_image.show()
+        if interactive:
+            out_image.show()
 
     def test_81481_diagram(self):
         """old octree"""
@@ -44,7 +47,8 @@ class TestOctree:
         palette_array = np.asarray(pil_rgb_image)
         assert palette_array.shape == (555, 572, 3)
         pil_rgb_image.save(Path(path.parent, "test1.png"), "png")
-        pil_rgb_image.show()
+        if interactive:
+            pil_rgb_image.show()
         pil_rgb_image.getcolors(maxcolors=256)
 
     def test_81481_octree_new(self):

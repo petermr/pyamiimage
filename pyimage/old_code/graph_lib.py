@@ -190,11 +190,11 @@ class AmiGraph:
         self.ami_nodes = []
         node_ids = nx_graph.nodes()
         for node_id in node_ids:
-            node_dict = node_ids[node_id]
+            # node_dict = node_ids[node_id]
             assert len(str(node_id)) < 4, f"node_id is {node_id}"
             ami_node = AmiNode(ami_graph=self, node_id=node_id, nx_graph=nx_graph)
             ami_node.set_centroid_yx(nx_graph.nodes[node_id][AmiSkeleton.CENTROID])
-            ami_node.read_nx_node(node_dict)
+            # ami_node.read_nx_node(node_dict)
             self.ami_nodes.append(ami_node)
 
     def read_nx_edges(self, nx_graph):

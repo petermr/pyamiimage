@@ -2,25 +2,29 @@
 import matplotlib.pyplot as plt
 import pytest
 
-from ..pyimage.ami_graph_all import AmiGraph
+from ..pyimage.ami_graph_all import AmiGraph, AmiIsland
 
 # local
 from ..test.resources import Resources
-from ..test.test_ami_graph import TestAmiGraph
+# from ..test.test_ami_graph import TestAmiGraph
 
 
 class TestArrow:
     def setup_method(self, method):
-        self.ami_graph1 = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        self.islands1 = self.ami_graph1.get_or_create_ami_islands()
+        self.arrows1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        self.islands1 = self.arrows1_ami_graph.get_or_create_ami_islands()
         assert 4 == len(self.islands1)
         self.double_arrow_island = self.islands1[0]
         self.no_heads = self.islands1[1]
         self.branched_two_heads_island = self.islands1[2]
         self.one_head_island = self.islands1[3]
         assert [21, 22, 23, 24, 25] == list(self.one_head_island.node_ids)
-        assert self.one_head_island.ami_graph == self.ami_graph1
+        assert self.one_head_island.ami_graph == self.arrows1_ami_graph
         assert self.one_head_island.island_nx_graph is not None
+
+        # complete image includes arrows and text
+        self.biosynth1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
+        self.biosynth3_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
 
     def test_extract_single_arrow(self):
         ami_graph = self.one_head_island.ami_graph
@@ -59,40 +63,61 @@ class TestArrow:
         TestArrow.assert_arrows(self.no_heads, {1: [8, 9, 26], 2: [], 3: [19], 4: []})
 
     def test_get_edges_and_lengths(self):
-        # neighbours = self.one_head_island.get_neighbour_list(24)
         node_id = 24
-        nx_edges = self.ami_graph1.get_nx_edge_list_for_node(node_id)
-        assert [(24, 21), (24, 22), (24, 23), (24, 25)] == nx_edges,  \
+        nx_edges = self.arrows1_ami_graph.get_nx_edge_list_for_node(node_id)
+        assert [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)] == nx_edges,  \
             "edges should be [(24, 21), (24, 22), (24, 23), (24, 25)], found {nx_edges}"
-        edge_length_dict = self.ami_graph1.get_nx_edge_lengths_by_edge_list_for_node(node_id)
+        edge_length_dict = self.arrows1_ami_graph.get_nx_edge_lengths_by_edge_list_for_node(node_id)
         edge_lengths = [v for v in edge_length_dict.values()]
         assert pytest.approx(edge_lengths, rel=0.001) == [30.00, 8.944, 9.848, 12.041]
 
     def test_get_interedge_angles(self):
         node_id = 24
         interactive = False
-        nx_edges = self.ami_graph1.get_nx_edge_list_for_node(node_id)
+        nx_edges = self.arrows1_ami_graph.get_nx_edge_list_for_node(node_id)
         if interactive:
-            self.ami_graph1.pre_plot_edges(plt.gca())
-            self.ami_graph1.pre_plot_nodes(plot_ids=True)
+            self.arrows1_ami_graph.pre_plot_edges(plt.gca())
+            self.arrows1_ami_graph.pre_plot_nodes(plot_ids=True)
             plt.show()
 
-        assert [(24, 21), (24, 22), (24, 23), (24, 25)] == nx_edges,  \
-            "edges should be [(24, 21), (24, 22), (24, 23), (24, 25)], found {nx_edges}"
+        assert [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)] == nx_edges,  \
+            "edges should be [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)], found {nx_edges}"
         angles = []
 
         for edge0 in nx_edges:
             for edge1 in nx_edges:
                 # only do upper triangle
                 if (edge0 is not edge1) and edge0[1] < edge1[1]:
-                    angle = self.ami_graph1.get_interedge_angle(edge0, edge1)
+                    angle = self.arrows1_ami_graph.get_interedge_angle(edge0, edge1)
                     angles.append(angle)
         expected = [-1.107, 1.152, 3.058, 2.259, -2.117, 1.906]
 
         assert expected == pytest.approx(angles, 0.001), \
             f"expected {expected} found { pytest.approx(angles, 0.001)}"
 
-# --- helpers
+    def test_whole_image_biosynth3(self):
+        assert self.biosynth3_ami_graph is not None
+        islands = self.biosynth3_ami_graph.get_or_create_ami_islands()
+        assert len(islands) == 436
+        big_islands = AmiIsland.get_islands_with_min_dimension(40, islands)
+        assert len(big_islands) == 5
+
+        print("========")
+        for i, island in enumerate(big_islands):
+            island.id = f"is {i}"
+            node_dict = self.create_node_dict(island)
+            print(f"{island.id} => {node_dict}")
+            print("---------")
+
+    def create_node_dict(self, island):
+        print(f"island  {island.get_or_create_bbox()} ...")
+        node_dict = {}
+        for degree in [1, 2, 3, 4]:
+            nodes = island.get_node_ids_of_degree(degree)
+            node_dict[degree] = nodes
+        return node_dict
+
+    # -------------------- helpers ---------------------
 
     @classmethod
     def assert_arrows(cls, ami_graph, node_id_dict):
@@ -103,4 +128,4 @@ class TestArrow:
         :return:
         """
         for degree in node_id_dict:
-            TestAmiGraph.assert_nodes_of_degree(ami_graph, degree, node_id_dict[degree])
+            AmiGraph.assert_nodes_of_degree(ami_graph, degree, node_id_dict[degree])

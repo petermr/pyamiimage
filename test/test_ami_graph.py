@@ -46,6 +46,13 @@ class TestAmiGraph:
         self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH1)
         self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
 
+        self.biosynth3 = io.imread(Resources.BIOSYNTH3)
+        assert self.biosynth3.shape == (972, 1020)
+        self.biosynth3_binary = np.where(self.biosynth3 < 127, 0, 255)
+        self.nx_graph_biosynth3 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
+        self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH3)
+        self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
+
         prisma = io.imread(Resources.PRISMA)
         assert prisma.shape == (667, 977, 4)
         self.nx_graph_prisma = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRISMA)
@@ -67,6 +74,8 @@ class TestAmiGraph:
     # clear plot
     #     plt.figure().close("all")
     #     plt.clf() # creates unwanted blank screens
+
+        return self
 
     @unittest.skip("background")
     def test_sknw_example(self):
@@ -137,7 +146,7 @@ plt.show()"""
         if interactive:
             plt.imshow(img, cmap='gray')
 
-        assert str(graph.nodes[0].keys()) == "dict_keys(['pts', 'o'])",\
+        assert str(graph.nodes[0].keys()) == "dict_keys(['pts', 'o'])", \
             "nodes have 'pts' and 'o "
         # this is a 2-array with ["pts", "weights'] Not sure what th structure is
         # this is an edges generator, so may need wrapping in a list
@@ -293,7 +302,6 @@ plt.show()"""
         """
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
 
-
     def test_islands(self):
         """
         Create island_node_id_sets using sknw/NetworkX and check basic properties
@@ -349,8 +357,8 @@ plt.show()"""
     def test_get_nx_edge_list_for_node(self):
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         edges = ami_graph.get_nx_edge_list_for_node(24)
-        assert edges == [(24, 21), (24, 22), (24, 23), (24, 25)], \
-            f"found {edges} expected {[(24, 21), (24, 22), (24, 23), (24, 25)]}"
+        assert edges == [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)], \
+            f"found {edges} expected {[(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)]}"
 
     def test_get_nx_edge_lengths_for_node(self):
         ami_graph = self.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
@@ -380,7 +388,6 @@ plt.show()"""
         assert [4] == AmiNode(ami_graph=ami_graph, node_id=1).get_neighbors()
         assert [0, 4, 3, 7] == AmiNode(ami_graph=ami_graph, node_id=2).get_neighbors()
         assert [10, 13, 18] == AmiNode(ami_graph=ami_graph, node_id=12).get_neighbors()
-
 
     def create_ami_graph_from_arbitrary_image_file(self, path):
         """
@@ -484,7 +491,7 @@ plt.show()"""
             [(10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20)],
             [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6)],
             [(8, 19), (9, 19), (19, 26)]
-            ]
+        ]
         AmiGraph.plot_all_lines(nx_graph, lines, tolerance)
 
     def test_plot_lines_with_nodes(self):
@@ -496,7 +503,7 @@ plt.show()"""
             [(10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15), (16, 18), (17, 18), (18, 20)],
             [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6)],
             [(8, 19), (9, 19), (19, 26)]
-            ]
+        ]
         nodes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 26, 19, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25}
         # TODO make this tidying routine universal
         if interactive:
@@ -515,7 +522,7 @@ plt.show()"""
             bbox = island.get_or_create_bbox()
             if bbox.get_height() > 40:
                 big_islands.append(island)
-        assert len(big_islands) == 1
+        assert len(big_islands) == 6
 
     def test_extract_raw_image(self):
         """extract the raw pixels (not the skeletonm) underlying the extracted lines
@@ -523,7 +530,7 @@ plt.show()"""
         erode and dilate
         """
         nx_graph = self.nx_graph_arrows1
-        self.display_erode_dilate()
+        TestAmiGraph.display_erode_dilate()
 
     def test_extract_raw_image(self):
         """extract the raw pixels (not the skeletonm) underlying the extracted lines
@@ -539,7 +546,7 @@ plt.show()"""
         erode and dilate
         """
         nx_graph = self.nx_graph_battery1
-        self.display_erode_dilate(self.battery1, nx_graph)
+        TestAmiGraph.display_erode_dilate(self.battery1, nx_graph)
 
     def test_find_bboxes_with_text(self):
         """find text boxes and remove those with more than one character
@@ -562,7 +569,6 @@ plt.show()"""
         if interactive:
             plt.show()
 
-
     def test_get_nx_edge_lengths_list_for_node(self):
         """
         asserts lengths of edges to node
@@ -577,14 +583,13 @@ plt.show()"""
              (24, 25): 12.010412149464313}, 0.001)
         assert {(24, 21): 30.00, (24, 22): 9.39, (24, 23): 9.39, (24, 25): 12.01} == expected1
 
-
     def test_battery1_elements(self):
         """
         Create island_node_id_sets using sknw/NetworkX and check basic properties
         :return:
         """
         # TODO package commands into AmiGraph
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BATTERY1, interactive=True)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BATTERY1, interactive=False)
         nx_graph = ami_graph.nx_graph
         assert len(nx_graph.nodes) == 647  # multi, iso, ring full
         # assert len(nx_graph.nodes) == 569
@@ -602,7 +607,7 @@ plt.show()"""
         ami_graph = AmiGraph(nx_graph)
         ami_graph.read_nx_graph(nx_graph)
         island_node_id_sets = ami_graph.get_or_create_ami_islands()
-#        assert len(island_node_id_sets) == 212  # multi iso ring full
+        #        assert len(island_node_id_sets) == 212  # multi iso ring full
         assert len(island_node_id_sets) == 290
 
         assert type(island_node_id_sets[0]) is AmiIsland
@@ -617,7 +622,7 @@ plt.show()"""
             if h > 100 or w > 100:
                 pass
 
-        image = io.imread(Resources.BATTERY1)
+        # image = io.imread(Resources.BATTERY1)
 
     def test_battery1square(self):
         """
@@ -625,10 +630,10 @@ plt.show()"""
         :return:
         """
         # TODO package commands into AmiGraph
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BATTERY1BSQUARE, interactive=True)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BATTERY1BSQUARE, interactive=False)
         nx_graph = ami_graph.nx_graph
         assert type(nx_graph) is nx.MultiGraph
-        assert len(nx_graph.nodes) == 3 # multi, iso, ring full  (square has an artificial node)
+        assert len(nx_graph.nodes) == 3  # multi, iso, ring full  (square has an artificial node)
 
         ami_graph = AmiGraph(nx_graph)
         ami_graph.read_nx_graph(nx_graph)
@@ -655,7 +660,7 @@ plt.show()"""
         print("=======   -----   =======")
         print("edges_list", list(nx_graph.edges), len(list(nx_graph.edges)))
         print("=======  xxxx  =======")
-        print("edges[0]",list(nx_graph.edges)[0], type(list(nx_graph.edges)[0]), len(list(nx_graph.edges)[0]))
+        print("edges[0]", list(nx_graph.edges)[0], type(list(nx_graph.edges)[0]), len(list(nx_graph.edges)[0]))
         print("=======  yyyy  =======")
         print("edges(0, 1)[0]", "tuple->", list(nx_graph.edges(0, 1))[0], type(list(nx_graph.edges(0, 1))[0]))  # start
         print("=======  edges  =======")
@@ -664,7 +669,7 @@ plt.show()"""
             nx_graph[s][e][0]["nxg"] = "foo"
             ps = nx_graph[s][e][0]['pts']
             print("ps", type(ps))
-            print("keys",nx_graph[s][e][0].keys(), nx_graph[s][e][0]["nxg"])
+            print("keys", nx_graph[s][e][0].keys(), nx_graph[s][e][0]["nxg"])
 
             print("points: ", len(ps), ps[:, 1], ps[:, 0])
 
@@ -690,40 +695,51 @@ plt.show()"""
     # utils ----------------
 
     def test_primitives(self):
-
-        island_names = ["thin_zig", "diag_sq", "2ring", "thick_zag", "line", "chord", "phi", "cross", "window",
-                        "racket", "turnip", "bigo", "mido", "babyo", "rect", "inrect"]
+        """
+        analyses a figure with ~15 simple diagrams and returns their analyses
+        :return:
+        """
+        interactive = False
+        island_names = [
+            "thin_zig",
+            "diag_sq",
+            "2ring",
+            "thick_zag",
+            "line",
+            "chord",
+            "phi",
+            "cross",
+            "window",
+            "racket",
+            "turnip",
+            "bigo",
+            "mido",
+            "babyo",
+            "rect",
+            "inrect"
+        ]
         colors = ["green", "blue", "purple", "cyan"]
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.PRIMITIVES, interactive=False)
         nx_graph = ami_graph.nx_graph
         assert type(nx_graph) is nx.MultiGraph
-        assert len(nx_graph.nodes) == 42 # multi, iso, ring full  (square has an artificial node)
+        assert len(nx_graph.nodes) == 42  # multi, iso, ring full  (square has an artificial node)
         print("\nPrimitives: ", nx_graph)
         islands = ami_graph.get_or_create_ami_islands()
         assert len(islands) == 16
 
+        # TODO create as tests
         for i, island in enumerate(islands):
-            print("\n##############>>>>>>>>>>>>>>")
-            if i > 0:
-                cyc = None
-                island.get_or_create_bbox()
-                print("\n", "******* island:", i, island_names[i],
-                      "coords>>>",
-                      island.get_or_create_coords(),
-                      "<<<<",
-                      island.get_or_create_bbox(),
-                      island.node_ids)
-                try:
-                    cyc = nx.algorithms.cycles.find_cycle(island.island_nx_graph)
-                except nx.exception.NetworkXNoCycle:
-                    pass
-                if cyc is not None:
-                    print("cyc", cyc)
-                nodes2 = island.get_node_ids_of_degree(2)
-                if len(nodes2) > 0:
-                    print("island2 ", island.island_nx_graph)
-            print("<<<<<<<<<<<<<<<##############\n")
-
+            cyc = None
+            # island.get_or_create_bbox()
+            print("\n", "******* island:", i, island_names[i],
+                  island.get_or_create_bbox(),
+                  island.node_ids)
+            try:
+                cyc = nx.algorithms.cycles.find_cycle(island.island_nx_graph)
+                print(f"cycles {cyc}")
+            except nx.exception.NetworkXNoCycle:
+                # only way of trapping acyclic graph
+                pass
 
         # draw image
         AmiImage.pre_plot_image(Resources.PRIMITIVES, erode_rad=2)
@@ -735,8 +751,8 @@ plt.show()"""
         ami_graph.pre_plot_nodes(plot_ids=True)
 
         # plt.imshow(img, cmap='gray')
-
-        plt.show()
+        if interactive:
+            plt.show()
 
     def assert_degrees(self, ami_graph, degree, result_nodes):
         """
@@ -751,25 +767,7 @@ plt.show()"""
         nodes = AmiGraph.get_node_ids_from_graph_with_degree(ami_graph.nx_graph, degree)
         assert nodes == result_nodes, f"nodes of degree {degree} should be {result_nodes}"
 
-    def display_erode_dilate(self, image, nx_graph, radius=3, erode=False, dilate=False):
-        islands = AmiGraph(nx_graph).get_ami_islands_from_nx_graph()
-        fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, figsize=(9, 6))
-        ax1.set_title("raw image")
-        ax1.imshow(image)
-        image_inv = np.invert(image)
-        AmiGraph.plot_axis(image_inv, ax2, islands, title="inverted")
-        if dilate:
-            image_dilate = morphology.dilation(image_inv, morphology.disk(radius))
-            AmiGraph.plot_axis(image_dilate, ax3, islands, title="dilated")
-        if erode:
-            image_erode = morphology.erosion(image_inv, morphology.disk(radius))
-            AmiGraph.plot_axis(image_erode, ax4, islands, title="eroded")
-        fig.tight_layout()
-        if interactive:
-            plt.show()
-
-
-# ----- edges -----
+    # ----- edges -----
 
     def test_multigraph_edges(self):
         """
@@ -793,7 +791,7 @@ plt.show()"""
         assert edge_list[3] == (0, 2, {'weight': 15})
         assert list(nx_graph.edges.data('weight', default=1)) == \
                [(0, 1, 1), (0, 2, 5), (0, 2, 10), (0, 2, 15)]
-        assert list(nx_graph.edges.data(keys=True)) ==  \
+        assert list(nx_graph.edges.data(keys=True)) == \
                [(0, 1, 0, {'foo': 3}), (0, 2, 0, {'weight': 5}), (0, 2, 1, {'weight': 10}), (0, 2, 2, {'weight': 15})]
         edges = list(nx_graph.edges.data(keys=True))
         assert len(edges) == 4
@@ -804,16 +802,48 @@ plt.show()"""
         assert edges[2][key] == 1
         assert edges[3][key] == 2
 
-# test helpers
+    def test_whole_image(self):
+        assert self.nx_graph_biosynth3 is not None
+        biosynth3_ami_graph = AmiGraph(nx_graph=self.nx_graph_biosynth3)
+        islands = biosynth3_ami_graph.get_or_create_ami_islands()
+        assert len(islands) == 436
+        islands_big = [island for island in islands if island.get_or_create_bbox().min_dimension() > 20]
+        assert len(islands_big) == 20
 
-    @classmethod
-    def assert_nodes_of_degree(cls, ami_graph, degree, node_id_list):
+    def test_whole_image(self):
         """
-        assert that nodes of given degree equal expected
-        :param node_id_list: expected node_ids
-        :param degree: of nodes
+        analyse min-maximum and max-min of islands
         :return:
         """
-        assert ami_graph.get_node_ids_of_degree(degree) == node_id_list, \
-            f"expected nodes of degree {degree} +> {node_id_list}, found {ami_graph.get_node_ids_of_degree(degree)}"
+        assert self.nx_graph_biosynth3 is not None
+        biosynth3_ami_graph = AmiGraph(nx_graph=self.nx_graph_biosynth3)
+        islands = biosynth3_ami_graph.get_or_create_ami_islands()
+        assert len(islands) == 436
+        counts_by_maxdim = {0: 436, 1:408, 2:408, 3: 401, 4:396,  5: 389, 6: 376, 7: 368, 10: 368, 15: 211, 22: 19, 30: 6, 50: 5, 80: 1}
+        for max_dim in counts_by_maxdim:
+            islands_big = AmiIsland.get_islands_with_min_dimension(max_dim, islands)
+            assert len(islands_big) == counts_by_maxdim[max_dim]
+        counts_by_mindim = {0: 42, 1: 51, 2: 79, 3: 102, 4: 115, 5: 149, 6: 169, 7:182, 8:236, 9:323, 10: 352, 15: 423, 22: 432, 30: 435, 50: 435, 100: 435}
+        for min_dim in counts_by_mindim:
+            islands_big = AmiIsland.get_islands_with_max_dimension(min_dim, islands)
+            assert len(islands_big) == counts_by_mindim[min_dim]
 
+    # test helpers
+
+    @classmethod
+    def display_erode_dilate(cls, image, nx_graph, radius=3, erode=False, dilate=False):
+        islands = AmiGraph(nx_graph).get_ami_islands_from_nx_graph()
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, figsize=(9, 6))
+        ax1.set_title("raw image")
+        ax1.imshow(image)
+        image_inv = np.invert(image)
+        AmiGraph.plot_axis(image_inv, ax2, islands, title="inverted")
+        if dilate:
+            image_dilate = morphology.dilation(image_inv, morphology.disk(radius))
+            AmiGraph.plot_axis(image_dilate, ax3, islands, title="dilated")
+        if erode:
+            image_erode = morphology.erosion(image_inv, morphology.disk(radius))
+            AmiGraph.plot_axis(image_erode, ax4, islands, title="eroded")
+        fig.tight_layout()
+        if interactive:
+            plt.show()
