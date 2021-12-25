@@ -2,31 +2,32 @@
 tests AmiGraph, AmiNode, AmiEdge, AmiIsland
 """
 
+import logging
+import unittest
 # library
 from pathlib import PurePath
-import numpy as np
-import networkx as nx
+
 import matplotlib.pyplot as plt
-from skimage.morphology import skeletonize
-from skimage import data
-import sknw
-import unittest
+import networkx as nx
+import numpy as np
 import pytest
-from skimage import io, morphology, color
+import sknw
+from skimage import data
+from skimage import io, morphology
 from skimage.measure import approximate_polygon, subdivide_polygon
-import logging
+from skimage.morphology import skeletonize
+
 # local
 from ..pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
-from ..test.resources import Resources
 from ..pyimage.ami_image import AmiImage
-from ..pyimage.text_box import TextBox
+from ..pyimage.ami_util import AmiUtil
 from ..pyimage.bbox import BBox
 from ..pyimage.tesseract_hocr import TesseractOCR
+from ..pyimage.text_box import TextBox
 from ..pyimage.text_box import TextUtil
-from ..pyimage.ami_util import AmiUtil
+from ..test.resources import Resources
 
 logger = logging.getLogger(__name__)
-interactive = True
 interactive = False
 
 
@@ -65,7 +66,7 @@ class TestAmiGraph:
 
     # clear plot
     #     plt.figure().close("all")
-        plt.clf()
+    #     plt.clf() # creates unwanted blank screens
 
     @unittest.skip("background")
     def test_sknw_example(self):
@@ -201,7 +202,7 @@ plt.show()"""
         nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)
         AmiUtil.check_type_and_existence(nx_graph, nx.classes.graph.Graph)
 
-        Util.check_type_and_existence(nx_graph.nodes, nx.classes.reportviews.NodeView)
+        AmiUtil.check_type_and_existence(nx_graph.nodes, nx.classes.reportviews.NodeView)
         assert list(nx_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                                         18, 19, 20, 21, 22, 23, 24, 25, 26]
         AmiUtil.check_type_and_existence(nx_graph.edges, nx.classes.reportviews.EdgeView)
@@ -210,14 +211,13 @@ plt.show()"""
                                         (13, 14), (13, 15), (16, 18), (17, 18), (18, 20), (19, 26),
                                         (21, 24), (22, 24), (23, 24), (24, 25)]
 
-        node1ps = nx_graph.nodes[1][AmiNode.PTS]
-        # print(f"node1ps {node1ps}")
+        node1ps = nx_graph.nodes[1][AmiNode.CENTROID]
         node1ps0 = node1ps[0]
-        # print("node1ps0", node1ps0)
         assert str(node1ps) == "[[ 83 680]]"
 
         assert str(nx_graph.edges[(1, 2)][AmiEdge.PTS]) == "[[ 83, 680]]"
 
+    @unittest.skip("NYI")
     def test_segmented_edges(self):
         """
         analyse 4 arrows and convert to lines
@@ -280,10 +280,6 @@ plt.show()"""
                   |
                   25
         """
-        # print("21 24", nx_graph[21][24])
-        # print("24 25", nx_graph[24][25])
-        # print("22 24", nx_graph[22][24])
-        # print("23 24", nx_graph[23][24])
 
         return
 
@@ -359,11 +355,13 @@ plt.show()"""
     def test_get_nx_edge_lengths_for_node(self):
         ami_graph = self.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         lengths = ami_graph.get_nx_edge_lengths_by_edge_list_for_node(24)
+        print(f"lengths {lengths}")
+        lengthsx = [length for length in lengths.values()]
         assert [0.1 + 0.2, 0.2 + 0.4] == pytest.approx([0.3, 0.6])
-        aaa = [30.0041, 9.3941, 9.3941, 12.0104]
+        aaa = [30.00, 8.944, 9.848, 12.041]
         expect = pytest.approx(aaa, 0.001)
-        assert lengths == expect, \
-            f"found {lengths} expected {expect}"
+        assert lengthsx == expect, \
+            f"found {lengthsx} expected {expect}"
 
     def test_get_nodes_with_degree(self):
         """
@@ -511,7 +509,7 @@ plt.show()"""
         assert Resources.PRISMA.exists()
         ami_graph = AmiGraph(self.nx_graph_prisma)
         islands = ami_graph.get_or_create_ami_islands()
-        assert len(islands) == 349
+        assert len(islands) == 382
         big_islands = []
         for island in islands:
             bbox = island.get_or_create_bbox()
@@ -572,7 +570,6 @@ plt.show()"""
         """
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         edge_length_by_nx_edge = ami_graph.get_nx_edge_lengths_by_edge_list_for_node(24)
-        print(edge_length_by_nx_edge)
         assert {'a': 2.000001} == pytest.approx({'a': 2})
         assert {'a': 2.01} == pytest.approx({'a': 2}, 0.1)
         expected1 = pytest.approx(
@@ -618,12 +615,9 @@ plt.show()"""
             w = bbox.get_width()
             h = bbox.get_height()
             if h > 100 or w > 100:
-                print(bbox)
-
-
+                pass
 
         image = io.imread(Resources.BATTERY1)
-        print("image ", image.shape )
 
     def test_battery1square(self):
         """
@@ -635,13 +629,6 @@ plt.show()"""
         nx_graph = ami_graph.nx_graph
         assert type(nx_graph) is nx.MultiGraph
         assert len(nx_graph.nodes) == 3 # multi, iso, ring full  (square has an artificial node)
-        print(nx_graph)
-        print(nx_graph.nodes)
-        print(nx_graph.nodes[0])
-        print(nx_graph.nodes[1])
-        print(nx_graph.nodes[2])
-        print(nx_graph[2][2])
-
 
         ami_graph = AmiGraph(nx_graph)
         ami_graph.read_nx_graph(nx_graph)
@@ -656,7 +643,7 @@ plt.show()"""
             bbox = island.get_or_create_bbox()
             w = bbox.get_width()
             h = bbox.get_height()
-            print(bbox)
+            print(f"{__name__}{bbox}")
 
         """acces edges 
         EITHER list(nx_graph.edges(0, 1))[0] (the 3rd index is for mUltigraph
@@ -681,16 +668,16 @@ plt.show()"""
 
             print("points: ", len(ps), ps[:, 1], ps[:, 0])
 
-        pts = nx_graph[0][1][0]["pts"]
-        edge0 = AmiEdge(points=pts)
-        print("bbox0 ", edge0.get_or_create_bbox())
-
-        pts = nx_graph[2][2][0]["pts"]
-        edge22 = AmiEdge(points=pts)
-        print("bbox22 ", edge22.get_or_create_bbox())
-
-        image = io.imread(Resources.BATTERY1)
-        print("image ", image.shape)
+        # pts = nx_graph[0][1][0]["pts"]
+        # edge0 = AmiEdge(points=pts)
+        # print("bbox0 ", edge0.get_or_create_bbox())
+        #
+        # pts = nx_graph[2][2][0]["pts"]
+        # edge22 = AmiEdge(points=pts)
+        # print("bbox22 ", edge22.get_or_create_bbox())
+        #
+        # image = io.imread(Resources.BATTERY1)
+        # print("image ", image.shape)
 
     def test_create_ami_nodes_from_ids(self):
         """wrap node_ids in AmiNodes"""
@@ -704,18 +691,38 @@ plt.show()"""
 
     def test_primitives(self):
 
+        island_names = ["thin_zig", "diag_sq", "2ring", "thick_zag", "line", "chord", "phi", "cross", "window",
+                        "racket", "turnip", "bigo", "mido", "babyo", "rect", "inrect"]
         colors = ["green", "blue", "purple", "cyan"]
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.PRIMITIVES, interactive=False)
         nx_graph = ami_graph.nx_graph
         assert type(nx_graph) is nx.MultiGraph
         assert len(nx_graph.nodes) == 42 # multi, iso, ring full  (square has an artificial node)
-        print(nx_graph)
+        print("\nPrimitives: ", nx_graph)
         islands = ami_graph.get_or_create_ami_islands()
         assert len(islands) == 16
 
         for i, island in enumerate(islands):
-            print("\n", i, island.get_or_create_bbox())
-            print(island.node_ids)
+            print("\n##############>>>>>>>>>>>>>>")
+            if i > 0:
+                cyc = None
+                island.get_or_create_bbox()
+                print("\n", "******* island:", i, island_names[i],
+                      "coords>>>",
+                      island.get_or_create_coords(),
+                      "<<<<",
+                      island.get_or_create_bbox(),
+                      island.node_ids)
+                try:
+                    cyc = nx.algorithms.cycles.find_cycle(island.island_nx_graph)
+                except nx.exception.NetworkXNoCycle:
+                    pass
+                if cyc is not None:
+                    print("cyc", cyc)
+                nodes2 = island.get_node_ids_of_degree(2)
+                if len(nodes2) > 0:
+                    print("island2 ", island.island_nx_graph)
+            print("<<<<<<<<<<<<<<<##############\n")
 
 
         # draw image
@@ -742,7 +749,6 @@ plt.show()"""
         :return:
         """
         nodes = AmiGraph.get_node_ids_from_graph_with_degree(ami_graph.nx_graph, degree)
-        print(f"nodes of degree {degree} = {nodes}")
         assert nodes == result_nodes, f"nodes of degree {degree} should be {result_nodes}"
 
     def display_erode_dilate(self, image, nx_graph, radius=3, erode=False, dilate=False):
@@ -797,4 +803,17 @@ plt.show()"""
         assert edges[1][key] == 0
         assert edges[2][key] == 1
         assert edges[3][key] == 2
+
+# test helpers
+
+    @classmethod
+    def assert_nodes_of_degree(cls, ami_graph, degree, node_id_list):
+        """
+        assert that nodes of given degree equal expected
+        :param node_id_list: expected node_ids
+        :param degree: of nodes
+        :return:
+        """
+        assert ami_graph.get_node_ids_of_degree(degree) == node_id_list, \
+            f"expected nodes of degree {degree} +> {node_id_list}, found {ami_graph.get_node_ids_of_degree(degree)}"
 

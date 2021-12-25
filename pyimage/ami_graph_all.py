@@ -318,13 +318,48 @@ class AmiGraph:
 
     # -------- AmiGraph/AmiNode routines
 
+    def get_angles_round_node(self, node_id, start_node=None):
+        """
+        gets ordered lists of angles
+        may not be efficient but for small numnbers of connections can be tolerated
+        :param node_id:
+        :param start_node: optional first node in list
+        :return: ref_node, central_node, {node: val}
+        """
+        node_ids = list(self.nx_graph.neighbors(node_id))
+        xys = {node_id: AmiNode(ami_graph=self, node_id=node_id).centroid_xy for node_id in node_ids}
+        print (xys.keys())
+        angle_dict = {node1: self.get_angle(node_ids[0], node_id, node1) for node1 in node_ids[1:]}
+        return node_ids[0], node_id, angle_dict
+
+    def get_angle(self, node0, node1, node2):
+        """
+        gets angle 0-1-2
+        :param node0: 
+        :param node1: 
+        :param node2: 
+        :return: radians
+        """
+        xy0 = AmiUtil.to_float_array(AmiNode(ami_graph=self, node_id=node0).centroid_xy)
+        xy1 = AmiUtil.to_float_array(AmiNode(ami_graph=self, node_id=node1).centroid_xy)
+        xy2 = AmiUtil.to_float_array(AmiNode(ami_graph=self, node_id=node2).centroid_xy)
+        return AmiUtil.get_angle(xy0, xy1, xy2)
+
     # -------- AmiEdge routines
 
     def find_longest_edge(self, node_id):
         edges = self.nx_graph.edges(node_id)
+
+        max_edge = None
+        max_length = -1.0
         for edge in edges:
-            ami_edge = AmiEdge(self, edge[0], edge[1])
-            print(f"edge {edge} {ami_edge.get_length()}")
+            ami_edge = AmiEdge(self, edge[0], edge[1], edge_id=0)  # actual edge_id doesn't matter for distance
+            length = ami_edge.get_cartesian_length()
+            assert length is not None
+            if length > max_length:
+                max_edge = edge
+                max_length = length
+        return max_edge, max_length
 
     # -------- segmentation and plotting
 
@@ -341,7 +376,7 @@ class AmiGraph:
                 nedges = len(list(self.nx_graph[s][e]))
                 for edge_id in range(nedges):
                     pts = self.nx_graph[s][e][edge_id]['pts']
-                    ami_edge = AmiEdge(s, e, edge_id)
+                    ami_edge = AmiEdge(self, s, e, edge_id=edge_id)
                     ami_edge.plot_edge(pts, plot_target, edge_id=edge_id)
             else:
                 pts = self.nx_graph[s][e]['pts']
@@ -455,7 +490,8 @@ class AmiGraph:
         :param node_id:
         :return: list (not view) of edges as (node_id, node_id1) (node_id, node_id2) ...
         """
-        nx_edges = list(self.nx_graph.edges(node_id))
+        assert self.nx_graph.is_multigraph(), "should be multigraph"
+        nx_edges = list(self.nx_graph.edges(node_id, keys=True))
         return nx_edges
 
     def get_angle_to_x(self, edge):
@@ -474,10 +510,7 @@ class AmiGraph:
         assert len(nx_edge) == 2
         xy0 = self.get_or_create_centroid_xy(nx_edge[0])
         xy1 = self.get_or_create_centroid_xy(nx_edge[1])
-        # centroid0 = AmiNode(node_id=nx_edge[0], nx_graph=nx_graph).get_or_create_centroid_xy()
-        # centroid1 = AmiNode(node_id=nx_edge[1], nx_graph=nx_graph).get_or_create_centroid_xy()
-        length = math.sqrt((xy0[0] - xy1[0]) ** 2 + (xy0[1] - xy1[1]) ** 2)
-        return length
+        return AmiUtil.get_dist(xy0, xy1)
 
     def get_nx_edge_lengths_by_edge_list_for_node(self, node_id):
         length_by_nx_edge = {}
@@ -485,6 +518,7 @@ class AmiGraph:
         # lengths = [self.get_direct_length(nx_edge)
         for nx_edge in nx_edges:
             length = self.get_direct_length(nx_edge)
+            print(f"length ==> {length}")
             length_by_nx_edge[nx_edge] = length
         return length_by_nx_edge
 
@@ -520,14 +554,6 @@ class AmiGraph:
             self.nx_graph.nodes[node_id][AmiNode.CENTROID])
         return self.centroid_xy
 
-    # def get_node_ids_with_degree(self, degree):
-    #     """
-    #     iterates over self.nx_graph.nodes to find those with given degree
-    #     :param degree:
-    #     :return: list of node_ids (may be empty)
-    #     """
-    #     return [node_id for node_id in self.nx_graph.nodes if self.nx_graph.degree(node_id) == degree]
-
     @classmethod
     def get_node_ids_from_graph_with_degree(cls, nx_graph, degree):
         """
@@ -540,6 +566,14 @@ class AmiGraph:
         assert type(nx_graph) is nx.Graph or type(nx_graph) is nx.MultiGraph,f"not a graph {type(nx_graph)} "
         return [node_id for node_id in nx_graph.nodes if nx_graph.degree(node_id) == degree]
 
+    def get_node_ids_with_degree(self, degree):
+        """
+        iterates over graph.nodes to find those with given degree
+        graph may be a subgraph
+        :param degree:
+        :return: list of node_ids (may be empty)
+        """
+        return AmiGraph.get_node_ids_from_graph_with_degree(self.nx_graph, degree)
 
     def create_ami_nodes_from_ids(self, node_ids):
         """
@@ -576,22 +610,40 @@ class AmiEdge:
         self.end = end
         self.points_xy = None
         self.bbox = None
-        self.edge_id = edge_id
+        if ami_graph.nx_graph.is_multigraph():
+            if edge_id is None:
+                raise ValueError("edge_id for {self.start} {self.end} should be set")
+            self.edge_id = edge_id
         self.nx_graph = ami_graph.nx_graph
         self.get_points()
-        pass
 
     def get_points(self):
         assert self.start is not None
         assert self.end is not None
+        edges = self.nx_graph[self.start][self.end]
+        assert edges is not None
+        points = None
         if self.nx_graph.is_multigraph():
             assert self.edge_id is not None
-            print(f"{self.start} {self.end} {self.edge_id}")
-            points = self.nx_graph[self.start][self.end][self.edge_id][self.PTS]
+            try:
+                edge = edges[self.edge_id]
+                points = edge[self.PTS]
+            except KeyError as e:
+                print(f"{__name__} key error {self.edge_id} {e}")
+                raise e
         else:
-            points = self.nx_graph[self.start][self.end][self.PTS]
+            points = edges[self.PTS]
         if points is not None:
+            print(f"points: {len(points)} {points[:3]} ... {points[-3:]}")
             self.read_nx_edge_points_yx(points)
+
+    def get_cartesian_length(self):
+        assert self.ami_graph is not None
+        xy0 = AmiNode(ami_graph=self.ami_graph, node_id=self.start).centroid_xy
+        xy1 = AmiNode(ami_graph=self.ami_graph, node_id=self.end).centroid_xy
+        dist = AmiUtil.get_dist(xy0, xy1)
+        assert dist is not None
+        return dist
 
     def read_nx_edge_points_yx(self, points_array_yx):
         """
@@ -619,6 +671,7 @@ class AmiEdge:
             for point in self.points_xy:
                 self.bbox.add_coordinate(point)
 
+        print(f"bbox {self.bbox}")
         return self.bbox
 
     def plot_edge(self, pts, plot_region, edge_id=None, boxcolor=None):
@@ -675,9 +728,12 @@ class AmiNode:
         self.nx_graph = nx_graph
         if nx_graph is None and self.ami_graph is not None:
             self.nx_graph = self.ami_graph.nx_graph
-        self.centroid_xy = None
+        assert self.nx_graph is not None
+        self.centroid_xy = None if self.nx_graph is None or node_id is None else self.nx_graph.nodes[node_id][self.CENTROID]
+        assert self.centroid_xy is not None
         self.coords_xy = None
         self.node_id = node_id
+        self.edges = None
         self.node_dict = None  # may not be needed
 
     def read_nx_node(self, node_dict):
@@ -711,7 +767,9 @@ class AmiNode:
         s = f"centroid {self.centroid_xy}"
         return s
 
-
+    def get_or_create_ami_edges(self):
+        edge_list = self.ami_graph.get_nx_edge_list_for_node(self.node_id)
+        [AmiEdge(self.ami_graph, edge[0], edge[1]) for edge in edge_list]
 # =====
 
 """AmiIsland is a set of node_ids that NetwworkX has listed as a "component"""
@@ -724,6 +782,11 @@ class AmiNode:
 
 
 class AmiIsland:
+    """
+    An isolated set of nodes and edges (nx calls them components)
+
+    Not sure whether this should subclass AmiGraph or whether we should repeat / functions
+    """
     def __init__(self, ami_graph, node_ids=None):
         # self.ami_skeleton = None
         self.node_ids = node_ids
@@ -732,7 +795,6 @@ class AmiIsland:
 
         self.island_nx_graph = self.create_island_sub_graph()
         assert self.island_nx_graph is not None
-        print ("node ids", self.island_nx_graph.nodes)
         self.coords_xy = None
         self.bbox = None
         self.edges = None
@@ -741,7 +803,8 @@ class AmiIsland:
         """
         from NetworkX https://networkx.org/documentation/stable/reference/classes/generated/networkx.Graph.subgraph.html
         essentially a deep copy of the graph components
-        :return:
+        its island_nx_graph can be passed to class methods in AmiGraph
+        :return: self.island_nx_graph
         """
         if deep_copy:
             nx_graph = self.ami_graph.nx_graph
@@ -799,12 +862,21 @@ class AmiIsland:
         :return: BBox
         """
         if self.bbox is None:
-            coords_xy = self.get_or_create_coords()
+            node_coords_xy = self.get_or_create_coords()
             self.bbox = BBox()
-            for coord in coords_xy:
+            for coord in node_coords_xy:
                 coord[0] = int(coord[0])
                 coord[1] = int(coord[1])
                 self.bbox.add_coordinate(coord)
+            for node_id in self.node_ids:
+                edge_list = self.ami_graph.get_nx_edge_list_for_node(node_id)
+            for edge in edge_list:
+                ami_edge = AmiEdge(self.ami_graph, edge[0], edge[1], edge_id=edge[2])
+                ll = int(len(ami_edge.points_xy) / 2)
+                print(f"ami_edge {ami_edge.start} {ami_edge.end} "
+                      f"{ami_edge.points_xy[:3]} ___ {ami_edge.points_xy[ll-2:ll+2]} ___ {ami_edge.points_xy[-3:]}")
+                bbox = ami_edge.get_or_create_bbox()
+                self.box = self.bbox.union(bbox)
         return self.bbox
 
     def plot_island(self):
@@ -831,3 +903,12 @@ class AmiIsland:
             for e in edges:
                 if e[0] < e[1]:
                     self.edges.append(e)
+
+    def get_node_ids_of_degree(self, node_count):
+        """
+        gets node_ids in island with given count
+        delegates to  AmiGraph.get_node_ids_from_graph_with_degree
+        :param node_count:
+        :return:
+        """
+        return AmiGraph.get_node_ids_from_graph_with_degree(self.island_nx_graph, node_count)

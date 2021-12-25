@@ -93,33 +93,59 @@ class AmiUtil:
         AmiUtil.assert_is_float_array(p1)
         AmiUtil.assert_is_float_array(p2)
 
-        # print(f"p0 {p0} {p0[0]} {type(p0[0])} p1 {p1} {p1[0]} {type(p1[0])} p2 {p2} {p2[0]} {type(p2[0])}")
         linal = False
-        # print(f"{p0}  {np.array(p0)} {np.array(p1)}")
         if linal:
             np0 = np.array(p0, dtype=np.uint8)
             np1 = np.array(p1, dtype=np.uint8)
             np2 = np.array(p2, dtype=np.uint8)
-            # print(f"{p0} {np0} {p1} {np1} {p2} {np2}")
             v0 = np0 - np1
             v1 = np2 - np1
-            # print(f"{v0}, {v1}")
             angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
         else:
             dx0 = p0[0] - p1[0]
             dy0 = p0[1] - p1[1]
-            # print(f"dx0 {dx0} {type(dx0)} dx0 {dy0} {type(dy0)}")
             v01 = [p0[0] - p1[0], p0[1] - p1[1]]
             v21 = [p2[0] - p1[0], p2[1] - p1[1]]
-            # print(f"v01 {v01} v21 {v21}")
             ang01 = math.atan2(v01[1], v01[0])
             ang21 = math.atan2(v21[1], v21[0])
-            # print(f" ang01 {ang01} ang21 {ang21}")
             angle = ang21 - ang01
-            if angle > math.pi:
-                angle -= 2 * math.pi
+            angle = AmiUtil.normalize_angle(angle)
 
         return angle
+
+    @classmethod
+    def normalize_angle(cls, angle):
+        """
+        normalizes angle to -Pi 0 +Pi
+        :param angle:
+        :return:
+        """
+        if angle > math.pi:
+            angle -= 2 * math.pi
+        if angle <= -math.pi:
+            angle += 2 * math.pi
+        return angle
+
+    @classmethod
+    def get_dist(cls, xy0, xy1):
+        '''
+        length p0-p1
+        :param xy0:
+        :param xy1:
+        '''
+        fxy0 = AmiUtil.to_float_array(xy0)
+        fxy1 = AmiUtil.to_float_array(xy1)
+        if fxy0 is None or fxy1 is None:
+            return None
+        AmiUtil.assert_is_float_array(fxy0)
+        AmiUtil.assert_is_float_array(fxy1)
+
+        dx0 = fxy0[0] - fxy1[0]
+        dy0 = fxy0[1] - fxy1[1]
+        dist = math.sqrt(dx0 * dx0 + dy0 * dy0)
+
+        return dist
+
 
     @classmethod
     def assert_is_float_array(cls, arr, length=2):
@@ -129,7 +155,7 @@ class AmiUtil:
         :param length:
         :return:
         """
-
+        assert arr is not None
         assert len(arr) == length and type(arr[0]) is float, f"arr must be 2-vector float {arr}"
 
     @classmethod
@@ -143,6 +169,22 @@ class AmiUtil:
         tt = type(int_lst[0])
         assert tt is int or tt is np.uint8 or tt is np.uint16, f"expected int, got {tt}"
         return [float(i) for i in int_lst]
+
+    @classmethod
+    def to_float_array(cls, arr):
+        """
+        converts to array of floats if possible
+        :param arr:
+        :return:
+        """
+        if arr is None:
+            return None
+        try:
+            farr = [float(a) for a in arr]
+        except ValueError as e:
+            raise f"cannot convet to float {type(arr[0])}"
+        return farr
+
 
 class Vector2:
 

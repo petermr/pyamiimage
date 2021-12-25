@@ -60,6 +60,7 @@ class BBox:
         """
         inclusive intersection of boxes (AND)
         if any fields are empty returns None
+        DOES NOT CHANGE self
         :param bbox:
         :return: new Bbox (max(min) ... (min(max)) or None if any  errors
         """
@@ -74,6 +75,8 @@ class BBox:
         """
         inclusive merging of boxes (OR)
         if any fields are empty returns None
+        DOES NOT CHANGE self
+
         :param bbox:
         :return: new Bbox (min(min) ... (max(max)) or None if any  errors
         """
