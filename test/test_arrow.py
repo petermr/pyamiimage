@@ -1,13 +1,14 @@
 
 import matplotlib.pyplot as plt
 import pytest
+import logging
 
 from ..pyimage.ami_graph_all import AmiGraph, AmiIsland
-
+from ..pyimage.ami_arrow import AmiArrow
 # local
 from ..test.resources import Resources
-# from ..test.test_ami_graph import TestAmiGraph
 
+logger = logging.getLogger(__name__)
 
 class TestArrow:
     def setup_method(self, method):
@@ -102,20 +103,11 @@ class TestArrow:
         big_islands = AmiIsland.get_islands_with_min_dimension(40, islands)
         assert len(big_islands) == 5
 
-        print("========")
         for i, island in enumerate(big_islands):
             island.id = f"is {i}"
-            node_dict = self.create_node_dict(island)
-            print(f"{island.id} => {node_dict}")
-            print("---------")
-
-    def create_node_dict(self, island):
-        print(f"island  {island.get_or_create_bbox()} ...")
-        node_dict = {}
-        for degree in [1, 2, 3, 4]:
-            nodes = island.get_node_ids_of_degree(degree)
-            node_dict[degree] = nodes
-        return node_dict
+            node_dict = island.create_node_degree_dict()
+            logger.debug(f"{island.id} => {node_dict}")
+            AmiArrow.find_arrow_heads(island)
 
     # -------------------- helpers ---------------------
 

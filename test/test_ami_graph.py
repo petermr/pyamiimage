@@ -34,6 +34,7 @@ interactive = False
 class TestAmiGraph:
 
     def setup_method(self, method):
+        self.start = True
         self.arrows1 = io.imread(Resources.BIOSYNTH1_ARROWS)
         assert self.arrows1.shape == (315, 1512)
         self.arrows1 = np.where(self.arrows1 < 127, 0, 255)
@@ -71,9 +72,9 @@ class TestAmiGraph:
         assert self.primitives.shape == (405, 720, 3)
         self.nx_graph_primitives = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRIMITIVES)
 
-    # clear plot
-    #     plt.figure().close("all")
-    #     plt.clf() # creates unwanted blank screens
+        # clear plot
+        #     plt.figure().close("all")
+        #     plt.clf() # creates unwanted blank screens
 
         return self
 

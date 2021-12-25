@@ -50,7 +50,7 @@ class AmiGraph:
         self.nd_skeleton = nd_skeleton
         self.ami_edge_dict = None
         self.generate_nodes = generate_nodes
-        self.node_degree_dict = None
+        self.node_dict = None
         self.centroid_xy = None
 
         self.read_nx_graph(nx_graph)
@@ -78,18 +78,18 @@ class AmiGraph:
             # ami_node = AmiNode()
             key = raw_node.key if type(raw_node) is dict else str(raw_node)
             key = "n" + str(key)
-            if key in self.node_degree_dict and fail_on_duplicate:
+            if key in self.node_dict and fail_on_duplicate:
                 raise AmiGraphError(f"cannot add same node twice {key}")
             if type(raw_node) is dict:
-                self.node_degree_dict[key] = copy.deepcopy(raw_node)
+                self.node_dict[key] = copy.deepcopy(raw_node)
             else:
-                self.node_degree_dict[key] = "node"  # store just the key at present
+                self.node_dict[key] = "node"  # store just the key at present
         else:
             self.logger.warning("node cannot be None")
 
     def read_edges(self, edges):
         # self.ami_edges = edges
-        if len(self.node_degree_dict.keys()) == 0 and self.generate_nodes:
+        if len(self.node_dict.keys()) == 0 and self.generate_nodes:
             self.generate_nodes_from_edges()
         for i, edge in enumerate(edges):
             idx = "e" + str(i)
@@ -131,7 +131,7 @@ class AmiGraph:
         nx_edgelist = self.get_edge_list_through_mininum_spanning_tree()
         AmiGraph.debug_edges_and_nodes(nx_edgelist, debug_count=7)
         nodes = self.nx_graph.nodes
-        self.node_degree_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
+        self.node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
 
         self.ami_island_list = []
         for nx_island in nx_island_list:
@@ -153,6 +153,7 @@ class AmiGraph:
         pts_index = 2
         for edge in nx_edgelist[:debug_count]:
             pts_ = edge[pts_index]['pts']
+            print(pts_)
         edgelist_pts_ = nx_edgelist[0][2]['pts']
         for step in edgelist_pts_[:debug_count]:
             print("step", step)
@@ -207,11 +208,9 @@ class AmiGraph:
         self.ami_nodes = []
         node_ids = nx_graph.nodes()
         for node_id in node_ids:
-            node = node_ids[node_id]
             assert len(str(node_id)) < max_digits, f"node_id is {node_id}"
             ami_node = AmiNode(ami_graph=self, node_id=node_id, nx_graph=nx_graph)
             ami_node.set_centroid_yx(nx_graph.nodes[node_id][AmiNode.CENTROID])
-            # ami_node.read_nx_node(node)
             self.ami_nodes.append(ami_node)
 
     def read_nx_edges(self, nx_graph):
@@ -243,7 +242,7 @@ class AmiGraph:
         assert path.exists() and not path.is_dir(), f"{path} should be existing file"
         assert isinstance(path, PurePath)                              
 
-        image1 = io.imread(path)
+        image1 = io.imread(str(path))
         AmiUtil.check_type_and_existence(image1, np.ndarray)
         gray_image = AmiImage.create_grayscale_from_image(image1)
         assert AmiImage.check_grayscale(gray_image)
@@ -330,8 +329,8 @@ class AmiGraph:
         :return: ref_node, central_node, {node: val}
         """
         node_ids = list(self.nx_graph.neighbors(node_id))
-        xys = {node_id: AmiNode(ami_graph=self, node_id=node_id).centroid_xy for node_id in node_ids}
-        print(xys.keys())
+        # xys = {node_id: AmiNode(ami_graph=self, node_id=node_id).centroid_xy for node_id in node_ids}
+        # print(xys.keys())
         angle_dict = {node1: self.get_angle(node_ids[0], node_id, node1) for node1 in node_ids[1:]}
         return node_ids[0], node_id, angle_dict
 
@@ -525,10 +524,10 @@ class AmiGraph:
             length_by_nx_edge[nx_edge] = length
         return length_by_nx_edge
 
-    @classmethod
-    def calculate_angles_to_edges(cls, nx_graph, edges):
-        for edge in edges:
-            angle = AmiEdge.get_angle_to_x(nx_graph, edge)
+    # @classmethod
+    # def calculate_angles_to_edges(cls, nx_graph, edges):
+    #     for edge in edges:
+    #         angle = AmiEdge.get_angle_to_x(nx_graph, edge)
 
     def get_interedge_angle(self, nx_edge0, nx_edge1):
         """
@@ -600,7 +599,6 @@ class AmiGraph:
             f"expected nodes of degree {degree} +> {node_id_list}, found {ami_graph.get_node_ids_of_degree(degree)}"
 
 
-
 class AmiGraphError(Exception):
     def __init__(self, msg):
         super().__init__(msg)
@@ -653,6 +651,7 @@ class AmiEdge:
         if points is not None:
             # print(f"points: {len(points)} {points[:3]} ... {points[-3:]}")
             self.read_nx_edge_points_yx(points)
+        return points
 
     def get_cartesian_length(self):
         assert self.ami_graph is not None
@@ -681,7 +680,7 @@ class AmiEdge:
         s = ""
         if self.points_xy is not None:
             ll = int(len(self.points_xy) / 2)
-            s = f"ami_edge {self.start}...{self.end} {len(self.points_xy)}" \
+            s = f"ami_edge {self.start}...{self.end} ({len(self.points_xy)}) " \
                 f"{self.points_xy[:3]} ___ {self.points_xy[ll-2:ll+2]} ___ {self.points_xy[-3:]}"
         return s
 
@@ -756,6 +755,7 @@ class AmiNode:
         self.coords_xy = None
         self.node_id = node_id
         self.edges = None
+        self.node_dict = None  # is this used?
 
     def read_nx_node(self, node_dict):
         """read dict for node, contains coordinates
@@ -789,8 +789,12 @@ class AmiNode:
         return s
 
     def get_or_create_ami_edges(self):
+        """
+        get list of AmiEdges
+        :return:
+        """
         edge_list = self.ami_graph.get_nx_edge_list_for_node(self.node_id)
-        [AmiEdge(self.ami_graph, edge[0], edge[1]) for edge in edge_list]
+        return [AmiEdge(self.ami_graph, edge[0], edge[1], edge_id=edge[2]) for edge in edge_list]
 # =====
 
 
@@ -820,7 +824,8 @@ class AmiIsland:
         self.coords_xy = None
         self.bbox = None
         self.edges = None
-        self.degree_dict = None
+        # self.degree_dict = None
+        self.node_degree_dict = None
 
     def create_island_sub_graph(self, deep_copy=False):
         """
@@ -956,4 +961,17 @@ class AmiIsland:
         :return:
         """
         return [island for island in islands if island.get_or_create_bbox().min_dimension() <= min_dim]
+
+    def create_node_degree_dict(self):
+        """
+        create diction of form <degree>: <nodes of degree>
+        up to degree == 5 (even 5 is unlikely after thinning)
+        :return:
+        """
+        self.node_degree_dict = {}
+        for degree in range(6):
+            nodes = self.get_node_ids_of_degree(degree)
+            self.node_degree_dict[degree] = nodes
+        return self.node_degree_dict
+
 
