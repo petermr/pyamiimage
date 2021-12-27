@@ -1,3 +1,7 @@
+import os
+from pathlib import Path
+from lxml import etree as ET
+
 
 from ..pyimage.svg import SVGRect, SVGTitle, SVGText, SVGTextBox, SVGG, SVGSVG, SVGCircle, SVGPath, BBox
 
@@ -61,4 +65,12 @@ class TestSVG():
         assert bbox is not None
         assert circle.is_valid()
         assert bbox.xy_ranges == [[5,15],[15,25]]
+
+    def test_write_svg(self):
+        svg = SVGSVG()
+        circle = SVGCircle(xy=[10, 20], rad=5)
+        svg.append(circle)
+        with open(Path(os.path.expanduser("~"), "junk.svg"), "wb") as f:
+            f.write(ET.tostring(svg.element))
+
 

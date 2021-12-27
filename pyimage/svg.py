@@ -31,6 +31,10 @@ class AbsSVG(ABC):
         # indexes every class object by its lxml delegate
         self.svg_by_lxml = {}
 
+        self.set_fill("none")
+        self.set_stroke("red")
+        self.set_stroke_width("2")
+
     def tostring(self):
         s = lxml.etree.tostring(self.element, pretty_print=True, encoding="UTF-8").decode()
         return s
@@ -61,6 +65,18 @@ class AbsSVG(ABC):
             self.calculate_bbox()
         return self.bbox
 
+    def set_fill(self, fill):
+        self.fill = fill
+        self.set_attribute("file", fill)
+
+    def set_stroke(self, stroke):
+        self.stroke = stroke
+        self.set_attribute("stroke", stroke)
+
+    def set_stroke_width(self, stroke_width):
+        self.stroke_width = stroke_width
+        self.set_attribute("stroke-width", stroke_width)
+
 
 class SVGSVG(AbsSVG):
     TAG = "svg"
@@ -70,6 +86,14 @@ class SVGSVG(AbsSVG):
         self.wrapper_by_lxml = {}  # dictionary of SVG class indexed by wrapped lxml
         self.nxml = 0  # counter of lxml elements
         self.bbox = BBox()
+        self.set_width(1200)
+        self.set_height(1200)
+
+    def set_width(self, value):
+        self.set_float_attribute("width", value)
+
+    def set_height(self, value):
+        self.set_float_attribute("height", value)
 
     def calculate_bbox(self):
         raise NotImplementedError("code not written, BBox should recurse through descendants")
@@ -156,8 +180,8 @@ class SVGCircle(AbsSVG):
     def __init__(self, xy=None, rad=None):
         super().__init__(self.TAG)
         self.bbox = BBox()
-        self.xy = xy
-        self.rad = rad
+        self.set_xy(xy)
+        self.set_rad(rad)
 
     def calculate_bbox(self):
         try:
@@ -176,10 +200,15 @@ class SVGCircle(AbsSVG):
             return False
 
     def set_rad(self, rad):
-        self.rad = rad
+        if rad is not None:
+            self.rad = rad
+            self.set_attribute("r", str(rad))
 
     def set_xy(self, xy):
-        self.xy = xy
+        if xy is not None:
+            self.xy = xy
+            self.set_attribute("cx", str(xy[0]))
+            self.set_attribute("cy", str(xy[1]))
 
 
 class SVGPath(AbsSVG):
@@ -199,8 +228,18 @@ class SVGLine(AbsSVG):
     def __init__(self, xy1, xy2):
         super().__init__(self.TAG)
         self.box = BBox()
-        self.xy1 = xy1
-        self.xy2 = xy2
+        self.set_xy1(xy1)
+        self.set_xy2(xy2)
+
+    def set_xy1(self, xy):
+        if xy is not None:
+            self.set_attribute("x1", str(xy[0]))
+            self.set_attribute("y1", str(xy[1]))
+
+    def set_xy2(self, xy):
+        if xy is not None:
+            self.set_attribute("x2", str(xy[0]))
+            self.set_attribute("y2", str(xy[1]))
 
     def calculate_bbox(self):
         raise NotImplementedError("code not written")

@@ -488,7 +488,7 @@ class AmiGraph:
     #     for edge in edges:
     #         angle = AmiEdge.get_angle_to_x(nx_graph, edge)
 
-    def get_interedge_angle(self, nx_edge0, nx_edge1):
+    def get_interedge_tuple_angle(self, nx_edge0, nx_edge1):
         """
         angle between 2 nx_edges meeting at a common point
         first component of each edge is the common node
@@ -496,6 +496,8 @@ class AmiGraph:
         :param nx_edge1:
         :return:
         """
+        assert (type(nx_edge0) is tuple), f"nx_edge0 is {type(nx_edge0)}"
+        assert (type(nx_edge1) is tuple), f"nx_edge1 is {type(nx_edge1)}"
         assert len(nx_edge0) == 3, f"edge should be 3 integers {nx_edge0}"
         assert len(nx_edge1) == 3, f"edge should be 3 integers {nx_edge1}"
         assert nx_edge0[0] == nx_edge1[0], f"edges should have a common node {nx_edge0} {nx_edge1}"
@@ -590,6 +592,14 @@ class AmiEdge:
             self.branch_id = branch_id
         self.nx_graph = ami_graph.nx_graph
         self.get_points()
+
+    def get_tuple(self):
+        """
+        get edge as (node_id, node_id2, branch_id)
+
+        :return: (self.start, self.end, self.branch_id)
+        """
+        return (self.start, self.end, self.branch_id)
 
     def get_id(self):
         """
@@ -906,6 +916,10 @@ class AmiNode:
             self.edge_dict[ami_edge.get_id()][self.NEXT_ANG] = angle
             self.edge_dict[ami_edge.get_id()][self.REMOTE] = remote_node_id
 
+    @classmethod
+    def get_xy_for_node_id(cls, nx_graph, node_id):
+        return nx_graph.nodes[node_id][AmiNode.CENTROID]
+
 
 # =====
 
@@ -1055,9 +1069,9 @@ class AmiIsland:
         return AmiGraph.get_node_ids_from_graph_with_degree(self.island_nx_graph, node_count)
 
     @classmethod
-    def get_islands_with_min_dimension(cls, max_dim, islands):
+    def get_islands_with_max_dimension_greater_than(cls, max_dim, islands):
         """
-        get islands where width and height are both >= nax_dim
+        get islands where at least one of width and height >= max_dim
         :param max_dim:
         :param islands:
         :return:
@@ -1065,9 +1079,9 @@ class AmiIsland:
         return [island for island in islands if island.get_or_create_bbox().max_dimension() >= max_dim]
 
     @classmethod
-    def get_islands_with_max_dimension(cls, min_dim, islands):
+    def get_islands_with_max_min_dimension(cls, min_dim, islands):
         """
-        get islands where width and height are both <= nax_dim
+        get islands where at least one of width and height <= min_dim
         :param min_dim:
         :param islands:
         :return:

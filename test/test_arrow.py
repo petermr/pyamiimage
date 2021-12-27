@@ -1,11 +1,14 @@
-
+import os
 import matplotlib.pyplot as plt
 import pytest
 import logging
+from pathlib import Path
+from lxml import etree
 
 from ..pyimage.ami_graph_all import AmiGraph, AmiIsland
 from ..pyimage.ami_arrow import AmiArrow
-# local
+from ..pyimage.svg import SVGSVG
+
 from ..test.resources import Resources
 
 logger = logging.getLogger(__name__)
@@ -102,7 +105,7 @@ class TestArrow:
             for edge1 in nx_edges:
                 # only do upper triangle
                 if (edge0 is not edge1) and edge0[1] < edge1[1]:
-                    angle = self.arrows1_ami_graph.get_interedge_angle(edge0, edge1)
+                    angle = self.arrows1_ami_graph.get_interedge_tuple_angle(edge0, edge1)
                     angles.append(angle)
         expected = [-1.107, 1.152, 3.058, 2.259, -2.117, 1.906]
 
@@ -113,7 +116,7 @@ class TestArrow:
         assert self.biosynth3_ami_graph is not None
         islands = self.biosynth3_ami_graph.get_or_create_ami_islands()
         assert len(islands) == 436
-        big_islands = AmiIsland.get_islands_with_min_dimension(40, islands)
+        big_islands = AmiIsland.get_islands_with_max_dimension_greater_than(40, islands)
         assert len(big_islands) == 5
 
         test_arrows = [
@@ -124,8 +127,44 @@ class TestArrow:
             "tail 1083 - head 1192 > point 1192 barbs [1178, 1179]",
         ]
         for i, island in enumerate(big_islands):
-            ami_arrow = AmiArrow.create_arrow(island)
+            ami_arrow = AmiArrow.create_simple_arrow(island)
             assert str(ami_arrow) == test_arrows[i]
+
+    def test_biosynth1(self):
+        islands = self.biosynth1_ami_graph.get_or_create_ami_islands()
+        assert len(islands) == 484
+        big_islands = AmiIsland.get_islands_with_max_dimension_greater_than(40, islands)
+        assert len(big_islands) == 18
+
+        test_arrows = [
+            str(None),
+            str(None),
+            str(None),
+            str(None),
+            "tail 428 - head 434 > point 456 barbs [429, 430]",
+            str(None),
+            str(None),
+            "tail 706 - head 718 > point 722 barbs [702, 757]",
+            "tail 792 - head 952 > point 958 barbs [950, 951]",
+            "tail 968 - head 932 > point 925 barbs [939, 940]",
+            "tail 1014 - head 997 > point 1015 barbs [967, 1066]",
+            "tail 1037 - head 1031 > point 1039 barbs [976, 1085]",
+            "tail 1115 - head 1312 > point 1340 barbs [1304, 1308]",
+            "tail 1205 - head 1381 > point 1382 barbs [1379, 1380]",
+            str(None),
+            "tail 1412 - head 1396 > point 1404 barbs [1383, 1445]",
+            str(None),
+            "tail 1594 - head 1702 > point 1703 barbs [1700, 1701]",
+        ]
+        svg = SVGSVG()
+        for i, island in enumerate(big_islands):
+            ami_arrow = AmiArrow.create_simple_arrow(island)
+            if ami_arrow is not None:
+                svg.append(ami_arrow.get_svg())
+            assert str(ami_arrow) == test_arrows[i]
+            print(f" svg {svg}")
+        with open(Path(os.path.expanduser("~"),"junk.svg"), "wb") as f:
+            f.write(etree.tostring(svg.element))
 
 
     # -------------------- helpers ---------------------

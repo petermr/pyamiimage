@@ -830,11 +830,11 @@ plt.show()"""
         assert len(islands) == 436
         counts_by_maxdim = {0: 436, 1:408, 2:408, 3: 401, 4:396,  5: 389, 6: 376, 7: 368, 10: 368, 15: 211, 22: 19, 30: 6, 50: 5, 80: 1}
         for max_dim in counts_by_maxdim:
-            islands_big = AmiIsland.get_islands_with_min_dimension(max_dim, islands)
+            islands_big = AmiIsland.get_islands_with_max_dimension_greater_than(max_dim, islands)
             assert len(islands_big) == counts_by_maxdim[max_dim]
         counts_by_mindim = {0: 42, 1: 51, 2: 79, 3: 102, 4: 115, 5: 149, 6: 169, 7:182, 8:236, 9:323, 10: 352, 15: 423, 22: 432, 30: 435, 50: 435, 100: 435}
         for min_dim in counts_by_mindim:
-            islands_big = AmiIsland.get_islands_with_max_dimension(min_dim, islands)
+            islands_big = AmiIsland.get_islands_with_max_min_dimension(min_dim, islands)
             assert len(islands_big) == counts_by_mindim[min_dim]
 
     # test helpers

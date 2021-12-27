@@ -185,6 +185,9 @@ class AmiUtil:
             raise f"cannot convet to float {type(arr[0])}"
         return farr
 
+    @classmethod
+    def swap_yx_to_xy(cls, yx):
+        return [yx[1], yx[0]]
 
 class Vector2:
 

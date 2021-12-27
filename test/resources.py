@@ -82,6 +82,7 @@ class Resources:
             self.nx_graph_arrows1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
             self.arrows1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
 
+# biosynth1 has solid arrowheads and (unfortunately) some primitives overlap
             self.biosynth1 = io.imread(Resources.BIOSYNTH1)
             assert self.biosynth1.shape == (1167, 1515)
             self.biosynth1_binary = np.where(self.biosynth1 < 127, 0, 255)
