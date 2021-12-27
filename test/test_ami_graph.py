@@ -332,20 +332,6 @@ plt.show()"""
         assert type(island_node_id_sets[0]) is AmiIsland
         assert island_node_id_sets[0].node_ids == {0, 1, 2, 3, 4, 5, 6, 7}
 
-    @unittest.skip("obsolete")
-    def test_nodes(self):
-        """
-        Tests
-        :return:
-        """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        nodex = AmiNode(nx_graph=ami_graph.nx_graph, node_id=(list(ami_graph.nx_graph.nodes)[0]))
-        node_id = 0
-        nodex = AmiNode(ami_graph=ami_graph, node_id=node_id)
-
-        xy = nodex.get_or_create_centroid_xy()
-        assert xy == [844.0, 82.0]
-
     def test_node_centroid(self):
         """
         Tests
@@ -382,6 +368,16 @@ plt.show()"""
         self.assert_degrees(ami_graph, 3, [12, 19])
         self.assert_degrees(ami_graph, 2, [])
         self.assert_degrees(ami_graph, 1, [0, 1, 3, 5, 6, 7, 8, 9, 10, 11, 14, 15, 16, 17, 20, 21, 22, 23, 25, 26])
+
+    def test_distal_node(self):
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        edge = ami_graph.get_nx_edge_list_for_node(1)[0]
+        ami_edge0 = AmiEdge(ami_graph, edge[0], edge[1], edge[2])
+        assert ami_edge0.start == 1
+        assert ami_edge0.remote_node_id(1) == 4
+        assert ami_edge0.remote_node_id(4) == 1
+        assert ami_edge0.remote_node_id(None) is None
+        assert ami_edge0.remote_node_id(3) is None
 
     def test_get_neighbours(self):
         ami_graph = self.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
@@ -493,7 +489,7 @@ plt.show()"""
             [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6)],
             [(8, 19), (9, 19), (19, 26)]
         ]
-        AmiGraph.plot_all_lines(nx_graph, lines, tolerance)
+        AmiEdge.plot_all_lines(nx_graph, lines, tolerance)
 
     def test_plot_lines_with_nodes(self):
         """adds nodes straightens lines by Douglas Peucker and plots"""
@@ -510,7 +506,7 @@ plt.show()"""
         if interactive:
             # TODO split into line segmentattion and plotting
             logger.warning("skipping line segmentation test")
-            AmiGraph.plot_all_lines(nx_graph, lines, tolerance, nodes=nodes)
+            AmiEdge.plot_all_lines(nx_graph, lines, tolerance, nodes=nodes)
 
     def test_prisma(self):
         """extract primitives from partial prisma diagram"""
@@ -530,16 +526,14 @@ plt.show()"""
         plot boxes
         erode and dilate
         """
-        nx_graph = self.nx_graph_arrows1
-        TestAmiGraph.display_erode_dilate()
+        TestAmiGraph.display_erode_dilate(self.arrows1, self.nx_graph_arrows1)
 
     def test_extract_raw_image(self):
         """extract the raw pixels (not the skeletonm) underlying the extracted lines
         plot boxes
         erode and dilate
         """
-        nx_graph = self.nx_graph_arrows1
-        self.display_erode_dilate(self.arrows1, nx_graph, erode=True, dilate=True)
+        self.display_erode_dilate(self.arrows1, self.nx_graph_arrows1, erode=True, dilate=True)
 
     def test_erode_battery(self):
         """extract the raw pixels (not the skeletonm) underlying the extracted lines

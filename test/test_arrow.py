@@ -105,9 +105,12 @@ class TestArrow:
 
         for i, island in enumerate(big_islands):
             island.id = f"is {i}"
-            node_dict = island.create_node_degree_dict()
-            logger.debug(f"{island.id} => {node_dict}")
-            AmiArrow.find_arrow_heads(island)
+            if 5 >= len(island.node_ids) >= 4:
+                # node_dict = island.create_node_degree_dict()
+                # logger.debug(f"{island.id} => {node_dict}")
+                ami_arrow = AmiArrow.create_arrow(island)
+                if ami_arrow is not None:
+                    print(ami_arrow)
 
     # -------------------- helpers ---------------------
 

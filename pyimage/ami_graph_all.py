@@ -320,31 +320,45 @@ class AmiGraph:
 
     # -------- AmiGraph/AmiNode routines
 
-    def get_angles_round_node(self, node_id, start_node=None):
+    def get_angles_round_node(self, node_id):
         """
         gets ordered lists of angles
         may not be efficient but for small numnbers of connections can be tolerated
         :param node_id:
-        :param start_node: optional first node in list
         :return: ref_node, central_node, {node: val}
         """
+        assert node_id is not None
+
         node_ids = list(self.nx_graph.neighbors(node_id))
+        assert node_ids is not None
+        assert node_ids[0] is not None, f"node_ids {node_ids}"
+
         # xys = {node_id: AmiNode(ami_graph=self, node_id=node_id).centroid_xy for node_id in node_ids}
         # print(xys.keys())
-        angle_dict = {node1: self.get_angle(node_ids[0], node_id, node1) for node1 in node_ids[1:]}
+
+        # angle_dict = {node1: self.get_angle(node_ids[0], node_id, node1) for node1 in node_ids[1:]}
+        angle_dict = {}
+        for node1 in node_ids:
+            angle = self.get_angle_between_nodes(node_ids[0], node_id, node1)
+            angle_dict[node1] = angle
         return node_ids[0], node_id, angle_dict
 
-    def get_angle(self, node0, node1, node2):
+    def get_angle_between_nodes(self, node_id0, node_id1, node_id2):
         """
         gets angle 0-1-2
-        :param node0: 
-        :param node1: 
-        :param node2: 
+        :param node_id0:
+        :param node_id1:
+        :param node_id2:
         :return: radians
         """
-        xy0 = AmiUtil.to_float_array(AmiNode(ami_graph=self, node_id=node0).centroid_xy)
-        xy1 = AmiUtil.to_float_array(AmiNode(ami_graph=self, node_id=node1).centroid_xy)
-        xy2 = AmiUtil.to_float_array(AmiNode(ami_graph=self, node_id=node2).centroid_xy)
+        assert node_id0 is not None
+        assert node_id1 is not None
+        assert node_id2 is not None
+
+        # TODO messy - recreating AmiNodes is very expensive
+        xy0 = AmiUtil.to_float_array(AmiNode(node_id0, ami_graph=self).centroid_xy)
+        xy1 = AmiUtil.to_float_array(AmiNode(node_id1, ami_graph=self).centroid_xy)
+        xy2 = AmiUtil.to_float_array(AmiNode(node_id2, ami_graph=self).centroid_xy)
         return AmiUtil.get_angle(xy0, xy1, xy2)
 
     # -------- AmiEdge routines
@@ -355,7 +369,7 @@ class AmiGraph:
         max_edge = None
         max_length = -1.0
         for edge in edges:
-            ami_edge = AmiEdge(self, edge[0], edge[1], edge_id=0)  # actual edge_id doesn't matter for distance
+            ami_edge = AmiEdge(self, edge[0], edge[1], branch_id=0)  # actual edge_id doesn't matter for distance
             length = ami_edge.get_cartesian_length()
             assert length is not None
             if length > max_length:
@@ -377,7 +391,7 @@ class AmiGraph:
                 nedges = len(list(self.nx_graph[s][e]))
                 for edge_id in range(nedges):
                     pts = self.nx_graph[s][e][edge_id]['pts']
-                    ami_edge = AmiEdge(self, s, e, edge_id=edge_id)
+                    ami_edge = AmiEdge(self, s, e, branch_id=edge_id)
                     ami_edge.plot_edge(pts, plot_target, edge_id=edge_id)
             else:
                 pts = self.nx_graph[s][e]['pts']
@@ -396,61 +410,6 @@ class AmiGraph:
             # probably a more pythomic approach
             for i in nodes:
                 plt.text(ps[i, 1], ps[i, 0], str(i))
-
-    @classmethod
-    def plot_all_lines(cls, nx_graph, lines, tolerance, nodes=None):
-        """
-        plots edges as lines
-        compare with above, maybe merge
-        :param nx_graph:
-        :param lines: to plot - where from?
-        :param tolerance:
-        :param nodes:
-        :return:
-        """
-        assert type(lines) is list, f"lines should be list {lines}"
-        fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
-        ax1.set_aspect('equal')
-        ax2.set_aspect('equal')
-
-        for line in lines:
-            # fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
-            for i, j in line:
-                assert type(i) is int, f"i should be int {type(i)}"
-                assert type(j) is int, f"j should be int {type(j)}"
-                AmiGraph.douglas_peucker_plot_line(nx_graph, i, j, tolerance, ax1, ax2, nodes=nodes)
-            plt.show()
-
-    @classmethod
-    def douglas_peucker_plot_line(cls, nx_graph, i, j, tolerance, ax1, ax2, nodes=None):
-        points = nx_graph[i][j][AmiEdge.PTS]
-
-        # original wiggly line
-        # x and y are reversed in sknw
-        ax1.plot(points[:, 1], -points[:, 0])  # negative since down the page
-        points2 = approximate_polygon(points, tolerance=tolerance)
-
-        # the line is not directed so find which end fits which node is best
-        distij = cls.move_line_ends_to_closest_node(nx_graph, (i, j), points2, move=False)
-        distji = cls.move_line_ends_to_closest_node(nx_graph, (j, i), points2, move=False)
-        ij = (i, j) if distij < distji else (j, i)
-        cls.move_line_ends_to_closest_node(nx_graph, ij, points2, move=True)
-        ax2.plot(points2[:, 1], -points2[:, 0])
-
-    @classmethod
-    def move_line_ends_to_closest_node(cls, nx_graph, ij, points, move=False):
-        pts = [points[0], points[-1]]
-        node_pts = [nx_graph.nodes[ij[0]]["o"], nx_graph.nodes[ij[1]]["o"]]
-        delta_dist = None
-        if move:
-            # print(f"line end {points[0]} moved to {node_pts[0]}")
-            points[0] = node_pts[0]
-            # print(f"line end {points[-1]} moved to {node_pts[1]}")
-            points[-1] = node_pts[1]
-        else:
-            delta_dist = math.dist(pts[0], node_pts[0]) + math.dist(pts[1], node_pts[1])
-
-        return delta_dist
 
     @classmethod
     def add_bbox_rect(cls, axis, bbox, linewidth=1, edgecolor="red", facecolor="none"):
@@ -619,32 +578,39 @@ if __name__ == '__main__':
 class AmiEdge:
     PTS = "pts"
 
-    def __init__(self, ami_graph, start, end, edge_id=None):
+    def __init__(self, ami_graph, start, end, branch_id=None):
         self.ami_graph = ami_graph
         self.start = start
         self.end = end
         self.points_xy = None
         self.bbox = None
         if ami_graph.nx_graph.is_multigraph():
-            if edge_id is None:
-                raise ValueError("edge_id for {self.start} {self.end} should be set")
-            self.edge_id = edge_id
+            if branch_id is None:
+                raise ValueError("branch_id for {self.start} {self.end} should be set")
+            self.branch_id = branch_id
         self.nx_graph = ami_graph.nx_graph
         self.get_points()
+
+    def get_id(self):
+        """
+        unique id based on start, end and branch
+
+        :return: <start>_<end>_<branch>
+        """
+        return f"{self.start}_{self.end}_{self.branch_id}"
 
     def get_points(self):
         assert self.start is not None
         assert self.end is not None
         edges = self.nx_graph[self.start][self.end]
         assert edges is not None
-        points = None
         if self.nx_graph.is_multigraph():
-            assert self.edge_id is not None
+            assert self.branch_id is not None
             try:
-                edge = edges[self.edge_id]
+                edge = edges[self.branch_id]
                 points = edge[self.PTS]
             except KeyError as e:
-                print(f"{__name__} key error {self.edge_id} {e}")
+                print(f"{__name__} key error {self.branch_id} {e}")
                 raise e
         else:
             points = edges[self.PTS]
@@ -652,6 +618,8 @@ class AmiEdge:
             # print(f"points: {len(points)} {points[:3]} ... {points[-3:]}")
             self.read_nx_edge_points_yx(points)
         return points
+
+    # class AmiEdge:
 
     def get_cartesian_length(self):
         assert self.ami_graph is not None
@@ -676,13 +644,39 @@ class AmiEdge:
         for point in points_array_yx:
             self.points_xy.append([point[1], point[0]])
 
+    # class AmiEdge:
+
     def __repr__(self):
         s = ""
         if self.points_xy is not None:
-            ll = int(len(self.points_xy) / 2)
-            s = f"ami_edge {self.start}...{self.end} ({len(self.points_xy)}) " \
-                f"{self.points_xy[:3]} ___ {self.points_xy[ll-2:ll+2]} ___ {self.points_xy[-3:]}"
+            ll = int(self.pixel_length() / 2)
+            s = f"ami_edge {self.start}...{self.end} ({self.pixel_length()}) " \
+                f"{self.points_xy[:1]}___{self.points_xy[ll - 0:ll + 1]}___{self.points_xy[-1:]}"
         return s
+
+    def pixel_length(self):
+        """
+        returns len(self.points_xy)
+        :return:
+        """
+        return len(self.points_xy)
+
+    def remote_node_id(self, node_id):
+        """
+        gets node_id at other end of edge
+        :param node_id:
+        :return: id of node at other end (None if node_id is None or not in edge)
+        """
+        if node_id is None:
+            return None
+        elif node_id == self.start:
+            return self.end
+        elif node_id == self.end:
+            return self.start
+        else:
+            return None
+
+    # class AmiEdge:
 
     def get_or_create_bbox(self):
         if self.bbox is None and self.points_xy is not None:
@@ -711,6 +705,64 @@ class AmiEdge:
         edgecolor = colors[0] if edge_id is None else colors[edge_id % len(colors)]
         plt.plot(pts[:, 1], pts[:, 0], edgecolor)
 
+    # class AmiEdge:
+
+    @classmethod
+    def plot_all_lines(cls, nx_graph, lines, tolerance):
+        """
+        plots edges as lines
+        compare with above, maybe merge
+        :param nx_graph:
+        :param lines: to plot - where from?
+        :param tolerance:
+        :return:
+        """
+        assert type(lines) is list, f"lines should be list {lines}"
+        fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
+        ax1.set_aspect('equal')
+        ax2.set_aspect('equal')
+
+        for line in lines:
+            # fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
+            for i, j in line:
+                assert type(i) is int, f"i should be int {type(i)}"
+                assert type(j) is int, f"j should be int {type(j)}"
+                AmiEdge.douglas_peucker_plot_line(nx_graph, i, j, tolerance, ax1, ax2)
+            plt.show()
+
+    @classmethod
+    def douglas_peucker_plot_line(cls, nx_graph, i, j, tolerance, ax1, ax2):
+        points = nx_graph[i][j][AmiEdge.PTS]
+
+        # original wiggly line
+        # x and y are reversed in sknw
+        ax1.plot(points[:, 1], -points[:, 0])  # negative since down the page
+        points2 = approximate_polygon(points, tolerance=tolerance)
+
+        # the line is not directed so find which end fits which node is best
+        distij = cls.move_line_ends_to_closest_node(nx_graph, (i, j), points2, move=False)
+        distji = cls.move_line_ends_to_closest_node(nx_graph, (j, i), points2, move=False)
+        ij = (i, j) if distij < distji else (j, i)
+        AmiEdge.move_line_ends_to_closest_node(nx_graph, ij, points2, move=True)
+        ax2.plot(points2[:, 1], -points2[:, 0])
+
+    # class AmiEdge:
+
+    @classmethod
+    def move_line_ends_to_closest_node(cls, nx_graph, ij, points, move=False):
+        pts = [points[0], points[-1]]
+        node_pts = [nx_graph.nodes[ij[0]]["o"], nx_graph.nodes[ij[1]]["o"]]
+        delta_dist = None
+        if move:
+            # print(f"line end {points[0]} moved to {node_pts[0]}")
+            points[0] = node_pts[0]
+            # print(f"line end {points[-1]} moved to {node_pts[1]}")
+            points[-1] = node_pts[1]
+        else:
+            delta_dist = math.dist(pts[0], node_pts[0]) + math.dist(pts[1], node_pts[1])
+
+        return delta_dist
+
 
 """a wrapper for an sknw/nx node, still being developed"""
 
@@ -731,8 +783,11 @@ class AmiNode:
     """
     CENTROID = "o"
     NODE_PTS = "pts"
+    NEXT_ANG = "next_angle"
+    PIXLEN = "pixlen"
+    REMOTE = "remote"
 
-    def __init__(self, node_id=None, ami_graph=None, nx_graph=None):
+    def __init__(self, node_id, ami_graph=None, nx_graph=None):
         """
 
         :param node_id: mandatory
@@ -740,22 +795,33 @@ class AmiNode:
         :param nx_graph: else will use nx_graph
         """
 
+        if node_id is None:
+            raise ValueError("AmiNode must have node_id")
         if len(str(node_id)) > 4:
             print(f"ami_graph {ami_graph}, nx_graph {nx_graph}")
             raise Exception(f"id should be simple {node_id}")
 
         self.ami_graph = ami_graph
         self.nx_graph = nx_graph
+
         if nx_graph is None and self.ami_graph is not None:
             self.nx_graph = self.ami_graph.nx_graph
         assert self.nx_graph is not None
-        self.centroid_xy = None if self.nx_graph is None or node_id is None \
+        assert node_id is not None
+        self.centroid_xy = None if self.nx_graph is None\
             else self.nx_graph.nodes[node_id][self.CENTROID]
+        if self.centroid_xy is None:
+            raise ValueError(f"Null centroid {node_id}")
         assert self.centroid_xy is not None
+
         self.coords_xy = None
         self.node_id = node_id
-        self.edges = None
+        self.edges = None  # is this used?
         self.node_dict = None  # is this used?
+        self.edge_dict = None
+        self.ami_edges = None
+
+# class AmiNode:
 
     def read_nx_node(self, node_dict):
         """read dict for node, contains coordinates
@@ -780,6 +846,8 @@ class AmiNode:
         """
         return list(self.nx_graph.neighbors(self.node_id))
 
+# class AmiNode:
+
     def __repr__(self):
         s = str(self.coords_xy) + "\n" + str(self.centroid_xy)
         return s
@@ -791,10 +859,54 @@ class AmiNode:
     def get_or_create_ami_edges(self):
         """
         get list of AmiEdges
-        :return:
+        :return: list of AmiEdges (empty list if none)
         """
         edge_list = self.ami_graph.get_nx_edge_list_for_node(self.node_id)
-        return [AmiEdge(self.ami_graph, edge[0], edge[1], edge_id=edge[2]) for edge in edge_list]
+        self.ami_edges = [AmiEdge(self.ami_graph, edge[0], edge[1], branch_id=edge[2]) for edge in edge_list]
+        return self.ami_edges
+
+    def create_edge_property_dict(self):
+        """
+        Retrun a dictionary of the neighbouring edges and their properties
+        :return: dictionary of each edge by id, properties include pixel length and
+        angle to next edge
+        """
+        self.get_or_create_ami_edges()
+        self.edge_dict = {}
+        assert self.node_id is not None
+        for i, ami_edge in enumerate(self.ami_edges):
+            self._add_edge_to_dict(ami_edge, i)
+        logger.debug(f"dict: {self.edge_dict}")
+        return self.edge_dict
+
+    def _add_edge_to_dict(self, ami_edge, i):
+        logger.debug(f"edge {i}: {ami_edge}")
+        remote_node_id = ami_edge.remote_node_id(self.node_id)
+        assert remote_node_id is not None
+        pixel_len = ami_edge.pixel_length()
+        self.edge_dict[ami_edge.get_id()] = {self.PIXLEN: pixel_len}
+        # get interedge angles
+        self._add_next_edge(ami_edge, remote_node_id, i)
+
+    def _add_next_edge(self, ami_edge, remote_node_id, i):
+        """
+        adds following edge and angle to it
+        (noop if only one edge)
+        :param ami_edge:
+        :param remote_node_id:
+        :param i:
+        :return:
+        """
+        if len(self.ami_edges) > 1:
+            next_edge = self.ami_edges[(i + 1) % len(self.ami_edges)]
+            next_node_id = next_edge.remote_node_id(self.node_id)
+            assert next_node_id is not None
+            logger.debug("angle ", (remote_node_id, self.node_id, next_node_id))
+            angle = self.ami_graph.get_angle_between_nodes(remote_node_id, self.node_id, next_node_id)
+            self.edge_dict[ami_edge.get_id()][self.NEXT_ANG] = angle
+            self.edge_dict[ami_edge.get_id()][self.REMOTE] = remote_node_id
+
+
 # =====
 
 
@@ -901,7 +1013,7 @@ class AmiIsland:
                 edge_list = self.ami_graph.get_nx_edge_list_for_node(node_id)
                 logger.debug(f"iterating over {edge_list}")
                 for edge in edge_list:
-                    ami_edge = AmiEdge(self.ami_graph, edge[0], edge[1], edge_id=edge[2])
+                    ami_edge = AmiEdge(self.ami_graph, edge[0], edge[1], branch_id=edge[2])
                     bbox = ami_edge.get_or_create_bbox()
                     self.bbox = self.bbox.union(bbox)
 
@@ -974,4 +1086,12 @@ class AmiIsland:
             self.node_degree_dict[degree] = nodes
         return self.node_degree_dict
 
-
+    def create_edge_property_dikt(self, node_id):
+        """
+        create dictionary for eges connected to island
+        :param node_id:
+        :return:
+        """
+        ami_node = AmiNode(node_id, ami_graph=self.ami_graph)
+        edge_dict = ami_node.create_edge_property_dict()
+        return edge_dict
