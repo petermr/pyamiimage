@@ -2,7 +2,14 @@
 This may develop into a dataclass"""
 
 from pathlib import Path
+from skimage import io
+import logging
+import numpy as np
+# local
+from ..pyimage.ami_graph_all import AmiGraph
+from ..pyimage.tesseract_hocr import TesseractOCR
 
+logger = logging.getLogger(__name__)
 
 class Resources:
     TEST_RESOURCE_DIR = Path(Path(__file__).parent, "resources")
@@ -57,3 +64,64 @@ class Resources:
     assert BATTERY1BSQUARE.exists(), f"file exists {BATTERY1BSQUARE}"
     PRIMITIVES = Path(TEST_RESOURCE_DIR, "primitives.png")
     assert PRIMITIVES.exists(), f"file exists {PRIMITIVES}"
+
+    def __init__(self):
+        self.start = False
+
+        self.arrows1_image = None
+        self.nx_graph_arrows1 = None
+
+    def create_ami_graph_objects(self):
+        print(f"{__name__} create_ami_graph_objects {self.start}")
+        if not self.start:
+            logger.warning(f"{__name__} setting up Resources" )
+            self.start = True
+            self.arrows1_image = io.imread(Resources.BIOSYNTH1_ARROWS)
+            assert self.arrows1_image.shape == (315, 1512)
+            self.arrows1_image = np.where(self.arrows1_image < 127, 0, 255)
+            self.nx_graph_arrows1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+            self.arrows1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+
+            self.biosynth1 = io.imread(Resources.BIOSYNTH1)
+            assert self.biosynth1.shape == (1167, 1515)
+            self.biosynth1_binary = np.where(self.biosynth1 < 127, 0, 255)
+            self.nx_graph_biosynth1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
+            self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH1)
+            self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
+            self.biosynth1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
+
+            self.biosynth3 = io.imread(Resources.BIOSYNTH3)
+            assert self.biosynth3.shape == (972, 1020)
+            self.biosynth3_binary = np.where(self.biosynth3 < 127, 0, 255)
+            self.nx_graph_biosynth3 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
+            self.biosynth3_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
+
+            self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH3)
+            self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
+
+            prisma = io.imread(Resources.PRISMA)
+            assert prisma.shape == (667, 977, 4)
+            self.nx_graph_prisma = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRISMA)
+
+            self.battery1_image = io.imread(Resources.BATTERY1)
+            assert self.battery1_image.shape == (546, 1354, 3)
+            self.battery1_binary = np.where(self.battery1_image < 127, 0, 255)
+            self.nx_graph_battery1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1)
+
+            self.battery1bsquare = io.imread(Resources.BATTERY1BSQUARE)
+            assert self.battery1_image.shape == (546, 1354, 3)
+            # self.battery1_binary = np.where(self.battery1 < 127, 0, 255)
+            self.nx_graph_battery1bsquare = AmiGraph.create_nx_graph_from_arbitrary_image_file(
+                Resources.BATTERY1BSQUARE)
+
+            self.primitives = io.imread(Resources.PRIMITIVES)
+            assert self.primitives.shape == (405, 720, 3)
+            self.nx_graph_primitives = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRIMITIVES)
+
+            # clear plot
+            #     plt.figure().close("all")
+            #     plt.clf() # creates unwanted blank screens
+
+            return self
+
+

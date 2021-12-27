@@ -1,4 +1,5 @@
 from skimage import data
+import os
 from skimage.filters import unsharp_mask
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -8,6 +9,7 @@ from skimage.morphology import disk  # noqa
 import numpy as np
 
 from pyimage.ami_image import AmiImage
+
 class Exploration:
 
     def sharpen_explore(self, axis=False):
@@ -153,6 +155,7 @@ You can use a combination of a reshape and np.unique to extract the unique RGB v
 """
 # Load the color palette
 from skimage import io
+raise NotImplemented("image explore, needs biosynth3??")
 palette = io.imread(os.biosynth3.join(os.getcwd(), 'color_palette.png'))
 
 # Use `np.unique` following a reshape to get the RGB values
@@ -185,3 +188,4 @@ for p in range(palette_colors.shape[0]):
 if __name__ == '__main__':
     Exploration().sharpen_explore(axis=True)
     Exploration().explore_erode_dilate()
+"""

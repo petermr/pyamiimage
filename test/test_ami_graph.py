@@ -33,44 +33,58 @@ interactive = False
 
 class TestAmiGraph:
 
+    def setup_class(self):
+        """
+        resources are created once only in self.resources.create_ami_graph_objects()
+        Make sure you don't corrupt them
+        we may need to add a copy() method
+        :return:
+        """
+        self.resources = Resources()
+        self.resources.create_ami_graph_objects()
+
     def setup_method(self, method):
-        self.start = True
-        self.arrows1 = io.imread(Resources.BIOSYNTH1_ARROWS)
-        assert self.arrows1.shape == (315, 1512)
-        self.arrows1 = np.where(self.arrows1 < 127, 0, 255)
-        self.nx_graph_arrows1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
 
-        self.biosynth1 = io.imread(Resources.BIOSYNTH1)
-        assert self.biosynth1.shape == (1167, 1515)
-        self.biosynth1_binary = np.where(self.biosynth1 < 127, 0, 255)
-        self.nx_graph_biosynth1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
-        self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH1)
-        self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
+        self.arrows1 = self.resources.arrows1_image
+        self.nx_graph_arrows1 = self.resources.nx_graph_arrows1
 
-        self.biosynth3 = io.imread(Resources.BIOSYNTH3)
-        assert self.biosynth3.shape == (972, 1020)
-        self.biosynth3_binary = np.where(self.biosynth3 < 127, 0, 255)
-        self.nx_graph_biosynth3 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
-        self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH3)
-        self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
+        # self.biosynth1 = io.imread(Resources.BIOSYNTH1)
+        # assert self.biosynth1.shape == (1167, 1515)
+        self.biosynth1_binary = self.resources.biosynth1_binary
+        # self.nx_graph_biosynth1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
+        # self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH1)
+        # self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
+        self.biosynth1_elem = self.resources.biosynth1_elem
 
-        prisma = io.imread(Resources.PRISMA)
-        assert prisma.shape == (667, 977, 4)
-        self.nx_graph_prisma = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRISMA)
+        # self.biosynth3 = io.imread(Resources.BIOSYNTH3)
+        # assert self.biosynth3.shape == (972, 1020)
+        # self.biosynth3_binary = np.where(self.biosynth3 < 127, 0, 255)
+        # self.nx_graph_biosynth3 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
+        # self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH3)
+        # self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
+        self.nx_graph_biosynth3 = self.resources.nx_graph_biosynth3
 
-        self.battery1 = io.imread(Resources.BATTERY1)
-        assert self.battery1.shape == (546, 1354, 3)
-        self.battery1_binary = np.where(self.battery1 < 127, 0, 255)
-        self.nx_graph_battery1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1)
+        # prisma = io.imread(Resources.PRISMA)
+        # assert prisma.shape == (667, 977, 4)
+        # self.nx_graph_prisma = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRISMA)
+        self.nx_graph_prisma = self.resources.nx_graph_prisma
 
-        self.battery1bsquare = io.imread(Resources.BATTERY1BSQUARE)
-        assert self.battery1.shape == (546, 1354, 3)
+        # self.battery1 = io.imread(Resources.BATTERY1)
+        # assert self.battery1.shape == (546, 1354, 3)
         # self.battery1_binary = np.where(self.battery1 < 127, 0, 255)
-        self.nx_graph_battery1bsquare = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1BSQUARE)
+        # self.nx_graph_battery1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1)
+        self.battery1_image = self.resources.battery1_image
+        self.nx_graph_battery1 = self.resources.nx_graph_battery1
 
-        self.primitives = io.imread(Resources.PRIMITIVES)
-        assert self.primitives.shape == (405, 720, 3)
-        self.nx_graph_primitives = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRIMITIVES)
+        # self.battery1bsquare = io.imread(Resources.BATTERY1BSQUARE)
+        # assert self.battery1.shape == (546, 1354, 3)
+        # # self.battery1_binary = np.where(self.battery1 < 127, 0, 255)
+        # self.nx_graph_battery1bsquare = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1BSQUARE)
+
+        # self.primitives = io.imread(Resources.PRIMITIVES)
+        # assert self.primitives.shape == (405, 720, 3)
+        # self.nx_graph_primitives = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRIMITIVES)
+        self.nx_graph_primitives = self.resources.nx_graph_primitives
 
         # clear plot
         #     plt.figure().close("all")
@@ -541,7 +555,7 @@ plt.show()"""
         erode and dilate
         """
         nx_graph = self.nx_graph_battery1
-        TestAmiGraph.display_erode_dilate(self.battery1, nx_graph)
+        TestAmiGraph.display_erode_dilate(self.battery1_image, nx_graph)
 
     def test_find_bboxes_with_text(self):
         """find text boxes and remove those with more than one character

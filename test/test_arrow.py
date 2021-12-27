@@ -11,8 +11,19 @@ from ..test.resources import Resources
 logger = logging.getLogger(__name__)
 
 class TestArrow:
+
+    def setup_class(self):
+        """
+        resources are created once only in self.resources.create_ami_graph_objects()
+        Make sure you don't corrupt them
+        we may need to add a copy() method
+        :return:
+        """
+        self.resources = Resources()
+        self.resources.create_ami_graph_objects()
+
     def setup_method(self, method):
-        self.arrows1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        self.arrows1_ami_graph = self.resources.arrows1_ami_graph
         self.islands1 = self.arrows1_ami_graph.get_or_create_ami_islands()
         assert 4 == len(self.islands1)
         self.double_arrow_island = self.islands1[0]
@@ -24,8 +35,10 @@ class TestArrow:
         assert self.one_head_island.island_nx_graph is not None
 
         # complete image includes arrows and text
-        self.biosynth1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
-        self.biosynth3_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
+        # self.biosynth1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
+        # self.biosynth3_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
+        self.biosynth1_ami_graph = self.resources.biosynth1_ami_graph
+        self.biosynth3_ami_graph = self.resources.biosynth3_ami_graph
 
     def test_extract_single_arrow(self):
         ami_graph = self.one_head_island.ami_graph
@@ -103,14 +116,17 @@ class TestArrow:
         big_islands = AmiIsland.get_islands_with_min_dimension(40, islands)
         assert len(big_islands) == 5
 
+        test_arrows = [
+            "tail 293 - head 384 > point 384 barbs [378, 379]",
+            "tail 476 - head 592 > point 592 barbs [572, 573]",
+            str(None),
+            "tail 628 - head 728 > point 728 barbs [719, 720]",
+            "tail 1083 - head 1192 > point 1192 barbs [1178, 1179]",
+        ]
         for i, island in enumerate(big_islands):
-            island.id = f"is {i}"
-            if 5 >= len(island.node_ids) >= 4:
-                # node_dict = island.create_node_degree_dict()
-                # logger.debug(f"{island.id} => {node_dict}")
-                ami_arrow = AmiArrow.create_arrow(island)
-                if ami_arrow is not None:
-                    print(ami_arrow)
+            ami_arrow = AmiArrow.create_arrow(island)
+            assert str(ami_arrow) == test_arrows[i]
+
 
     # -------------------- helpers ---------------------
 
