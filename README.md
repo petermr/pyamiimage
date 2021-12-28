@@ -20,6 +20,12 @@ Tools for image reading, conversion and writing. Most are based on skimage
 ## branches
 
 * tess_anuv - tesseract to create words and phrases
-* nodes_and_islands - analysis of components using sknw and nx_graph
+* nodes_and_islands. analysis of components using sknw and nx_graph.
+
+Provides a wrapper for `sknw` and `network.
+
+Can extract island primitives such as arrows.
+
+
 * adding_pipeline - stitching together parts of pyamiimage to form cohesive outputs from images
 
