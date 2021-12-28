@@ -9,11 +9,19 @@ from ..pyimage.bbox import BBox
 None of the SVG libraries (svgwrite, Cairo) are good for creating subclassed
 elements. This is only the common object classes ... at the moment
 """
+
+FILL = "fill"
+NONE = "none"
+RED = "red"
+
+STROKE = "stroke"
+STROKE_WIDTH = "stroke-width"
 SVG_NS = "http://www.w3.org/2000/svg"
+SVG_NS_PREF = 'svg'
 
 
 class AbsSVG(ABC):
-    lxml.etree.register_namespace('svg', SVG_NS)
+    lxml.etree.register_namespace(SVG_NS_PREF, SVG_NS)
 
     def __init__(self, tag):
         """
@@ -31,12 +39,16 @@ class AbsSVG(ABC):
         # indexes every class object by its lxml delegate
         self.svg_by_lxml = {}
 
-        self.set_fill("none")
-        self.set_stroke("red")
-        self.set_stroke_width("2")
+        self.set_fill(NONE)
+        self.set_stroke(RED)
+        self.set_stroke_width("1")
 
     def tostring(self):
         s = lxml.etree.tostring(self.element, pretty_print=True, encoding="UTF-8").decode()
+        return s
+
+    def to_raw_string(self):
+        s = lxml.etree.tostring(self.element, pretty_print=False, encoding="UTF-8").decode()
         return s
 
     def append(self, elem):
@@ -67,19 +79,21 @@ class AbsSVG(ABC):
 
     def set_fill(self, fill):
         self.fill = fill
-        self.set_attribute("file", fill)
+        self.set_attribute(FILL, fill)
 
     def set_stroke(self, stroke):
         self.stroke = stroke
-        self.set_attribute("stroke", stroke)
+        self.set_attribute(STROKE, stroke)
 
     def set_stroke_width(self, stroke_width):
         self.stroke_width = stroke_width
-        self.set_attribute("stroke-width", stroke_width)
+        self.set_attribute(STROKE_WIDTH, stroke_width)
 
 
 class SVGSVG(AbsSVG):
     TAG = "svg"
+    SVG_WIDTH = "width"
+    SVG_HEIGHT = "height"
 
     def __init__(self):
         super().__init__(self.TAG)
@@ -90,10 +104,10 @@ class SVGSVG(AbsSVG):
         self.set_height(1200)
 
     def set_width(self, value):
-        self.set_float_attribute("width", value)
+        self.set_float_attribute(self.SVG_WIDTH, value)
 
     def set_height(self, value):
-        self.set_float_attribute("height", value)
+        self.set_float_attribute(self.SVG_HEIGHT, value)
 
     def calculate_bbox(self):
         raise NotImplementedError("code not written, BBox should recurse through descendants")
@@ -177,6 +191,8 @@ class SVGRect(AbsSVG):
 class SVGCircle(AbsSVG):
     TAG = "circle"
 
+    RAD = "r"
+
     def __init__(self, xy=None, rad=None):
         super().__init__(self.TAG)
         self.bbox = BBox()
@@ -202,7 +218,7 @@ class SVGCircle(AbsSVG):
     def set_rad(self, rad):
         if rad is not None:
             self.rad = rad
-            self.set_attribute("r", str(rad))
+            self.set_attribute(self.RAD, str(rad))
 
     def set_xy(self, xy):
         if xy is not None:
@@ -224,6 +240,10 @@ class SVGPath(AbsSVG):
 
 class SVGLine(AbsSVG):
     TAG = "line"
+    X1 = "x1"
+    X2 = "x2"
+    Y1 = "y1"
+    Y2 = "y2"
 
     def __init__(self, xy1, xy2):
         super().__init__(self.TAG)
@@ -233,13 +253,13 @@ class SVGLine(AbsSVG):
 
     def set_xy1(self, xy):
         if xy is not None:
-            self.set_attribute("x1", str(xy[0]))
-            self.set_attribute("y1", str(xy[1]))
+            self.set_attribute(self.X1, str(xy[0]))
+            self.set_attribute(self.Y1, str(xy[1]))
 
     def set_xy2(self, xy):
         if xy is not None:
-            self.set_attribute("x2", str(xy[0]))
-            self.set_attribute("y2", str(xy[1]))
+            self.set_attribute(self.X2, str(xy[0]))
+            self.set_attribute(self.Y2, str(xy[1]))
 
     def calculate_bbox(self):
         raise NotImplementedError("code not written")
@@ -248,11 +268,21 @@ class SVGLine(AbsSVG):
 class SVGText(AbsSVG):
     TAG = "text"
 
+    X = "x"
+    Y = "y"
+
     def __init__(self, xy=None, text=None):
         super().__init__(self.TAG)
         self.box = BBox()
         self.xy = xy
         self.text = text
+
+
+    def set_xy(self, xy):
+        if xy is not None:
+            self.set_attribute(self.X, str(xy[0]))
+            self.set_attribute(self.Y, str(xy[1]))
+
 
     def calculate_bbox(self):
         raise NotImplementedError("code not written")
@@ -260,6 +290,8 @@ class SVGText(AbsSVG):
 
 class SVGTitle(AbsSVG):
     TAG = "title"
+
+    TITLE = "title"
 
     def __init__(self, titl=None):
         super().__init__(self.TAG)
@@ -270,7 +302,7 @@ class SVGTitle(AbsSVG):
 
     def set_title(self, titl):
         if titl is not None:
-            self.set_attribute("title", titl)
+            self.set_attribute(self.TITLE, titl)
 
     def get_bounding_box(self):
         """overrides"""
@@ -309,20 +341,20 @@ class SVGTextBox(SVGG):
         raise NotImplementedError("code not written, ")
 
 
-class AmiArrow(SVGG):
-    """
-    <g>
-      <line ... marker=arrowhead"/>
-    </g>
-    non-standard SVG component
-    """
-    def __init__(self):
-        super().__init__()
-        self.line = None
-
-    def calculate_bbox(self):
-        raise NotImplementedError("code not written")
-
+# class AmiArrow(SVGG):
+#     """
+#     <g>
+#       <line ... marker=arrowhead"/>
+#     </g>
+#     non-standard SVG component
+#     """
+#     def __init__(self):
+#         super().__init__()
+#         self.line = None
+#
+#     def calculate_bbox(self):
+#         raise NotImplementedError("code not written")
+#
 
 class SVGShape(AbsSVG):
     """suoperclass of shapes"""
