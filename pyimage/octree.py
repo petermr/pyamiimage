@@ -1,10 +1,12 @@
 # !/usr/bin/env python
 #-*- coding: utf8 -*-
 # from https://github.com/delimitry/octree_color_quantizer CC0, thanks
-from pathlib import Path
 
-from pyimage.old_code.ColorModule import Color
+# library
+from pathlib import Path
 from PIL import Image
+# local
+from ..pyimage.old_code.ColorModule import Color
 
 class OctreeNode(object):
     """

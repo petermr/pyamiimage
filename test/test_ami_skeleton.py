@@ -1,20 +1,18 @@
 """Integration of image processing, binarization, skeletonization and netwprk analysis"""
 from skan.pre import threshold
-
-from ..test.resources import Resources
+# library
 from skimage import io
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
-from PIL import Image
 from pathlib import Path
 import unittest
-
-
-from pyimage.ami_graph_all import AmiGraph
-from pyimage.ami_skeleton import AmiSkeleton
-from pyimage.ami_image import AmiImage
-from pyimage.util import Util
+# local
+from ..test.resources import Resources
+from ..pyimage.ami_graph_all import AmiGraph
+from ..pyimage.ami_skeleton import AmiSkeleton
+from ..pyimage.ami_image import AmiImage
+from ..pyimage.ami_util import AmiUtil
 
 
 class TestAmiSkeleton:
@@ -150,7 +148,6 @@ class TestAmiSkeleton:
 
     def test_skeleton_to_graph_arrows1_WORKS(self):
         """creates nodes and edges for already clipped """
-        # TODO
         # ami_skel = AmiSkeleton()
         #
         # skeleton_array = AmiImage.create_white_skeleton_from_file(Resources.BIOSYNTH1_ARROWS)
@@ -161,40 +158,19 @@ class TestAmiSkeleton:
 
 
 
-        Util.check_type_and_existence(self.arrows1_graph, nx.classes.graph.Graph)
+        AmiUtil.check_type_and_existence(self.arrows1_graph, nx.MultiGraph)
         print(f" nx {self.arrows1_graph}, {self.arrows1_graph.nodes} {self.arrows1_graph.edges}")
-        Util.check_type_and_existence(self.arrows1_graph.nodes, nx.classes.reportviews.NodeView)
+        AmiUtil.check_type_and_existence(self.arrows1_graph.nodes, nx.classes.reportviews.NodeView)
         assert list(self.arrows1_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
                                                  19, 20, 21, 22, 23, 24, 25, 26]
-        Util.check_type_and_existence(self.arrows1_graph.edges, nx.classes.reportviews.EdgeView)
-        assert list(self.arrows1_graph.edges) == [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6), (8, 19),
-                                                 (9, 19), (10, 12), (11, 13), (12, 13), (12, 18), (13, 14), (13, 15),
-                                                 (16, 18), (17, 18), (18, 20), (19, 26), (21, 24), (22, 24), (23, 24),
-                                                 (24, 25)]
+        AmiUtil.check_type_and_existence(self.arrows1_graph.edges, nx.classes.reportviews.MultiEdgeView)
+        assert list(self.arrows1_graph.edges) == [(0, 2, 0), (1, 4, 0), (2, 4, 0), (2, 3, 0), (2, 7, 0), (4, 5, 0),
+                                                  (4, 6, 0), (8, 19, 0), (9, 19, 0), (10, 12, 0), (11, 13, 0), (12, 13, 0),
+                                                  (12, 18, 0), (13, 14,  0), (13, 15, 0), (16, 18, 0), (17, 18, 0), (18, 20, 0),
+                                                  (19, 26, 0), (21, 24, 0), (22, 24, 0), (23, 24, 0), (24, 25, 0)]
+
         if self.plot_plot:
             AmiGraph.plot_nx_graph_NX(self.arrows1_graph)
-
-    @unittest.skipIf(skip_non_essential, "graphs of texts not very useful")
-    def test_skeleton_to_graph_text(self):
-        AmiSkeleton().binarize_skeletonize_sknw_nx_graph_plot_TEST(Resources.BIOSYNTH1_TEXT, self.plot_plot)
-
-    @unittest.skipIf(skip_non_essential, "graphs of everything not very useful")
-    def test_skeleton_to_graph_path1(self):
-        AmiSkeleton().binarize_skeletonize_sknw_nx_graph_plot_TEST(Resources.BIOSYNTH1, plot_plot=self.plot_plot)
-
-    @unittest.skipIf(skip_non_essential, "graphs of everything not very useful")
-    @unittest.skip("seg faults")
-    def test_skeleton_to_graph_path2(self):
-        assert Resources.BIOSYNTH2.exists(), f"file should exist {Resources.BIOSYNTH2}"
-        try:
-            AmiSkeleton().binarize_skeletonize_sknw_nx_graph_plot_TEST(Resources.BIOSYNTH2, plot_plot=self.plot_plot)
-        except Exception:
-            raise Exception("seg fault")
-
-    @unittest.skipIf(skip_non_essential, "graphs of everything not very useful")
-    def test_skeleton_to_graph_path3(self):
-        """plots all islands in page, including characters"""
-        AmiSkeleton().binarize_skeletonize_sknw_nx_graph_plot_TEST(Resources.BIOSYNTH3, plot_plot=self.plot_plot)
 
     def test_skeleton_to_graph_components_with_nodes(self):
         # skeleton_array = AmiImage.create_white_skeleton_from_file(Resources.BIOSYNTH1_ARROWS)
@@ -279,7 +255,7 @@ class TestAmiSkeleton:
         print("island", islands[0])
         margin = 2  # to overcome some of the antialiasing
         for island in islands:
-            raw_bbox = island.get_raw_box()
+            raw_bbox = island.get_raw_box()  # not used
             sub_image = ((raw_bbox[0][0]-margin, raw_bbox[0][1]+margin), (raw_bbox[1][0]-margin, raw_bbox[1][1]+margin))
             AmiGraph.set_bbox_pixels_to_color(sub_image, image)
         fig, ax = plt.subplots()

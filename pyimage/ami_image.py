@@ -10,6 +10,7 @@ from skimage import io, color, morphology
 import skimage
 from pathlib import Path
 import os
+import matplotlib.pyplot as plt
 
 
 class AmiImage:
@@ -100,8 +101,8 @@ class AmiImage:
         # assert grayscale is not None, f"cannot create grayscale image from {path}"
         # skeleton_image = AmiImage.create_white_skeleton_from_image(grayscale)
         image = io.imread(path)
-        print(f"path {path} has shape: {image.shape}")
-        print(f"AmiImage.has_alpha_channel_shape() {AmiImage.has_alpha_channel_shape(path)} for {path} ")
+        # print(f"path {path} has shape: {image.shape}")
+        # print(f"AmiImage.has_alpha_channel_shape() {AmiImage.has_alpha_channel_shape(path)} for {path} ")
         skeleton_image = cls.create_white_skeleton_from_image(image)
 
         return skeleton_image
@@ -112,12 +113,11 @@ class AmiImage:
         create skeleton_image based on white components of image
 
         :param image:
-        :return: AmiSkeleton
+        :return: skeleton image
         """
         assert image is not None
 
         binary = AmiImage.create_white_binary_from_image(image)
-        print("min, max", np.min(binary), np.max(binary))
         binary = binary/255
         mask = morphology.skeletonize(binary)
         skeleton = np.zeros(image.shape)
@@ -230,6 +230,24 @@ class AmiImage:
         if image.dtype is bool:
             return False
         return True
+
+    @classmethod
+    def pre_plot_image(cls, image_file, erode_rad=0):
+        """
+        matplotlib plots the gray image, optionally with erosion
+        runs plt.imshow, so will need plt.show() afterwards.
+
+        :param erode_rad: erosion disk radius (0 => no erode)
+        :param image_file:
+        :return:
+        """
+        assert image_file.exists(), f"{image_file} does not exist"
+        rgb = io.imread(image_file)
+        img = color.rgb2gray(rgb)
+        if erode_rad > 0:
+            disk = morphology.disk(erode_rad)
+            img = morphology.erosion(img, disk)
+        plt.imshow(img, cmap='gray')
 
     @classmethod
     def write(cls, path, image, mkdir=False, overwrite=True):

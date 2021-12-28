@@ -60,6 +60,7 @@ class BBox:
         """
         inclusive intersection of boxes (AND)
         if any fields are empty returns None
+        DOES NOT CHANGE self
         :param bbox:
         :return: new Bbox (max(min) ... (min(max)) or None if any  errors
         """
@@ -74,6 +75,8 @@ class BBox:
         """
         inclusive merging of boxes (OR)
         if any fields are empty returns None
+        DOES NOT CHANGE self
+
         :param bbox:
         :return: new Bbox (min(min) ... (max(max)) or None if any  errors
         """
@@ -88,7 +91,6 @@ class BBox:
     def intersect_range(cls, range0, range1):
         """intersects 2 range tuples"""
         rrange = ()
-        print(range0, range1)
         if len(range0) == 2 and len(range1) == 2:
             rrange = (max(range0[0], range1[0]), min(range0[1], range1[1]))
         return rrange
@@ -234,6 +236,19 @@ class BBox:
         width, height = bbox.get_width_height()
         return width < bbox_gauge[0] and height < bbox_gauge[1]
 
+    def min_dimension(self):
+        """
+        gets minimum of height and width
+        :return: min(height, width)
+        """
+        return min(self.get_width(), self.get_height())
+
+    def max_dimension(self):
+        """
+        gets maximum of height and width
+        :return: max(height, width)
+        """
+        return max(self.get_width(), self.get_height())
 
 """If you looking for the overlap between two real-valued bounded intervals, then this is quite nice:
 
