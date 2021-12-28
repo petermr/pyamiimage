@@ -11,9 +11,15 @@ Documentation on Wiki.
 
 Demos on ipynb Notebooks.
 
+# components
+
+## AmiImage
+
+Tools for image reading, conversion and writing. Most are based on skimage
+
 ## branches
 
-* tess_anuv - tesseract to create weords and phrases
-* nodes_and_islands 
-  analysis of components using sknw and nx_graph
+* tess_anuv - tesseract to create words and phrases
+* nodes_and_islands - analysis of components using sknw and nx_graph
+* adding_pipeline - stitching together parts of pyamiimage to form cohesive outputs from images
 
