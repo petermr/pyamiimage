@@ -22,7 +22,7 @@ Tools for image reading, conversion and writing. Most are based on skimage
 * tess_anuv - tesseract to create words and phrases
 * nodes_and_islands. analysis of components using sknw and nx_graph.
 
-Provides a wrapper for `sknw` and `network.
+Provides a wrapper for `sknw` and `networkX`.
 
 Can extract island primitives such as arrows.
 
