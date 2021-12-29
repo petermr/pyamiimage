@@ -1,13 +1,18 @@
 """Common SVG elements in lightweight code"""
 from lxml.etree import ElementTree, Element
 import lxml.etree
-from abc import abstractmethod, ABC
-
+from abc import ABC
+import logging
+# local
 from ..pyimage.bbox import BBox
 
-"""Seems that it's hard to subclass lxml so this is based on delegation.py
+logger = logging.getLogger(__name__)
+
+"""Seems that it's hard to subclass lxml so this is based on delegation
 None of the SVG libraries (svgwrite, Cairo) are good for creating subclassed
-elements. This is only the common object classes ... at the moment
+elements. We may add functionality to the actual lxml elements
+This is only the common object classes ... at the moment
+
 """
 
 FILL = "fill"
@@ -35,14 +40,17 @@ class AbsSVG(ABC):
         self.stroke = None
         self.stroke_width = None
 
-        self.element = Element("{" + SVG_NS + "}" + tag)
+        ns_tag = f"{{{SVG_NS}}}{tag}"
+        print("NS ", ns_tag)
+
+        ns_tag = "{" + SVG_NS + "}" + tag
+        self.element = Element(ns_tag)
         # if self.bbox is None this element cannot have a bbox
         self.bbox = None
         # if set use width, height, etc. to calculate bbox (a common default)
         self.calculate_bbox_from_values = True
         # indexes every class object by its lxml delegate
         self.svg_by_lxml = {}
-
 
     def tostring(self, pretty_print=False):
         s = lxml.etree.tostring(self.element, pretty_print=pretty_print, encoding="UTF-8").decode()
@@ -87,28 +95,6 @@ class AbsSVG(ABC):
         self.stroke_width = stroke_width
         self.set_attribute(STROKE_WIDTH, stroke_width)
 
-    def add_arrowhead(self):
-        """
-        add simple triangular arrowhead
-        need to check it hasn't been added
-        :return:
-        """
-        defs = self.get_or_create_defs()
-        marker = SVGMarker(id="arrowhead", marker_width=10, marker_height=7, refx=0, refy=3.5, orient="auto")
-        defs.append(marker)
-        polygon = SVGPolygon(points="0 0, 10 3.5, 0 7")
-        marker.append(polygon)
-
-    def get_or_create_defs(self):
-        defs = self.element.xpath(SVGDefs.TAG)
-        if len(defs) == 0:
-            defs = SVGDefs()
-            self.append(defs)
-        else:
-            print(defs, type(defs))
-            defs = defs[0]
-        return defs
-
 
 class SVGSVG(AbsSVG):
     TAG = "svg"
@@ -131,6 +117,64 @@ class SVGSVG(AbsSVG):
 
     def calculate_bbox(self):
         raise NotImplementedError("code not written, BBox should recurse through descendants")
+
+    def add_arrowhead(self):
+        """
+        add simple triangular arrowhead
+        need to check it hasn't been added
+        :return:
+        """
+        defs_element = self.get_or_create_defs()
+        assert defs_element is not None
+
+        id = "arrowhead"
+        clark_xpath = f"{{{SVG_NS}}}{SVGMarker.TAG}[@id='{id}']"
+        print("CLARK", clark_xpath)
+
+
+        marker_element = namespaced_xpath(defs_element, clark_xpath, xpath_type="clark")
+        if not marker_element:
+            marker_element = SVGMarker(id=id, marker_width=10, marker_height=7, refx=0, refy=3.5, orient="auto")
+            defs_element.append(marker_element.element)
+            polygon = SVGPolygon(points="0 0, 10 3.5, 0 7")
+            marker_element.append(polygon)
+
+    def get_or_create_defs(self):
+
+        """
+        ensure a single <defs> in <svg>
+        :return: the lxml Element (not SVGDefs)
+        """
+        svg_defs_element = None
+
+        local_name_xpath = f"*[local-name()='{SVGDefs.TAG}' and namespace-uri()='{SVG_NS}']"
+        clark_xpath = f"{{{SVG_NS}}}{SVGDefs.TAG}"
+        print("CLARK" , clark_xpath)
+
+        defs_search = namespaced_xpath(self.element, clark_xpath, xpath_type="clark")
+        assert defs_search is not None
+
+        print("svg_defs (might be Element or list()", type(defs_search))
+
+        if type(defs_search) is not list:
+            defs_search = []
+
+        if len(defs_search) == 0:
+            svg_defs = SVGDefs()
+            self.append(svg_defs)
+            logger.warning("adding single <defs> element")
+            svg_defs_element = svg_defs.element
+        elif len(defs_search) == 1:
+            svg_defs_element = defs_search[0]
+        else:
+            svg_defs_element = None
+            logger.warning(f"more than one <defs> in <svg>")
+
+        # print(f"found defs children: {svg_defs}")
+
+        if type(svg_defs_element) is list and len(svg_defs_element) == 1:
+            svg_defs_element = svg_defs_element[0]
+        return svg_defs_element
 
 
 class SVGG(AbsSVG):
@@ -392,13 +436,13 @@ class SVGMarker(AbsSVG):
 
     def __init__(self, id, marker_width=None, marker_height=None, refx=None, refy=None, orient=AUTO):
         super().__init__(self.TAG)
+        self.id = None
         self.set_id(id)
         self.set_marker_width(marker_width)
         self.set_marker_height(marker_height)
         self.set_refx(refx)
         self.set_refy(refy)
         self.set_orient(orient)
-
 
     def set_id(self, value):
         assert value is not None
@@ -448,6 +492,14 @@ class SVGPolygon(AbsSVG):
 class SVGArrow(SVGG):
 
     def __init__(self, head=None, tail=None):
+        """
+        Do not call this directly.
+        use SVGArrow.create_arrow(svg)
+        SVGArrow requires the <svg> element to have a <defs> elememt
+
+        :param head:
+        :param tail:
+        """
         super().__init__()
         self.tail = tail
         self.head = head
@@ -456,22 +508,62 @@ class SVGArrow(SVGG):
             self.line = SVGLine(xy1=tail, xy2=head)
             self.line.set_attribute(SVGMarker.MARKER_END, "url(#arrowhead)")
             self.append(self.line)
-            self.marker = SVGMarker(id="arrowhead")
-            self.marker.set_marker_start(self)
+
+    @classmethod
+    def create_arrowhead(cls, svgsvg):
+        svgsvg.add_arrowhead()
 
     def calculate_bbox(self):
         raise NotImplemented("no BBOX for {self}")
 
+
 def set_default_styles(svg_element):
+    """
+    sets fill, stroke, stroke-width to default so that at least the elements
+    is visibly displayed
+    :param svg_element:
+    :return:
+    """
     assert svg_element is not None
     svg_element.set_fill(NONE)
     svg_element.set_stroke(RED)
     svg_element.set_stroke_width("1")
 
+def namespaced_xpath(element, xpath, xpath_type):
+    """
+    searches an element with possibly namespaced Xpath
+    here we use SVG namespace as an f-string substitution
+    Two styles:
+    * local_name_xpath = f"*[local-name()='defs' and namespace-uri()='{SVG_NS}']"
+    * clark_xpath = f"{{{SVG_NS}}}defs"
+
+    They use different tools (xpath and ETXPath) and different syntaxes
+
+    :param element: element to search
+    :param xpath: xpath expression
+    :param xpath_type: "Clark" or "local"
+    :return: result of xpath (bool or number or string, or list)
+    """
+    assert element is not None
+    assert xpath is not None
+    assert xpath_type is not None
+
+    svg_defs_elements = None
+    if xpath_type is None:
+        raise ValueError("xpath_type cannot be None")
+    elif xpath_type.lower() == "local":
+        svg_defs_elements = element.xpath(xpath)
+    elif xpath_type.lower() == "clark":
+        svg_defs_elements = lxml.etree.ETXPath(xpath)(element)
+    else:
+        logger.error(f"xpath_type must be Clark or local")
+
+    return svg_defs_elements
+
 
 class XMLNamespaces:
-    svg = "http://www.w3.org/2000/svg"
-    xlink = "http://www.w3.org/1999/xlink"
+    SVG_NS = "http://www.w3.org/2000/svg"
+    XLINK_NS = "http://www.w3.org/1999/xlink"
 
 
 # --- utils ---

@@ -70,17 +70,38 @@ class TestSVG():
     def test_arrowhead(self):
         svg = SVGSVG()
         # defs = SVGDefs()
-        svg.add_arrowhead()
         # print(svg.tostring(pretty_print=True))
-        arrow = SVGArrow(head=[100,200], tail=[50, 150] )
+        arrow = SVGArrow.create_arrowhead(svg, head=[100, 200], tail=[50, 150])
         svg.append(arrow)
 
         path = Path(Path(__file__).parent.parent, "temp/arrow.svg")
         print(path)
         with open(path, "w") as f:
             f.write(svg.tostring(pretty_print=True))
-        """
- <!-- Coordinate axes with a arrowhead in both direction -->
-  <polyline points="10,10 10,90 90,90" fill="none" stroke="black"
-   marker-start="url(#arrow)" marker-end="url(#arrow)"  />        """
+
+    def test_get_defs(self):
+        svg = SVGSVG()
+        defs = svg.get_or_create_defs()
+        assert type(defs) is SVGDefs
+        # check that onlyn one is added
+        defs1 = svg.get_or_create_defs()
+        print(type(defs1), defs1)
+        assert type(defs1) is SVGDefs
+
+    def test_arrowhead(self):
+        svg = SVGSVG()
+        SVGArrow.create_arrowhead(svg)
+        arrow = SVGArrow(head=[50,75], tail=[150,200])
+        svg.append(arrow)
+        # print("SVGXX\n", ET.tostring(svg.element, pretty_print=True).decode())
+
+ #        print("SXX\n", ET.tostring(svg.element).decode())
+ #        assert """'<svg:svg xmlns:svg="http://www.w3.org/2000/svg" width="1200.0" '
+ # 'height="1200.0"><svg:defs><svg:marker id="arrowhead" markerWidth="10.0" '
+ # 'markerHeight="7.0" refX="0.0" refY="3.5" orient="auto"><svg:polygon '
+ # 'points="0 0, 10 3.5, 0 7" fill="none" stroke="red" '
+ # 'stroke-width="1"/></svg:marker></svg:defs><svg:g><svg:line x1="150" y1="200" '
+ # 'x2="50" y2="75" fill="none" stroke="red" stroke-width="1" '
+ # 'marker-end="url(#arrowhead)"/></svg:g></svg:svg>'
+ #  """ == ET.tostring(svg.element).decode()
 

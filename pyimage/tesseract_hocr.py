@@ -258,9 +258,9 @@ class TesseractOCR:
         """
         html = etree.parse(hocr_html)
         word_spans = html.findall(XHTML_OCRX_WORD)
-        svg = Element(QName(XMLNamespaces.svg, E_SVG), nsmap={
-            E_SVG: XMLNamespaces.svg,
-            A_XLINK: XMLNamespaces.xlink,
+        svg = Element(QName(XMLNamespaces.SVG_NS, E_SVG), nsmap={
+            E_SVG: XMLNamespaces.SVG_NS,
+            A_XLINK: XMLNamespaces.XLINK_NS,
         })
         for word_span in word_spans:
             title = word_span.attrib[A_TITLE]
@@ -290,13 +290,13 @@ class TesseractOCR:
         :param txt: string of constant y1 (since text is upward) starting at x1
         :return: <g> element with rect and text children
         """
-        g = Element(QName(XMLNamespaces.svg, E_G))
+        g = Element(QName(XMLNamespaces.SVG_NS, E_G))
         height = int(bbox[1][1]) - int(bbox[1][0])
 
         rect = cls.create_svg_rect_from_bbox(bbox, height)
         g.append(rect)
 
-        text = Element(QName(XMLNamespaces.svg, E_TEXT))
+        text = Element(QName(XMLNamespaces.SVG_NS, E_TEXT))
         text.attrib[A_X] = bbox[0][0]
         text.attrib[A_Y] = str(int(bbox[1][0]) + height)
         text.attrib[A_FONT_SIZE] = str(0.9 * height)
@@ -321,7 +321,7 @@ class TesseractOCR:
         assert len(bbox) == 2
         assert len(bbox[0]) == 2
         assert len(bbox[1]) == 2
-        rect = Element(QName(XMLNamespaces.svg, E_RECT))
+        rect = Element(QName(XMLNamespaces.SVG_NS, E_RECT))
         rect.attrib[A_X] = str(bbox[0][0])
         rect.attrib[A_WIDTH] = str(int(bbox[0][1]) - int(bbox[0][0]))
         rect.attrib[A_Y] = str(int(bbox[1][0]))  # kludge for offset of inverted text
