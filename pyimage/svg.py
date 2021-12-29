@@ -41,7 +41,6 @@ class AbsSVG(ABC):
         self.stroke_width = None
 
         ns_tag = f"{{{SVG_NS}}}{tag}"
-        print("NS ", ns_tag)
 
         ns_tag = "{" + SVG_NS + "}" + tag
         self.element = Element(ns_tag)
@@ -129,8 +128,7 @@ class SVGSVG(AbsSVG):
 
         id = "arrowhead"
         clark_xpath = f"{{{SVG_NS}}}{SVGMarker.TAG}[@id='{id}']"
-        print("CLARK", clark_xpath)
-
+        assert clark_xpath == f"{{http://www.w3.org/2000/svg}}marker[@id='arrowhead']", f"should be {clark_xpath}"
 
         marker_element = namespaced_xpath(defs_element, clark_xpath, xpath_type="clark")
         if not marker_element:
@@ -149,13 +147,10 @@ class SVGSVG(AbsSVG):
 
         local_name_xpath = f"*[local-name()='{SVGDefs.TAG}' and namespace-uri()='{SVG_NS}']"
         clark_xpath = f"{{{SVG_NS}}}{SVGDefs.TAG}"
-        print("CLARK" , clark_xpath)
+        assert clark_xpath == "{http://www.w3.org/2000/svg}defs"
 
         defs_search = namespaced_xpath(self.element, clark_xpath, xpath_type="clark")
         assert defs_search is not None
-
-        print("svg_defs (might be Element or list()", type(defs_search))
-
         if type(defs_search) is not list:
             defs_search = []
 
@@ -169,8 +164,6 @@ class SVGSVG(AbsSVG):
         else:
             svg_defs_element = None
             logger.warning(f"more than one <defs> in <svg>")
-
-        # print(f"found defs children: {svg_defs}")
 
         if type(svg_defs_element) is list and len(svg_defs_element) == 1:
             svg_defs_element = svg_defs_element[0]
@@ -493,9 +486,16 @@ class SVGArrow(SVGG):
 
     def __init__(self, head=None, tail=None):
         """
-        Do not call this directly.
-        use SVGArrow.create_arrow(svg)
         SVGArrow requires the <svg> element to have a <defs> elememt
+
+        Typically:
+        svg = SVGSVG()
+        SVGArrow.create_arrowhead(svg)
+        g = SVGG()
+        svg.append(g)
+        for i, island in enumerate(big_islands):
+            ami_arrow = AmiArrow.create_simple_arrow(island)
+            g.append(ami_arrow.get_svg())
 
         :param head:
         :param tail:

@@ -12,7 +12,7 @@ class TestSVG():
     def test_good_attribute(self):
         rect = SVGRect()
         rect.element.attrib["foo"] = "bar"
-        assert rect.tostring(pretty_print=False) == """<svg:rect xmlns:svg="http://www.w3.org/2000/svg" fill="none" stroke="red" stroke-width="1" foo="bar"/>"""
+        assert rect.tostring(pretty_print=False) == """<svg:rect xmlns:svg="http://www.w3.org/2000/svg" foo="bar"/>"""
 
     def test_bad_attribute(self):
         rect = SVGRect()
@@ -25,21 +25,20 @@ class TestSVG():
     def test_create_empty_rect(self):
         svg_rect = SVGRect()
         assert type(svg_rect) is SVGRect
-        # print(svg_rect.to_raw_string())
-        assert svg_rect.tostring(pretty_print=False) == """<svg:rect xmlns:svg="http://www.w3.org/2000/svg" fill="none" stroke="red" stroke-width="1"/>"""
+        assert svg_rect.tostring(pretty_print=False) == """<svg:rect xmlns:svg="http://www.w3.org/2000/svg"/>"""
 
     def test_create_empty_rect_title(self):
         rect = SVGRect()
         title = SVGTitle("title")
         rect.append(title)
-        assert rect.tostring(pretty_print=False) == """<svg:rect xmlns:svg="http://www.w3.org/2000/svg" fill="none" stroke="red" stroke-width="1"><svg:title fill="none" stroke="red" stroke-width="1" title="title"/></svg:rect>"""
+        assert rect.tostring(pretty_print=False) == """<svg:rect xmlns:svg="http://www.w3.org/2000/svg"><svg:title title="title"/></svg:rect>"""
 
     def test_create_rect_w_h(self):
         rect = SVGRect()
         rect.set_height(50)
         rect.set_width(100)
         rect.set_xy((200, 300))
-        assert rect.tostring(pretty_print=False) == """<svg:rect xmlns:svg="http://www.w3.org/2000/svg" fill="none" stroke="red" stroke-width="1" height="50.0" width="100.0" x="200.0" y="300.0"/>"""
+        assert rect.tostring(pretty_print=False) == """<svg:rect xmlns:svg="http://www.w3.org/2000/svg" height="50.0" width="100.0" x="200.0" y="300.0"/>"""
 
     def test_create_svg_rect_w_h(self):
         svg = SVGSVG()
@@ -48,17 +47,16 @@ class TestSVG():
         rect.set_height(50)
         rect.set_width(100)
         rect.set_xy((200, 300))
-        assert svg.tostring(pretty_print=False) == """<svg:svg xmlns:svg="http://www.w3.org/2000/svg" fill="none" stroke="red" stroke-width="1" width="1200.0" height="1200.0"><svg:rect fill="none" stroke="red" stroke-width="1" height="50.0" width="100.0" x="200.0" y="300.0"/></svg:svg>"""
+        assert svg.tostring(pretty_print=False) == """<svg:svg xmlns:svg="http://www.w3.org/2000/svg" width="1200.0" height="1200.0"><svg:rect height="50.0" width="100.0" x="200.0" y="300.0"/></svg:svg>"""
 
 # Circle
     def test_circle(self):
         circle = SVGCircle(xy=[10, 20], rad=5)
         bbox = circle.get_or_create_bbox()
-        print("bbox ", bbox)
         assert bbox is not None
         assert circle.is_valid()
         assert bbox.xy_ranges == [[5,15],[15,25]]
-        assert circle.tostring(pretty_print=False) == """<svg:circle xmlns:svg="http://www.w3.org/2000/svg" fill="none" stroke="red" stroke-width="1" cx="10" cy="20" r="5"/>"""
+        assert circle.tostring(pretty_print=False) == """<svg:circle xmlns:svg="http://www.w3.org/2000/svg" cx="10" cy="20" r="5"/>"""
 
     def test_write_svg(self):
         svg = SVGSVG()
@@ -69,24 +67,20 @@ class TestSVG():
 
     def test_arrowhead(self):
         svg = SVGSVG()
-        # defs = SVGDefs()
-        # print(svg.tostring(pretty_print=True))
         arrow = SVGArrow.create_arrowhead(svg, head=[100, 200], tail=[50, 150])
         svg.append(arrow)
 
         path = Path(Path(__file__).parent.parent, "temp/arrow.svg")
-        print(path)
         with open(path, "w") as f:
             f.write(svg.tostring(pretty_print=True))
 
     def test_get_defs(self):
         svg = SVGSVG()
         defs = svg.get_or_create_defs()
-        assert type(defs) is SVGDefs
-        # check that onlyn one is added
+        assert type(defs) is ET._Element
+        # check that only one is added
         defs1 = svg.get_or_create_defs()
-        print(type(defs1), defs1)
-        assert type(defs1) is SVGDefs
+        assert type(defs1) is ET._Element
 
     def test_arrowhead(self):
         svg = SVGSVG()

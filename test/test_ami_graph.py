@@ -657,7 +657,7 @@ plt.show()"""
             bbox = island.get_or_create_bbox()
             w = bbox.get_width()
             h = bbox.get_height()
-            print(f"{__name__}{bbox}")
+            # print(f"{__name__}{bbox}")
 
         """acces edges 
         EITHER list(nx_graph.edges(0, 1))[0] (the 3rd index is for mUltigraph
@@ -681,17 +681,6 @@ plt.show()"""
             print("keys", nx_graph[s][e][0].keys(), nx_graph[s][e][0]["nxg"])
 
             print("points: ", len(ps), ps[:, 1], ps[:, 0])
-
-        # pts = nx_graph[0][1][0]["pts"]
-        # edge0 = AmiEdge(points=pts)
-        # print("bbox0 ", edge0.get_or_create_bbox())
-        #
-        # pts = nx_graph[2][2][0]["pts"]
-        # edge22 = AmiEdge(points=pts)
-        # print("bbox22 ", edge22.get_or_create_bbox())
-        #
-        # image = io.imread(Resources.BATTERY1)
-        # print("image ", image.shape)
 
     def test_create_ami_nodes_from_ids(self):
         """wrap node_ids in AmiNodes"""

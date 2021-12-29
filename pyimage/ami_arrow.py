@@ -2,7 +2,7 @@ import logging
 import math
 # local
 from ..pyimage.ami_graph_all import AmiNode, AmiEdge, AmiIsland
-from ..pyimage.svg import SVGG, SVGLine, SVGCircle
+from ..pyimage.svg import SVGG, SVGLine, SVGCircle, SVGArrow
 from ..pyimage.ami_util import AmiUtil
 
 logger = logging.getLogger(__name__)
@@ -33,12 +33,6 @@ class AmiArrow:
 
     def set_point_xy(self, yx):
         self.point_xy = AmiUtil.swap_yx_to_xy(yx)
-
-    # @classmethod
-    # def annotate_graph(cls, nx_graph):
-    #     cls.annotate_4_nodes(nx_graph)
-    #     cls.annotate_3_nodes(nx_graph)
-    #     cls.annotate_1_nodes(nx_graph)
 
     @classmethod
     def create_simple_arrow(cls, island):
@@ -135,14 +129,8 @@ class AmiArrow:
         create line with arrowhead
         :return:
         """
-        g = SVGG()
-        line = SVGLine(self.point_xy, self.tail_xy)
-        line.set_attribute("stroke", "red")
-        line.set_attribute("width", "2.0")
-        g.append(line)
-        circle = SVGCircle(self.point_xy, rad=10)
-        g.append(circle)
-        return g
+        svg_arrow = SVGArrow(head=self.point_xy, tail=self.tail_xy)
+        return svg_arrow
 
 
 # ----------- utils -----------

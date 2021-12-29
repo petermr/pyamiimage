@@ -7,7 +7,7 @@ from lxml import etree
 
 from ..pyimage.ami_graph_all import AmiGraph, AmiIsland
 from ..pyimage.ami_arrow import AmiArrow
-from ..pyimage.svg import SVGSVG
+from ..pyimage.svg import SVGSVG, SVGArrow, SVGG
 
 from ..test.resources import Resources
 
@@ -157,13 +157,18 @@ class TestArrow:
             "tail 1594 - head 1702 > point 1703 barbs [1700, 1701]",
         ]
         svg = SVGSVG()
+        SVGArrow.create_arrowhead(svg)
+        g = SVGG()
+        svg.append(g)
         for i, island in enumerate(big_islands):
             ami_arrow = AmiArrow.create_simple_arrow(island)
             if ami_arrow is not None:
-                svg.append(ami_arrow.get_svg())
+                g.append(ami_arrow.get_svg())
             assert str(ami_arrow) == test_arrows[i]
-            print(f" svg {svg}")
-        with open(Path(os.path.expanduser("~"),"junk.svg"), "wb") as f:
+
+        parent = Path(__file__).parent.parent
+        path = Path(parent, "temp/biosynth1.svg")
+        with open(path, "wb") as f:
             f.write(etree.tostring(svg.element))
 
 

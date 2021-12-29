@@ -7,9 +7,12 @@ import numpy as np
 from skan.pre import threshold
 import unittest
 from lxml import etree as ET
-
+import logging
+# local
 from ..pyimage.tesseract_hocr import TesseractOCR
 from ..test.resources import Resources
+
+logger = logging.getLogger(__name__)
 
 """
 Tests for tesseract_hocr.py
@@ -76,7 +79,7 @@ class TestTesseractHOCR:
         nwhite = np.count_nonzero(binary)
         assert nwhite == 960392
         nblack = npix - nwhite
-        print(f"npix {npix}, nwhite {nwhite} nblack {nblack} nother {npix - nwhite - nblack}")
+        # print(f"npix {npix}, nwhite {nwhite} nblack {nblack} nother {npix - nwhite - nblack}")
 
         fig, ax = plt.subplots()
         ax.imshow(binary, cmap="gray")
@@ -121,7 +124,7 @@ class TestTesseractHOCR:
         try:
             qitems, desc = TesseractOCR.wikidata_lookup(phrases)
         except Exception:
-            print("Wikidata lookup not working")
+            logger.warning("Wikidata lookup not working")
 
     def test_output_phrases_to_file(self):
         sample_phrases = ["test phrase", "more test phrase", "one more"]
