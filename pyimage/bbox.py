@@ -228,7 +228,7 @@ class BBox:
 
         :param bbox: tuple of tuples ((x0,x1), (y0,y1))
         :param bbox_gauge: tuple of (width, height) that bbox must fit in
-        :return: true if firs in rectangle
+        :return: true if fits in rectangle
         """
         """
         needs to have its own class

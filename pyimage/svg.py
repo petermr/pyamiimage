@@ -194,6 +194,12 @@ class SVGRect(AbsSVG):
         self.height = None
         # BBox is formally independent of the xy,w,h i.e. could be set directly
         self.bbox = bbox
+        if self.bbox is not None:
+            self.set_xy([bbox.get_xrange()[0], bbox.get_yrange()[0]])
+            self.set_height(bbox.get_height())
+            self.set_width(bbox.get_width())
+
+
 
     def set_height(self, h):
         """
@@ -243,6 +249,17 @@ class SVGRect(AbsSVG):
     def to_xml(self):
         if self.is_valid():
             pass
+
+    # @classmethod
+    # def create_svg(cls, bbox):
+    #     """
+    #     create SVGRect from bbox
+    #     :param bbox:
+    #     :return: svg_rect or None
+    #     """
+    #     if bbox is None:
+    #         return None
+    #     SVGRect()
 
 
 class SVGCircle(AbsSVG):

@@ -35,6 +35,8 @@ class Resources:
     assert BIOSYNTH5.exists(), f"file exists {BIOSYNTH5}"
     BIOSYNTH6 = Path(TEST_RESOURCE_DIR, "biosynth_path_6.jpeg")
     assert BIOSYNTH6.exists(), f"file exists {BIOSYNTH6}"
+    BIOSYNTH6COMPOUND = Path(TEST_RESOURCE_DIR, "biosynth_path_6_compounds_only.jpeg")
+    assert BIOSYNTH6COMPOUND.exists(), f"file exists {BIOSYNTH6COMPOUND}"
     BIOSYNTH7 = Path(TEST_RESOURCE_DIR, "biosynth_path_7.jpeg")
     assert BIOSYNTH7.exists(), f"file exists {BIOSYNTH7}"
     BIOSYNTH8 = Path(TEST_RESOURCE_DIR, "biosynth_path_8.jpeg")
@@ -67,16 +69,19 @@ class Resources:
     assert PRIMITIVES.exists(), f"file exists {PRIMITIVES}"
 
     def __init__(self):
-        self.start = False
+        self.cached = False
 
         self.arrows1_image = None
         self.nx_graph_arrows1 = None
 
+
     def create_ami_graph_objects(self):
-        print(f"{__name__} create_ami_graph_objects {self.start}")
-        if not self.start:
+        """creates image derivatives
+        """
+        logger.debug(f"{__name__} create_ami_graph_objects {self.cached}")
+        if not self.cached:
             logger.warning(f"{__name__} setting up Resources" )
-            self.start = True
+            self.cached = True
             self.arrows1_image = io.imread(Resources.BIOSYNTH1_ARROWS)
             assert self.arrows1_image.shape == (315, 1512)
             self.arrows1_image = np.where(self.arrows1_image < 127, 0, 255)
@@ -92,7 +97,10 @@ class Resources:
             self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
             self.biosynth1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
 
-            self.get_processed_image_objects()
+            self.biosynth3_dto = self.get_processed_image_objects(raw_image_file = Resources.BIOSYNTH3, raw_image_shape = (972, 1020), threshold = 127)
+            self.biosynth6_compounds_dto = self.get_processed_image_objects(raw_image_file = \
+                                                    Resources.BIOSYNTH6COMPOUND, raw_image_shape = (967, 367, 3), threshold = 127)
+
 
             prisma = io.imread(Resources.PRISMA)
             assert prisma.shape == (667, 977, 4)
@@ -119,19 +127,24 @@ class Resources:
 
             return self
 
-    def get_processed_image_objects(self):
-        raw_image_file = Resources.BIOSYNTH3
-        raw_image_shape = (972, 1020)
-        threshold = 127
-        image_object = AmiImageDTO()
-        self.np_image = io.imread(raw_image_file)
+    def get_processed_image_objects(self, raw_image_file, raw_image_shape=None, threshold=127, ):
+        """
+        return Data Transfer Object containin downstream image artefacts
+        :return: DTO with artefacts
+        """
+
+        image_dto = AmiImageDTO()
+        image_dto.np_image = io.imread(raw_image_file)
         if raw_image_shape is not None:
-            assert self.np_image.shape == raw_image_shape
-        self.image_binary = np.where(self.np_image < threshold, 0, 255)
-        self.nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(raw_image_file)
-        self.ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(raw_image_file)
-        self.hocr = TesseractOCR.hocr_from_image_path(raw_image_file)
-        self.hocr_html_element = TesseractOCR.parse_hocr_string(self.hocr)
+            assert image_dto.np_image.shape == raw_image_shape, f"expected {image_dto.np_image.shape}"
+        image_dto.image_binary = np.where(image_dto.np_image < threshold, 0, 255)
+        image_dto.nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(raw_image_file)
+        image_dto.ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(raw_image_file)
+        image_dto.hocr = TesseractOCR.hocr_from_image_path(raw_image_file)
+        image_dto.hocr_html_element = TesseractOCR.parse_hocr_string(image_dto.hocr)
+
+        return image_dto
+
 
 
 

@@ -277,6 +277,14 @@ class AmiImageDTO():
     Data Transfer Object for images and downstream artefacts
 
     """
+    def __init__(self):
+        self.np_image = None
+        self.image_binary = None
+        self.nx_graph = None
+        self.ami_graph = None
+        self.hocr = None
+        self.hocr_html_element = None
+
 #    TODO def get_image_type
 #    should return
 #       RGB 0-1

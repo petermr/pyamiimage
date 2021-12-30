@@ -7,7 +7,7 @@ from lxml import etree
 
 from ..pyimage.ami_graph_all import AmiGraph, AmiIsland
 from ..pyimage.ami_arrow import AmiArrow
-from ..pyimage.svg import SVGSVG, SVGArrow, SVGG
+from ..pyimage.svg import SVGSVG, SVGArrow, SVGG, SVGRect
 
 from ..test.resources import Resources
 
@@ -41,7 +41,8 @@ class TestArrow:
         # self.biosynth1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
         # self.biosynth3_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
         self.biosynth1_ami_graph = self.resources.biosynth1_ami_graph
-        self.biosynth3_ami_graph = self.resources.ami_graph
+        self.biosynth3_ami_graph = self.resources.biosynth3_dto.ami_graph
+        self.biosynth6_compounds_ami_graph = self.resources.biosynth6_compounds_dto.ami_graph
 
     def test_extract_single_arrow(self):
         ami_graph = self.one_head_island.ami_graph
@@ -130,13 +131,16 @@ class TestArrow:
             ami_arrow = AmiArrow.create_simple_arrow(island)
             assert str(ami_arrow) == test_arrows[i]
 
-    def test_biosynth1(self):
-        islands = self.biosynth1_ami_graph.get_or_create_ami_islands()
-        assert len(islands) == 484
-        big_islands = AmiIsland.get_islands_with_max_dimension_greater_than(40, islands)
-        assert len(big_islands) == 18
-
-        test_arrows = [
+    def test_biosynth1_arrows(self):
+        """
+        extract all large islands and analyse as simple arrows
+        There are several false positives
+        :return:
+        """
+        max_dim = 40
+        total_islands = 484
+        big_island_count = 18
+        expected_arrows = [
             str(None),
             str(None),
             str(None),
@@ -156,6 +160,68 @@ class TestArrow:
             str(None),
             "tail 1594 - head 1702 > point 1703 barbs [1700, 1701]",
         ]
+        output_temp = "biosynth1_arrows.svg"
+
+        ami_graph = self.biosynth1_ami_graph
+
+        TestArrow.create_and_test_arrows(ami_graph, max_dim, big_island_count=big_island_count, expected_arrows=expected_arrows,
+                                        output_temp=output_temp, total_islands=total_islands)
+
+    def test_biosynth3_arrows(self):
+        """
+        extract all large islands and analyse as simple arrows
+        full defaults except output
+        :return:
+        """
+        TestArrow.create_and_test_arrows(self.biosynth3_ami_graph, 40,
+                                         output_temp="biosynth3_arrows.svg")
+
+    def test_biosynth6_compounds_arrows(self):
+        """
+        extract all large islands and analyse as simple arrows
+        There are several false positives
+        :return:
+        """
+        max_dim = 40
+        total_islands = 169
+        big_island_count = 8
+
+        expected_arrows = [
+            str(None),
+            str(None),
+            str(None),
+            str(None),
+            "tail 428 - head 434 > point 456 barbs [429, 430]",
+            str(None),
+            str(None),
+            "tail 706 - head 718 > point 722 barbs [702, 757]",
+            "tail 792 - head 952 > point 958 barbs [950, 951]",
+            "tail 968 - head 932 > point 925 barbs [939, 940]",
+            "tail 1014 - head 997 > point 1015 barbs [967, 1066]",
+            "tail 1037 - head 1031 > point 1039 barbs [976, 1085]",
+            "tail 1115 - head 1312 > point 1340 barbs [1304, 1308]",
+            "tail 1205 - head 1381 > point 1382 barbs [1379, 1380]",
+            str(None),
+            "tail 1412 - head 1396 > point 1404 barbs [1383, 1445]",
+            str(None),
+            "tail 1594 - head 1702 > point 1703 barbs [1700, 1701]",
+        ]
+        expected_arrows = None
+
+        output_temp = "biosynth6_compounds_arrows.svg"
+        ami_graph = self.biosynth6_compounds_ami_graph
+
+        TestArrow.create_and_test_arrows(ami_graph, max_dim, big_island_count=big_island_count, expected_arrows=expected_arrows,
+                                        output_temp=output_temp, total_islands=total_islands)
+
+    @classmethod
+    def create_and_test_arrows(cls, ami_graph, max_dim, total_islands=None, expected_arrows=None, big_island_count=None, output_temp=None):
+        islands = ami_graph.get_or_create_ami_islands()
+        if total_islands:
+            assert len(islands) == total_islands
+        big_islands = AmiIsland.get_islands_with_max_dimension_greater_than(max_dim, islands)
+        if big_island_count:
+            assert len(big_islands) == big_island_count
         svg = SVGSVG()
         SVGArrow.create_arrowhead(svg)
         g = SVGG()
@@ -164,13 +230,22 @@ class TestArrow:
             ami_arrow = AmiArrow.create_simple_arrow(island)
             if ami_arrow is not None:
                 g.append(ami_arrow.get_svg())
-            assert str(ami_arrow) == test_arrows[i]
+            else:
+                bbox = island.get_or_create_bbox()
+                svg_box = SVGRect(bbox=bbox)
+                svg_box.set_stroke("blue")
+                svg_box.set_fill("none")
+                g.append(svg_box)
+            if expected_arrows is not None:
+                assert str(ami_arrow) == expected_arrows[i]
 
-        parent = Path(__file__).parent.parent
-        path = Path(parent, "temp/biosynth1.svg")
-        with open(path, "wb") as f:
-            f.write(etree.tostring(svg.element))
-
+        # output svg
+        if output_temp:
+            parent = Path(__file__).parent.parent
+            path = Path(parent, f"temp/{output_temp}")
+            with open(path, "wb") as f:
+                f.write(etree.tostring(svg.element))
+            assert path.exists(), f"{path} should exist"
 
     # -------------------- helpers ---------------------
 
