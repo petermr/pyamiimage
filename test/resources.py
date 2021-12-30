@@ -8,6 +8,7 @@ import numpy as np
 # local
 from ..pyimage.ami_graph_all import AmiGraph
 from ..pyimage.tesseract_hocr import TesseractOCR
+from ..pyimage.ami_image import AmiImageDTO
 
 logger = logging.getLogger(__name__)
 
@@ -91,14 +92,7 @@ class Resources:
             self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
             self.biosynth1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
 
-            self.biosynth3 = io.imread(Resources.BIOSYNTH3)
-            assert self.biosynth3.shape == (972, 1020)
-            self.biosynth3_binary = np.where(self.biosynth3 < 127, 0, 255)
-            self.nx_graph_biosynth3 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
-            self.biosynth3_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
-
-            self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH3)
-            self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
+            self.get_processed_image_objects()
 
             prisma = io.imread(Resources.PRISMA)
             assert prisma.shape == (667, 977, 4)
@@ -124,5 +118,21 @@ class Resources:
             #     plt.clf() # creates unwanted blank screens
 
             return self
+
+    def get_processed_image_objects(self):
+        raw_image_file = Resources.BIOSYNTH3
+        raw_image_shape = (972, 1020)
+        threshold = 127
+        image_object = AmiImageDTO()
+        self.np_image = io.imread(raw_image_file)
+        if raw_image_shape is not None:
+            assert self.np_image.shape == raw_image_shape
+        self.image_binary = np.where(self.np_image < threshold, 0, 255)
+        self.nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(raw_image_file)
+        self.ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(raw_image_file)
+        self.hocr = TesseractOCR.hocr_from_image_path(raw_image_file)
+        self.hocr_html_element = TesseractOCR.parse_hocr_string(self.hocr)
+
+
 
 

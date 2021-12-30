@@ -62,7 +62,7 @@ class TestAmiGraph:
         # self.nx_graph_biosynth3 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
         # self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH3)
         # self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
-        self.nx_graph_biosynth3 = self.resources.nx_graph_biosynth3
+        self.nx_graph_biosynth3 = self.resources.nx_graph
 
         # prisma = io.imread(Resources.PRISMA)
         # assert prisma.shape == (667, 977, 4)

@@ -41,7 +41,7 @@ class TestArrow:
         # self.biosynth1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
         # self.biosynth3_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
         self.biosynth1_ami_graph = self.resources.biosynth1_ami_graph
-        self.biosynth3_ami_graph = self.resources.biosynth3_ami_graph
+        self.biosynth3_ami_graph = self.resources.ami_graph
 
     def test_extract_single_arrow(self):
         ami_graph = self.one_head_island.ami_graph

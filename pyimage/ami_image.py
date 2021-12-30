@@ -272,6 +272,11 @@ class AmiImage:
         io.imsave(path, image)
 
 
+class AmiImageDTO():
+    """
+    Data Transfer Object for images and downstream artefacts
+
+    """
 #    TODO def get_image_type
 #    should return
 #       RGB 0-1
