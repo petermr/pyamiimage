@@ -9,8 +9,16 @@ from ..pyimage.old_code.image_lib import Quantizer
 
 interactive = False
 
+PYAMI_DIR = Path(__file__).parent.parent
+TEST_DIR = Path(PYAMI_DIR, "test")
+PICO_DIR = Path(TEST_DIR, "alex_pico/")
+RESOURCES_DIR = Path(TEST_DIR, "resources")
+
 
 class TestOctree:
+
+    def setup_method(self, method=None):
+        pass
 
     def test_red_black(self):
         """old octree"""
@@ -33,7 +41,7 @@ class TestOctree:
     def test_81481_diagram(self):
         """old octree"""
         size = 6
-        path = Path(Path(__file__).parent.parent, "test/alex_pico/emss-81481-f001.png")
+        path = Path(PICO_DIR, "emss-81481-f001.png")
         assert path.exists()
         # img = imageio.imread(path)
         img = Image.open(path)
@@ -70,39 +78,41 @@ dither – Dithering method, used when converting from mode “RGB” to “P”
 Available methods are NONE or FLOYDSTEINBERG (default). Default: 1 (legacy setting)
 Returns A new image
 """
-        quantizer = Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/alex_pico/"), root="emss-81481-f001")
+        quantizer = Quantizer(input_dir=PICO_DIR, root="emss-81481-f001")
         quantizer.extract_color_streams()
 
     def test_example_several_color_streams(self):
+        """not yet useful tests"""
         roots = [
             "13068_2019_1355_Fig4_HTML",
-            "fmicb-09-02460-g001",
-            "pone.0054762.g004",
-            "emss-81481-f001",
+            # "fmicb-09-02460-g001",
+            # "pone.0054762.g004",
+            # "emss-81481-f001",
             ]
-        quantizer = Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/alex_pico/"), num_colors=16)
+        quantizer = Quantizer(input_dir=PICO_DIR, num_colors=16)
         for root in roots:
             quantizer.root = root
             quantizer.extract_color_streams()
 
     def test_green_battery(self):
-        Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/resources"), method="octree",
+        Quantizer(input_dir=RESOURCES_DIR, method="octree",
                   root="green").extract_color_streams()
 
     def test_example_anuv_pathways(self):
+        """not yet useful tests"""
         roots = [
             "biosynth_path_1",
-            "biosynth_path_2",
-            "biosynth_path_3",
-            "biosynth_path_4",
-            "biosynth_path_5",
-            "biosynth_path_6",
-            "biosynth_path_7",
-            "biosynth_path_8",
+            # "biosynth_path_2",
+            # "biosynth_path_3",
+            # "biosynth_path_4",
+            # "biosynth_path_5",
+            # "biosynth_path_6",
+            # "biosynth_path_7",
+            # "biosynth_path_8",
         ]
         for root in roots:
             print(f"\n=====root: {root}=====")
-            Quantizer(input_dir=Path(self.get_py4ami_dir(), "test/resources"), method="octree",
+            Quantizer(input_dir=RESOURCES_DIR, method="octree",
                       root=root).extract_color_streams()
 
     # -------- Utility --------

@@ -173,8 +173,7 @@ class TestArrow:
         full defaults except output
         :return:
         """
-        TestArrow.create_and_test_arrows(self.biosynth3_ami_graph, 40,
-                                         output_temp="biosynth3_arrows.svg")
+        TestArrow.create_and_test_arrows(self.biosynth3_ami_graph, 40, output_temp="biosynth3_arrows.svg")
 
     def test_biosynth6_compounds_arrows(self):
         """
@@ -206,13 +205,32 @@ class TestArrow:
             str(None),
             "tail 1594 - head 1702 > point 1703 barbs [1700, 1701]",
         ]
-        expected_arrows = None
+        TestArrow.create_and_test_arrows(self.biosynth6_compounds_ami_graph, max_dim, big_island_count=big_island_count,
+                                         expected_arrows=None,
+                                         output_temp="biosynth6_compounds_arrows.svg", total_islands=total_islands)
 
-        output_temp = "biosynth6_compounds_arrows.svg"
-        ami_graph = self.biosynth6_compounds_ami_graph
+    # @unittest.skip("Not yet implemented")
+    def test_several_files(self):
+        """
+        Iterate over many images, tests the arrows and ouputs
+        uses a dictiomary of parameters. This will be close to a commandline
 
-        TestArrow.create_and_test_arrows(ami_graph, max_dim, big_island_count=big_island_count, expected_arrows=expected_arrows,
-                                        output_temp=output_temp, total_islands=total_islands)
+        NYI
+        """
+        image_dict = {}
+        image_dict["biosynth3"] = {'input': None, "ami_graph": self.biosynth3_ami_graph, "temp_output": "biosynth3_arrows.svg"}
+        print(image_dict.keys())
+        for key in image_dict.keys():
+            param_dict = image_dict[key]
+            print(param_dict)
+            TestArrow.create_and_test_arrows(param_dict["ami_graph"], 40, output_temp=param_dict["temp_output"])
+
+    def test_arrows_and_text(self):
+        """simplest reaction pathway of 8 steps"""
+        self.biosynth6_compounds_ami_graph = self.resources.biosynth6_compounds_dto.ami_graph
+        image = self.resources.biosynth6_compounds_dto.image
+
+    # ------------ helpers -------------
 
     @classmethod
     def create_and_test_arrows(cls, ami_graph, max_dim, total_islands=None, expected_arrows=None, big_island_count=None, output_temp=None):

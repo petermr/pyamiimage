@@ -48,47 +48,15 @@ class TestAmiGraph:
         self.arrows1 = self.resources.arrows1_image
         self.nx_graph_arrows1 = self.resources.nx_graph_arrows1
 
-        # self.biosynth1 = io.imread(Resources.BIOSYNTH1)
-        # assert self.biosynth1.shape == (1167, 1515)
         self.biosynth1_binary = self.resources.biosynth1_binary
-        # self.nx_graph_biosynth1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
-        # self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH1)
-        # self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
         self.biosynth1_elem = self.resources.biosynth1_elem
 
-        # self.biosynth3 = io.imread(Resources.BIOSYNTH3)
-        # assert self.biosynth3.shape == (972, 1020)
-        # self.biosynth3_binary = np.where(self.biosynth3 < 127, 0, 255)
-        # self.nx_graph_biosynth3 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
-        # self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH3)
-        # self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
-        self.nx_graph_biosynth3 = self.resources.nx_graph
+        self.nx_graph_biosynth3 = self.resources.biosynth3_dto.nx_graph
 
-        # prisma = io.imread(Resources.PRISMA)
-        # assert prisma.shape == (667, 977, 4)
-        # self.nx_graph_prisma = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRISMA)
         self.nx_graph_prisma = self.resources.nx_graph_prisma
 
-        # self.battery1 = io.imread(Resources.BATTERY1)
-        # assert self.battery1.shape == (546, 1354, 3)
-        # self.battery1_binary = np.where(self.battery1 < 127, 0, 255)
-        # self.nx_graph_battery1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1)
         self.battery1_image = self.resources.battery1_image
         self.nx_graph_battery1 = self.resources.nx_graph_battery1
-
-        # self.battery1bsquare = io.imread(Resources.BATTERY1BSQUARE)
-        # assert self.battery1.shape == (546, 1354, 3)
-        # # self.battery1_binary = np.where(self.battery1 < 127, 0, 255)
-        # self.nx_graph_battery1bsquare = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1BSQUARE)
-
-        # self.primitives = io.imread(Resources.PRIMITIVES)
-        # assert self.primitives.shape == (405, 720, 3)
-        # self.nx_graph_primitives = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRIMITIVES)
-        self.nx_graph_primitives = self.resources.nx_graph_primitives
-
-        # clear plot
-        #     plt.figure().close("all")
-        #     plt.clf() # creates unwanted blank screens
 
         return self
 

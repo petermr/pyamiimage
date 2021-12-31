@@ -278,7 +278,7 @@ class AmiImageDTO():
 
     """
     def __init__(self):
-        self.np_image = None
+        self.image = None
         self.image_binary = None
         self.nx_graph = None
         self.ami_graph = None

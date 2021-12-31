@@ -74,6 +74,11 @@ class Resources:
         self.arrows1_image = None
         self.nx_graph_arrows1 = None
 
+        # DTO approach
+        self.biosynth1_dto = None
+        self.biosynth2_dto = None
+        self.biosynth3_dto = None
+
 
     def create_ami_graph_objects(self):
         """creates image derivatives
@@ -97,9 +102,6 @@ class Resources:
             self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
             self.biosynth1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
 
-            self.biosynth3_dto = self.get_processed_image_objects(raw_image_file = Resources.BIOSYNTH3, raw_image_shape = (972, 1020), threshold = 127)
-            self.biosynth6_compounds_dto = self.get_processed_image_objects(raw_image_file = \
-                                                    Resources.BIOSYNTH6COMPOUND, raw_image_shape = (967, 367, 3), threshold = 127)
 
 
             prisma = io.imread(Resources.PRISMA)
@@ -121,23 +123,32 @@ class Resources:
             assert self.primitives.shape == (405, 720, 3)
             self.nx_graph_primitives = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRIMITIVES)
 
-            # clear plot
-            #     plt.figure().close("all")
-            #     plt.clf() # creates unwanted blank screens
+# DTO approach
+            if not self.biosynth1_dto:
+                self.biosynth1_dto = self.get_image_dto(raw_image_file = Resources.BIOSYNTH1, raw_image_shape = (1167, 1515), threshold = 127)
+            # if not self.biosynth2_dto:
+            #     self.biosynth2_dto = self.get_image_dto(raw_image_file = Resources.BIOSYNTH2, raw_image_shape = (1391, 1420, 3), threshold = 127)
+            if not self.biosynth3_dto:
+                self.biosynth3_dto = self.get_image_dto(raw_image_file = Resources.BIOSYNTH3, raw_image_shape = (972, 1020), threshold = 127)
+            self.biosynth6_compounds_dto = self.get_image_dto(raw_image_file = \
+                                                    Resources.BIOSYNTH6COMPOUND, raw_image_shape = (967, 367, 3), threshold = 127)
 
             return self
 
-    def get_processed_image_objects(self, raw_image_file, raw_image_shape=None, threshold=127, ):
+    def get_image_dto(self, raw_image_file, raw_image_shape=None, threshold=127, ):
         """
         return Data Transfer Object containin downstream image artefacts
+        create one of these for each image being processed
         :return: DTO with artefacts
         """
 
         image_dto = AmiImageDTO()
-        image_dto.np_image = io.imread(raw_image_file)
+
+        image_dto.image_file = raw_image_file
+        image_dto.image = io.imread(raw_image_file)
         if raw_image_shape is not None:
-            assert image_dto.np_image.shape == raw_image_shape, f"expected {image_dto.np_image.shape}"
-        image_dto.image_binary = np.where(image_dto.np_image < threshold, 0, 255)
+            assert image_dto.image.shape == raw_image_shape, f"expected {image_dto.image.shape}"
+        image_dto.image_binary = np.where(image_dto.image < threshold, 0, 255)
         image_dto.nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(raw_image_file)
         image_dto.ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(raw_image_file)
         image_dto.hocr = TesseractOCR.hocr_from_image_path(raw_image_file)
