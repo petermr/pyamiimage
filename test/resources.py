@@ -25,6 +25,8 @@ class Resources:
     assert BIOSYNTH1_TEXT.exists(), f"file exists {BIOSYNTH1_TEXT}"
     BIOSYNTH1_ARROWS = Path(TEST_RESOURCE_DIR, "biosynth_path_1_cropped_text_removed.png")
     assert BIOSYNTH1_ARROWS.exists(), f"file exists {BIOSYNTH1_ARROWS}"
+    BIOSYNTH1_ARROWS_TEXT_SVG = Path(TEST_RESOURCE_DIR, "biosynth1_arrows_text.svg")
+    assert BIOSYNTH1_ARROWS_TEXT_SVG.exists(), f"file exists {BIOSYNTH1_ARROWS_TEXT_SVG}"
     BIOSYNTH2 = Path(TEST_RESOURCE_DIR, "biosynth_path_2.jpg")
     assert BIOSYNTH2.exists(), f"file exists {BIOSYNTH2}"
     BIOSYNTH3 = Path(TEST_RESOURCE_DIR, "biosynth_path_3.png")
@@ -78,7 +80,6 @@ class Resources:
         self.biosynth1_dto = None
         self.biosynth2_dto = None
         self.biosynth3_dto = None
-
 
     def create_ami_graph_objects(self):
         """creates image derivatives

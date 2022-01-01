@@ -1,5 +1,5 @@
 """Common SVG elements in lightweight code"""
-from lxml.etree import ElementTree, Element
+from lxml.etree import ElementTree, Element, XPathSyntaxError
 import lxml.etree
 from abc import ABC
 import logging
@@ -130,7 +130,7 @@ class SVGSVG(AbsSVG):
         clark_xpath = f"{{{SVG_NS}}}{SVGMarker.TAG}[@id='{id}']"
         assert clark_xpath == f"{{http://www.w3.org/2000/svg}}marker[@id='arrowhead']", f"should be {clark_xpath}"
 
-        marker_element = namespaced_xpath(defs_element, clark_xpath, xpath_type="clark")
+        marker_element = ns_xpath(defs_element, clark_xpath, xpath_type="clark")
         if not marker_element:
             marker_element = SVGMarker(id=id, marker_width=10, marker_height=7, refx=0, refy=3.5, orient="auto")
             defs_element.append(marker_element.element)
@@ -149,7 +149,7 @@ class SVGSVG(AbsSVG):
         clark_xpath = f"{{{SVG_NS}}}{SVGDefs.TAG}"
         assert clark_xpath == "{http://www.w3.org/2000/svg}defs"
 
-        defs_search = namespaced_xpath(self.element, clark_xpath, xpath_type="clark")
+        defs_search = ns_xpath(self.element, clark_xpath, xpath_type="clark")
         assert defs_search is not None
         if type(defs_search) is not list:
             defs_search = []
@@ -546,7 +546,7 @@ def set_default_styles(svg_element):
     svg_element.set_stroke(RED)
     svg_element.set_stroke_width("1")
 
-def namespaced_xpath(element, xpath, xpath_type):
+def ns_xpath(element, xpath, xpath_type="Clark"):
     """
     searches an element with possibly namespaced Xpath
     here we use SVG namespace as an f-string substitution
@@ -571,7 +571,11 @@ def namespaced_xpath(element, xpath, xpath_type):
     elif xpath_type.lower() == "local":
         svg_defs_elements = element.xpath(xpath)
     elif xpath_type.lower() == "clark":
-        svg_defs_elements = lxml.etree.ETXPath(xpath)(element)
+        try:
+            svg_defs_elements = lxml.etree.ETXPath(xpath)(element)
+        except XPathSyntaxError as e:
+            logger.error(f"XPATH error {e} in {xpath}")
+            raise e
     else:
         logger.error(f"xpath_type must be Clark or local")
 

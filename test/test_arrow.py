@@ -7,7 +7,8 @@ from lxml import etree
 
 from ..pyimage.ami_graph_all import AmiGraph, AmiIsland
 from ..pyimage.ami_arrow import AmiArrow
-from ..pyimage.svg import SVGSVG, SVGArrow, SVGG, SVGRect
+from ..pyimage.svg import SVGSVG, SVGArrow, SVGG, SVGRect, ns_xpath, SVG_NS
+from ..pyimage.bbox import BBox
 
 from ..test.resources import Resources
 
@@ -225,12 +226,114 @@ class TestArrow:
             print(param_dict)
             TestArrow.create_and_test_arrows(param_dict["ami_graph"], 40, output_temp=param_dict["temp_output"])
 
-    def test_arrows_and_text(self):
+    def test_arrows_and_text_biosynth6(self):
         """simplest reaction pathway of 8 steps"""
         self.biosynth6_compounds_ami_graph = self.resources.biosynth6_compounds_dto.ami_graph
         image = self.resources.biosynth6_compounds_dto.image
 
+    def test_validate_arrows_text_biosynth1(self):
+        """
+        validate prepared pathway with up/down/right/left arrows and multiple texts
+
+        :return:
+        """
+        element = etree.parse(str(self.resources.BIOSYNTH1_ARROWS_TEXT_SVG))
+        assert element is not None, f"{self.resources.BIOSYNTH1_ARROWS_TEXT_SVG}"
+        gs = ns_xpath(element, f"{{{SVG_NS}}}g")
+        assert len(gs) == 2, f"2 svg:g children expected"
+        assert len(
+            ns_xpath(element, f"{{{SVG_NS}}}g[@role='arrows']")) == 1, f"expected 1 g[@role='arrows']"
+
+        # validate arrows input
+        g_arrows = ns_xpath(element, f"{{{SVG_NS}}}g[@role='arrows']")
+        assert type(g_arrows) is list and len(g_arrows) == 1, f"expected 1-element list"
+        arrows = ns_xpath(g_arrows[0], f"{{{SVG_NS}}}g[@role='arrow']")
+        assert len(arrows) == 10, f"child g_arrows"
+        """
+        <svg:g role="arrow" orient="up">
+            <svg:rect role="bbox" position="core" x="220" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
+            <svg:rect role="bbox" position="front" x="220" width="40" y="345" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+            <svg:rect role="bbox" position="back" x="220" width="40" y="500" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+            <svg:rect role="bbox" position="left" x="180" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+            <svg:rect role="bbox" position="right" x="260" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+            <svg:line orient="up" x1="240" y1="500" x2="240" y2="385" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+        </svg:g>        
+        """
+        # rects
+        assert arrows[0].get("role") == 'arrow', "role should be arrow"
+        assert arrows[0].get("orient") == 'up', "orient should be up"
+        rects = ns_xpath(arrows[0], f"./{{{SVG_NS}}}rect[@position='core']")
+        assert len(rects) == 1, f"only one core expected"
+        assert rects[0].get("x") == "220", f"x coord of core"
+        # lines
+        lines = ns_xpath(arrows[0], f"./{{{SVG_NS}}}line")
+        assert len(lines) == 1, f"only one line expected"
+        assert lines[0].get("x1") == "240", f"x1 coord of line"
+
+        # validate texts input
+        """
+        <svg:g role="text">
+            <svg:rect role="bbox" x="195" width="148" y="357" height="28" stroke-width="1.0" stroke="red" fill="none"/>
+            <svg:text x="195" y="385" font-size="25.2" stroke="blue" font-family="sans-serif">Phytosterols</svg:text>
+        </svg:g>
+        """
+        g_text_container = ns_xpath(element, f"{{{SVG_NS}}}g[@role='texts']")
+        assert len(g_text_container) == 1, f"expected 1 g[@role='texts']"
+        texts = ns_xpath(g_text_container[0], f"{{{SVG_NS}}}g[@role='text']")
+        assert len(texts) == 28, f"child g_texts"
+
+        text0 = texts[0]
+        # rect
+        text0_rect0 = ns_xpath(text0, f"{{{SVG_NS}}}rect")
+        assert type(text0_rect0) is list, "rect0 is list"
+        assert len(text0_rect0) == 1, "rect0 has length 1"
+        rect_ = text0_rect0[0]
+        assert type(rect_) is etree._Element, f"element {rect_}"
+        assert rect_.get("role") == "bbox", f"role"
+        assert rect_.get("x") == "195", f"x"
+        # text
+        text0_text0 = ns_xpath(text0, f"{{{SVG_NS}}}text")
+        assert type(text0_text0) is list, "text0 is list"
+        assert len(text0_text0) == 1, "text0 has length 1"
+        text_ = text0_text0[0]
+        assert type(text_) is etree._Element, f"element {text_}"
+        assert text_.get("y") == "385", f"y"
+
+    def test_analyze_arrows_text_biosynth1(self):
+        """
+        analyze prepared pathway with up/down/right/left arrows and multiple texts
+        :return:
+        """
+        svgsvg = etree.parse(str(self.resources.BIOSYNTH1_ARROWS_TEXT_SVG))
+        front_arrows = ns_xpath(svgsvg, f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']/{{{SVG_NS}}}rect[@position='front']")
+        assert len(front_arrows) == 10, f"arrows"
+        for front_arrow_elem in front_arrows:
+            front_arrow_bbox = self.get_bbox(front_arrow_elem)
+            print("bbox", front_arrow_bbox)
+        texts = ns_xpath(svgsvg, f"{{{SVG_NS}}}g[@role='texts']/{{{SVG_NS}}}g[@role='text']")
+        assert len(texts) == 28, f"texts"
+        for txt in texts:
+            text_bbox_elem = ns_xpath(txt, f"{{{SVG_NS}}}rect[@role='bbox']")[0]
+            text_bbox = self.get_bbox(text_bbox_elem)
+            text_val = ns_xpath(txt, f"{{{SVG_NS}}}text")[0].text
+            for front_arrow_elem in front_arrows:
+                front_arrow_bbox = self.get_bbox(front_arrow_elem)
+                overlap = text_bbox.intersect(front_arrow_bbox)
+                if overlap.is_valid():
+                    print("front arrow", front_arrow_bbox)
+                    print("textbox", text_bbox, text_val)
+                    print("overlap",  overlap)
+
     # ------------ helpers -------------
+
+    def get_bbox(self, bbox_elem):
+        return BBox.create_from_xy_w_h(
+            [float(bbox_elem.get(BBox.X)), float(bbox_elem.get(BBox.Y))],
+            float(bbox_elem.get(BBox.WIDTH)),
+            float(bbox_elem.get(BBox.HEIGHT))
+        )
+
+
 
     @classmethod
     def create_and_test_arrows(cls, ami_graph, max_dim, total_islands=None, expected_arrows=None, big_island_count=None, output_temp=None):
@@ -264,8 +367,6 @@ class TestArrow:
             with open(path, "wb") as f:
                 f.write(etree.tostring(svg.element))
             assert path.exists(), f"{path} should exist"
-
-    # -------------------- helpers ---------------------
 
     @classmethod
     def assert_arrows(cls, ami_graph, node_id_dict):

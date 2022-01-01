@@ -20,6 +20,13 @@ class TestBBox():
         except ValueError as e:
             assert str(e) == "ranges must be increasing 100 !<= 50"
 
+    def test_create_from_xy_w_h(self):
+        xy =[100, 200]
+        width = 150
+        height = 27
+        bbox = BBox.create_from_xy_w_h(xy, width, height)
+        assert str(bbox) == str([[100, 250], [200, 227]])
+
     def test_update_bbox(self):
         bbox = BBox([[100, 200], [300, 400]])
         bbox.set_xrange([10,20])
@@ -56,6 +63,9 @@ class TestBBox():
         bbox1 = BBox([[13, 28], [27, 38]])
         bbox01 = bbox0.intersect(bbox1)
         assert bbox01.xy_ranges == [[13, 20], [30, 38]]
+        bbox2 = BBox([[21, 24], [15, 58]])
+        bbox02 = bbox0.intersect(bbox2)
+        assert bbox02.xy_ranges == [None, [30, 40]]
 
     def test_add_points(self):
         bbox = BBox()

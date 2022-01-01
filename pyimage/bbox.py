@@ -4,6 +4,12 @@
 class BBox:
     """bounding box 2array of 2arrays, based on integers
     """
+
+    X = "x"
+    Y = "y"
+    WIDTH = "width"
+    HEIGHT = "height"
+
     def __init__(self, xy_ranges=None):
         """
         Must have a valid bbox
@@ -13,13 +19,38 @@ class BBox:
         if xy_ranges is not None:
             self.set_ranges(xy_ranges)
 
+    @classmethod
+    def create_from_xy_w_h(cls, xy, width, height):
+        """
+        create from xy, width height
+        all inputs must be floats
+        :param xy: origin a [float, float]
+        :param width:
+        :param height:
+        :return:
+        """
+        assert type(xy[0]) is float
+        assert type(xy[1]) is float
+        assert type(width) is float
+        assert type(height) is float
+
+        try:
+            xy_ranges = [[float(xy[0]), float(xy[0]) + float(width)], [float(xy[1]), float(xy[1]) + float(height)]]
+        except Exception as e:
+            raise ValueError(f"cannot create bbox from {xy},{width},{height}")
+        return BBox(xy_ranges=xy_ranges)
+
+
+
     def set_ranges(self, xy_ranges):
         if xy_ranges is None:
             raise ValueError("no lists given")
         if len(xy_ranges) != 2:
             raise ValueError("must be 2 lists of lists")
-        if len(xy_ranges[0]) != 2 or len(xy_ranges[1]) != 2:
-            raise ValueError("each child list must be a 2-list")
+        if xy_ranges[0] is not None and len(xy_ranges[0]) != 2:
+            raise ValueError(f"range {xy_ranges[0]} must be None or 2-tuple")
+        if xy_ranges[1] is not None and len(xy_ranges[1]) != 2:
+            raise ValueError(f"range {xy_ranges[1]} must be None or 2-tuple")
         self.set_xrange(xy_ranges[0])
         self.set_yrange(xy_ranges[1])
 
@@ -30,7 +61,8 @@ class BBox:
         return self.xy_ranges[0]
 
     def get_width(self):
-        return self.get_xrange()[1] - self.get_xrange()[0] if len(self.get_xrange()) == 2 else None
+        assert len(self.get_xrange()) == 2, "xrange"
+        return self.get_xrange()[1] - self.get_xrange()[0]
 
     def set_yrange(self, rrange):
         self.set_range(1, rrange)
@@ -44,6 +76,9 @@ class BBox:
     def set_range(self, index, rrange):
         if index != 0 and index != 1:
             raise ValueError(f"bad tuple index {index}")
+        if rrange is None:
+            self.xy_ranges[index] = None
+            return
         val0 = int(rrange[0])
         val1 = int(rrange[1])
         if val1 < val0:
@@ -66,9 +101,13 @@ class BBox:
         """
         bbox1 = None
         if bbox is not None:
+            # print("XRanges",self.get_xrange(), bbox.get_xrange())
             xrange = self.intersect_range(self.get_xrange(), bbox.get_xrange())
+            # print("XRange", xrange)
+            # print("YRanges",self.get_yrange(), bbox.get_yrange())
             yrange = self.intersect_range(self.get_yrange(), bbox.get_yrange())
-            bbox1 = BBox((xrange, yrange))
+            # print("YRange", yrange)
+            bbox1 = BBox([xrange, yrange])
         return bbox1
 
     def union(self, bbox):
@@ -92,7 +131,9 @@ class BBox:
         """intersects 2 range tuples"""
         rrange = ()
         if len(range0) == 2 and len(range1) == 2:
-            rrange = (max(range0[0], range1[0]), min(range0[1], range1[1]))
+            maxmin = max(range0[0], range1[0])
+            minmax = min(range0[1], range1[1])
+            rrange = [maxmin, minmax] if minmax >= maxmin  else None
         return rrange
 
     @classmethod
@@ -196,8 +237,10 @@ class BBox:
         """
         if self.xy_ranges is None or len(self.xy_ranges) != 2:
             return False
+        if self.xy_ranges[0] is None or self.xy_ranges[1] is None:
+            return False
         try:
-            ok = self.get_width() >= 0 or self.get_height() >= 0
+            ok = self.get_width() >= 0 and self.get_height() >= 0
             return ok
         except Exception:
             return False
