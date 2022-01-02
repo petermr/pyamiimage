@@ -1,17 +1,32 @@
 """Common SVG elements in lightweight code"""
-from lxml.etree import ElementTree, Element
+from lxml.etree import ElementTree, Element, XPathSyntaxError
 import lxml.etree
-from abc import abstractmethod, ABC
+from abc import ABC
+import logging
+# local
+from ..pyimage.bbox import BBox
 
-"""Seems that it's hard to subclass lxml so this is based on delegation.py
+logger = logging.getLogger(__name__)
+
+"""Seems that it's hard to subclass lxml so this is based on delegation
 None of the SVG libraries (svgwrite, Cairo) are good for creating subclassed
-elements. This is only the common object classes ... at the moment
+elements. We may add functionality to the actual lxml elements
+This is only the common object classes ... at the moment
+
 """
+
+FILL = "fill"
+NONE = "none"
+RED = "red"
+
+STROKE = "stroke"
+STROKE_WIDTH = "stroke-width"
 SVG_NS = "http://www.w3.org/2000/svg"
+SVG_NS_PREF = 'svg'
 
 
 class AbsSVG(ABC):
-    lxml.etree.register_namespace('svg', SVG_NS)
+    lxml.etree.register_namespace(SVG_NS_PREF, SVG_NS)
 
     def __init__(self, tag):
         """
@@ -21,7 +36,14 @@ class AbsSVG(ABC):
         changes
         :param tag:
         """
-        self.element = Element("{"+SVG_NS+"}"+tag)
+        self.fill = None
+        self.stroke = None
+        self.stroke_width = None
+
+        ns_tag = f"{{{SVG_NS}}}{tag}"
+
+        ns_tag = "{" + SVG_NS + "}" + tag
+        self.element = Element(ns_tag)
         # if self.bbox is None this element cannot have a bbox
         self.bbox = None
         # if set use width, height, etc. to calculate bbox (a common default)
@@ -29,8 +51,8 @@ class AbsSVG(ABC):
         # indexes every class object by its lxml delegate
         self.svg_by_lxml = {}
 
-    def tostring(self):
-        s = lxml.etree.tostring(self.element, pretty_print=True, encoding="UTF-8").decode()
+    def tostring(self, pretty_print=False):
+        s = lxml.etree.tostring(self.element, pretty_print=pretty_print, encoding="UTF-8").decode()
         return s
 
     def append(self, elem):
@@ -47,30 +69,105 @@ class AbsSVG(ABC):
     def set_float_attribute(self, name, val):
         self.set_attribute(name, str(float(val)))
 
-    @abstractmethod
+    # @abstractmethod
     def calculate_bbox(self):
         """
         only applies to elements with bbox not None
         :return:
         """
+        pass
 
     def get_or_create_bbox(self):
-        if self.bbox is not None and not self.bbox.is_valid() and self.calculate_bbox_from_values:
+        if self.bbox is None or (not self.bbox.is_valid() and self.calculate_bbox_from_values):
             self.calculate_bbox()
         return self.bbox
+
+    def set_fill(self, fill):
+        self.fill = fill
+        self.set_attribute(FILL, fill)
+
+    def set_stroke(self, stroke):
+        self.stroke = stroke
+        self.set_attribute(STROKE, stroke)
+
+    def set_stroke_width(self, stroke_width):
+        self.stroke_width = stroke_width
+        self.set_attribute(STROKE_WIDTH, stroke_width)
 
 
 class SVGSVG(AbsSVG):
     TAG = "svg"
+    SVG_WIDTH = "width"
+    SVG_HEIGHT = "height"
 
     def __init__(self):
         super().__init__(self.TAG)
         self.wrapper_by_lxml = {}  # dictionary of SVG class indexed by wrapped lxml
         self.nxml = 0  # counter of lxml elements
         self.bbox = BBox()
+        self.set_width(1200)
+        self.set_height(1200)
+
+    def set_width(self, value):
+        self.set_float_attribute(self.SVG_WIDTH, value)
+
+    def set_height(self, value):
+        self.set_float_attribute(self.SVG_HEIGHT, value)
 
     def calculate_bbox(self):
         raise NotImplementedError("code not written, BBox should recurse through descendants")
+
+    def add_arrowhead(self):
+        """
+        add simple triangular arrowhead
+        need to check it hasn't been added
+        :return:
+        """
+        defs_element = self.get_or_create_defs()
+        assert defs_element is not None
+
+        id = "arrowhead"
+        clark_xpath = f"{{{SVG_NS}}}{SVGMarker.TAG}[@id='{id}']"
+        assert clark_xpath == f"{{http://www.w3.org/2000/svg}}marker[@id='arrowhead']", f"should be {clark_xpath}"
+
+        marker_element = ns_xpath(defs_element, clark_xpath, xpath_type="clark")
+        if not marker_element:
+            marker_element = SVGMarker(id=id, marker_width=10, marker_height=7, refx=0, refy=3.5, orient="auto")
+            defs_element.append(marker_element.element)
+            polygon = SVGPolygon(points="0 0, 10 3.5, 0 7")
+            marker_element.append(polygon)
+
+    def get_or_create_defs(self):
+
+        """
+        ensure a single <defs> in <svg>
+        :return: the lxml Element (not SVGDefs)
+        """
+        svg_defs_element = None
+
+        local_name_xpath = f"*[local-name()='{SVGDefs.TAG}' and namespace-uri()='{SVG_NS}']"
+        clark_xpath = f"{{{SVG_NS}}}{SVGDefs.TAG}"
+        assert clark_xpath == "{http://www.w3.org/2000/svg}defs"
+
+        defs_search = ns_xpath(self.element, clark_xpath, xpath_type="clark")
+        assert defs_search is not None
+        if type(defs_search) is not list:
+            defs_search = []
+
+        if len(defs_search) == 0:
+            svg_defs = SVGDefs()
+            self.append(svg_defs)
+            logger.warning("adding single <defs> element")
+            svg_defs_element = svg_defs.element
+        elif len(defs_search) == 1:
+            svg_defs_element = defs_search[0]
+        else:
+            svg_defs_element = None
+            logger.warning(f"more than one <defs> in <svg>")
+
+        if type(svg_defs_element) is list and len(svg_defs_element) == 1:
+            svg_defs_element = svg_defs_element[0]
+        return svg_defs_element
 
 
 class SVGG(AbsSVG):
@@ -96,7 +193,13 @@ class SVGRect(AbsSVG):
         self.width = None
         self.height = None
         # BBox is formally independent of the xy,w,h i.e. could be set directly
-        self.bbox = BBox()
+        self.bbox = bbox
+        if self.bbox is not None:
+            self.set_xy([bbox.get_xrange()[0], bbox.get_yrange()[0]])
+            self.set_height(bbox.get_height())
+            self.set_width(bbox.get_width())
+
+
 
     def set_height(self, h):
         """
@@ -147,20 +250,35 @@ class SVGRect(AbsSVG):
         if self.is_valid():
             pass
 
+    # @classmethod
+    # def create_svg(cls, bbox):
+    #     """
+    #     create SVGRect from bbox
+    #     :param bbox:
+    #     :return: svg_rect or None
+    #     """
+    #     if bbox is None:
+    #         return None
+    #     SVGRect()
+
 
 class SVGCircle(AbsSVG):
     TAG = "circle"
 
+    RAD = "r"
+
     def __init__(self, xy=None, rad=None):
         super().__init__(self.TAG)
         self.bbox = BBox()
-        self.xy = xy
-        self.rad = rad
+        self.rad = None
+        self.xy = None
+        self.set_xy(xy)
+        self.set_rad(rad)
 
     def calculate_bbox(self):
         try:
-            xrange = [self.xy[0] - self.rad, self.xy[0] + self.rad]  
-            yrange = [self.xy[1] - self.rad, self.xy[1] + self.rad]  
+            xrange = [self.xy[0] - self.rad, self.xy[0] + self.rad]
+            yrange = [self.xy[1] - self.rad, self.xy[1] + self.rad]
         except ValueError:
             xrange = None
             yrange = None
@@ -174,10 +292,15 @@ class SVGCircle(AbsSVG):
             return False
 
     def set_rad(self, rad):
-        self.rad = rad
+        if rad is not None:
+            self.rad = rad
+            self.set_attribute(self.RAD, str(rad))
 
     def set_xy(self, xy):
-        self.xy = xy
+        if xy is not None:
+            self.xy = xy
+            self.set_attribute("cx", str(xy[0]))
+            self.set_attribute("cy", str(xy[1]))
 
 
 class SVGPath(AbsSVG):
@@ -193,12 +316,27 @@ class SVGPath(AbsSVG):
 
 class SVGLine(AbsSVG):
     TAG = "line"
+    X1 = "x1"
+    X2 = "x2"
+    Y1 = "y1"
+    Y2 = "y2"
 
     def __init__(self, xy1, xy2):
         super().__init__(self.TAG)
         self.box = BBox()
-        self.xy1 = xy1
-        self.xy2 = xy2
+        self.set_xy1(xy1)
+        self.set_xy2(xy2)
+        set_default_styles(self)
+
+    def set_xy1(self, xy):
+        if xy is not None:
+            self.set_attribute(self.X1, str(xy[0]))
+            self.set_attribute(self.Y1, str(xy[1]))
+
+    def set_xy2(self, xy):
+        if xy is not None:
+            self.set_attribute(self.X2, str(xy[0]))
+            self.set_attribute(self.Y2, str(xy[1]))
 
     def calculate_bbox(self):
         raise NotImplementedError("code not written")
@@ -207,11 +345,19 @@ class SVGLine(AbsSVG):
 class SVGText(AbsSVG):
     TAG = "text"
 
+    X = "x"
+    Y = "y"
+
     def __init__(self, xy=None, text=None):
         super().__init__(self.TAG)
         self.box = BBox()
         self.xy = xy
         self.text = text
+
+    def set_xy(self, xy):
+        if xy is not None:
+            self.set_attribute(self.X, str(xy[0]))
+            self.set_attribute(self.Y, str(xy[1]))
 
     def calculate_bbox(self):
         raise NotImplementedError("code not written")
@@ -219,6 +365,8 @@ class SVGText(AbsSVG):
 
 class SVGTitle(AbsSVG):
     TAG = "title"
+
+    TITLE = "title"
 
     def __init__(self, titl=None):
         super().__init__(self.TAG)
@@ -229,20 +377,23 @@ class SVGTitle(AbsSVG):
 
     def set_title(self, titl):
         if titl is not None:
-            self.set_attribute("title", titl)
+            self.set_attribute(self.TITLE, titl)
 
     def get_bounding_box(self):
         """overrides"""
-        return None
+        foo = None
+        return foo
 
 
 class SVGTextBox(SVGG):
-    """This will contain text and a shape (for drawing)"""
+    """This will contain text and a shape (for drawing)
+    Not an SVG primitive"""
 
     def __init__(self, svg_text=None, svg_shape=None):
         super().__init__()
         self.box = BBox()
         self.svgg = SVGG()
+        self.shape = None
         self.set_text(svg_text)
         self.set_shape(svg_shape)
 
@@ -256,212 +407,187 @@ class SVGTextBox(SVGG):
             assert type(svg_text) is SVGText
             self.svgg.append(svg_text)
 
-    def set_shape(self, svg_shape):
-        if svg_shape is not None:
-            assert type(svg_shape) is SVGShape
-            self.svgg.append(svg_shape)
+    def set_shape(self, shape):
+        if type(shape) is SVGRect or type(shape) is SVGCircle:
+            self.shape = shape
 
     def calculate_bbox(self):
         raise NotImplementedError("code not written, ")
 
 
-class BBox:
-    """bounding box tuple2 of tuple2s
-    """
-    def __init__(self, xy_ranges=None):
-        """
-        Must have a valid bbox
-        :param xy_ranges:
-        """
-        self.xy_ranges = [[], []]
-        if xy_ranges is not None:
-            self.set_ranges(xy_ranges)
-
-    def set_ranges(self, xy_ranges):
-        if xy_ranges is None:
-            raise ValueError("no lists given")
-        if len(xy_ranges) != 2:
-            raise ValueError("must be 2 lists of lists")
-        if len(xy_ranges[0]) != 2 or len(xy_ranges[1]) != 2:
-            raise ValueError("each child list must be a 2-list")
-        self.set_xrange(xy_ranges[0])
-        self.set_yrange(xy_ranges[1])
-
-    def set_xrange(self, rrange):
-        self.set_range(0, rrange)
-
-    def get_xrange(self):
-        return self.xy_ranges[0]
-
-    def get_width(self):
-        return self.get_xrange()[1] - self.get_xrange()[0] if len(self.get_xrange()) == 2 else None
-
-    def set_yrange(self, rrange):
-        self.set_range(1, rrange)
-
-    def get_yrange(self):
-        return self.xy_ranges[1]
-
-    def get_height(self):
-        return self.get_yrange()[1] - self.get_yrange()[0] if len(self.get_yrange()) == 2 else None
-
-    def set_range(self, index, rrange):
-        if index != 0 and index != 1:
-            raise ValueError(f"bad tuple index {index}")
-        val0 = float(rrange[0])
-        val1 = float(rrange[1])
-        if val1 < val0:
-            raise ValueError(f"ranges must be increasing {val0} !<= {val1}")
-        self.xy_ranges[index] = [val0, val1]
-
-    def __str__(self):
-        return str(self.xy_ranges)
-
-    def intersect(self, bbox):
-        """
-        inclusive intersection of boxes (AND)
-        if any fields are empty returns None
-        :param bbox:
-        :return: new Bbox (max(min) ... (min(max)) or None if any  errors
-        """
-        bbox1 = None
-        if bbox is not None:
-            xrange = self.intersect_range(self.get_xrange(), bbox.get_xrange())
-            yrange = self.intersect_range(self.get_yrange(), bbox.get_yrange())
-            bbox1 = BBox((xrange, yrange))
-        return bbox1
-
-    def union(self, bbox):
-        """
-        inclusive merging of boxes (OR)
-        if any fields are empty returns None
-        :param bbox:
-        :return: new Bbox (min(min) ... (max(max)) or None if any  errors
-        """
-        bbox1 = None
-        if bbox is not None:
-            xrange = self.union_range(self.get_xrange(), bbox.get_xrange())
-            yrange = self.union_range(self.get_yrange(), bbox.get_yrange())
-            bbox1 = BBox((xrange, yrange))
-        return bbox1
-
-    @classmethod
-    def intersect_range(cls, range0, range1):
-        """intersects 2 range tuples"""
-        rrange = ()
-        print(range0, range1)
-        if len(range0) == 2 and len(range1) == 2:
-            rrange = (max(range0[0], range1[0]), min(range0[1], range1[1]))
-        return rrange
-
-    @classmethod
-    def union_range(cls, range0, range1):
-        """intersects 2 range tuples"""
-        rrange = []
-        if len(range0) == 2 and len(range1) == 2:
-            rrange = [min(range0[0], range1[0]), max(range0[1], range1[1])]
-        return rrange
-
-    def add_coordinate(self, xy_tuple):
-        self.add_to_range(0, self.get_xrange(), xy_tuple[0])
-        self.add_to_range(1, self.get_yrange(), xy_tuple[1])
-
-    def add_to_range(self, index, rrange, coord):
-        """if coord outside range , expand range
-        :param index:
-        :param rrange: x or y range
-        :param coord: x or y coord
-        :return: None (changes range)
-        """
-        if index != 0 and index != 1:
-            raise ValueError(f"bad index {index}")
-        if len(rrange) != 2:
-            rrange = [None, None]
-        if rrange[0] is None or coord < rrange[0]:
-            rrange[0] = coord
-        if rrange[1] is None or coord > rrange[1]:
-            rrange[1] = coord
-        self.xy_ranges[index] = rrange
-        return rrange
-
-    @classmethod
-    def create_box(cls, xy, width, height):
-        if xy is None or width is None or height is None:
-            raise ValueError("All params must be not None")
-        width = float(width)
-        height = float(height)
-        if len(xy) != 2:
-            raise ValueError("xy must be an array of 2 values")
-        if width < 0 or height < 0:
-            raise ValueError("width and height must be non negative")
-        xrange = float(xy[0]) + float(width)
-        yrange = float(xy[1]) + float(height)
-        bbox = BBox.create_from_ranges(xrange, yrange)
-        return bbox
-
-    @classmethod
-    def create_from_ranges(cls, xr, yr):
-        """
-        create from 2 2-arrays
-        :param xr:
-        :param yr:
-        :return:
-        """
-        bbox = BBox()
-        bbox.set_xrange(xr)
-        bbox.set_yrange(yr)
-        return bbox
-
-    def is_valid(self):
-        """
-        both ranges must be present and non-negative
-        :return:
-        """
-        if self.xy_ranges is None or len(self.xy_ranges) != 2:
-            return False
-        try:
-            ok = self.get_width() >= 0 or self.get_height() >= 0
-            return ok
-        except Exception:
-            return False
-
-    def set_invalid(self):
-        """set xy_ranges to None"""
-        self.xy_ranges = None
-
-
-"""If you looking for the overlap between two real-valued bounded intervals, then this is quite nice:
-
-def overlap(start1, end1, start2, end2):
-    how much does the range (start1, end1) overlap with (start2, end2)
-    return max(max((end2-start1), 0) - max((end2-end1), 0) - max((start2-start1), 0), 0)
-I couldn't find this online anywhere so I came up with this and I'm posting here."""
-
-
-class AmiArrow(SVGG):
-    """
-    <g>
-      <line ... marker=arrowhead"/>
-    </g>
-    """
-    def __init__(self):
-        super().__init__()
-        self.line = None
-
-    def calculate_bbox(self):
-        raise NotImplementedError("code not written")
-
-
-class SVGShape(AbsSVG):
-    """suoperclass of shapes"""
-    TAG = "shape"
+class SVGDefs(AbsSVG):
+    TAG = "defs"
 
     def __init__(self):
         super().__init__(self.TAG)
 
-    def calculate_bbox(self):
-        raise NotImplementedError("SVGShape needs a bbox routine")
 
+class SVGMarker(AbsSVG):
+    """
+ <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7"
+    refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" />
+    </marker>
+  </defs>
+      """
+    TAG = "marker"
+
+    ID = "id"
+    MARKER_WIDTH = "markerWidth"
+    MARKER_HEIGHT = "markerHeight"
+    MARKER_END = "marker-end"
+    MARKER_START = "marker-start"
+    REFX = "refX"
+    REFY = "refY"
+    ORIENT = "orient"
+    AUTO = "auto"
+    ORIENT_VALUES = [AUTO]
+
+    def __init__(self, id, marker_width=None, marker_height=None, refx=None, refy=None, orient=AUTO):
+        super().__init__(self.TAG)
+        self.id = None
+        self.set_id(id)
+        self.set_marker_width(marker_width)
+        self.set_marker_height(marker_height)
+        self.set_refx(refx)
+        self.set_refy(refy)
+        self.set_orient(orient)
+
+    def set_id(self, value):
+        assert value is not None
+        self.id = value
+        self.set_attribute(self.ID, value)
+
+    def set_marker_width(self, value):
+        if value is not None:
+            self.set_float_attribute(self.MARKER_WIDTH, float(value))
+
+    def set_marker_height(self, value):
+        if value is not None:
+            self.set_float_attribute(self.MARKER_HEIGHT, float(value))
+
+    def set_refx(self, value):
+        if value is not None:
+            self.set_float_attribute(self.REFX, float(value))
+
+    def set_refy(self, value):
+        if value is not None:
+            self.set_float_attribute(self.REFY, float(value))
+
+    def set_orient(self, value):
+        if value in self.ORIENT_VALUES:
+            self.set_attribute(self.ORIENT, value)
+
+    def set_marker_start(self, svg_element):
+        svg_element.set_attribute(self.MARKER_START, "#" + self.id)
+
+
+class SVGPolygon(AbsSVG):
+    TAG = "polygon"
+
+    POINTS = "points"
+
+    def __init__(self, points=None):
+        super().__init__(self.TAG)
+        self.set_points(points)
+        set_default_styles(self)
+
+    # need to check/convert to float_array
+    def set_points(self, points):
+        if points is not None:
+            self.set_attribute(self.POINTS, points)
+
+
+class SVGArrow(SVGG):
+
+    def __init__(self, head=None, tail=None):
+        """
+        SVGArrow requires the <svg> element to have a <defs> elememt
+
+        Typically:
+        svg = SVGSVG()
+        SVGArrow.create_arrowhead(svg)
+        g = SVGG()
+        svg.append(g)
+        for i, island in enumerate(big_islands):
+            ami_arrow = AmiArrow.create_simple_arrow(island)
+            g.append(ami_arrow.get_svg())
+
+        :param head:
+        :param tail:
+        """
+        super().__init__()
+        self.tail = tail
+        self.head = head
+        self.line = None
+        if self.head and self.tail:
+            self.line = SVGLine(xy1=tail, xy2=head)
+            self.line.set_attribute(SVGMarker.MARKER_END, "url(#arrowhead)")
+            self.append(self.line)
+
+    @classmethod
+    def create_arrowhead(cls, svgsvg):
+        svgsvg.add_arrowhead()
+
+    def calculate_bbox(self):
+        raise NotImplemented("no BBOX for {self}")
+
+
+def set_default_styles(svg_element):
+    """
+    sets fill, stroke, stroke-width to default so that at least the elements
+    is visibly displayed
+    :param svg_element:
+    :return:
+    """
+    assert svg_element is not None
+    svg_element.set_fill(NONE)
+    svg_element.set_stroke(RED)
+    svg_element.set_stroke_width("1")
+
+def ns_xpath(element, xpath, xpath_type="Clark"):
+    """
+    searches an element with possibly namespaced Xpath
+    here we use SVG namespace as an f-string substitution
+    Two styles:
+    * local_name_xpath = f"*[local-name()='defs' and namespace-uri()='{SVG_NS}']"
+    * clark_xpath = f"{{{SVG_NS}}}defs"
+
+    They use different tools (xpath and ETXPath) and different syntaxes
+
+    :param element: element to search
+    :param xpath: xpath expression
+    :param xpath_type: "Clark" or "local"
+    :return: result of xpath (bool or number or string, or list)
+    """
+    assert element is not None
+    assert xpath is not None
+    assert xpath_type is not None
+
+    svg_defs_elements = None
+    if xpath_type is None:
+        raise ValueError("xpath_type cannot be None")
+    elif xpath_type.lower() == "local":
+        svg_defs_elements = element.xpath(xpath)
+    elif xpath_type.lower() == "clark":
+        try:
+            svg_defs_elements = lxml.etree.ETXPath(xpath)(element)
+        except XPathSyntaxError as e:
+            logger.error(f"XPATH error {e} in {xpath}")
+            raise e
+    else:
+        logger.error(f"xpath_type must be Clark or local")
+
+    return svg_defs_elements
+
+
+class XMLNamespaces:
+    SVG_NS = "http://www.w3.org/2000/svg"
+    XLINK_NS = "http://www.w3.org/1999/xlink"
+
+
+# --- utils ---
 
 def is_valid_xy(xy):
     try:

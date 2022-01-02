@@ -1,12 +1,12 @@
 # !/usr/bin/env python
 #-*- coding: utf8 -*-
 # from https://github.com/delimitry/octree_color_quantizer CC0, thanks
-import imageio
-from pathlib import Path
 
-from pyimage.ColorModule import Color
-from pyimage.image_lib import ImageLib
+# library
+from pathlib import Path
 from PIL import Image
+# local
+from ..pyimage.old_code.ColorModule import Color
 
 class OctreeNode(object):
     """
@@ -230,7 +230,7 @@ def create_palette_image(size, octree, width, height):
     for i, color in enumerate(palette):
         rgb = (color.red, color.green, color.blue)
         palette_pixels[i % size, i // size] = rgb
-        print("rgb", rgb)
+        # print("rgb", rgb)
     print("palette time", time.perf_counter()-time0)
     return palette, palette_image
 
