@@ -29,10 +29,10 @@ class BBox:
         :param height:
         :return:
         """
-        assert type(xy[0]) is float
-        assert type(xy[1]) is float
-        assert type(width) is float
-        assert type(height) is float
+        assert type(xy[0]) is float, f"found {type(xy[0])}"
+        assert type(xy[1]) is float, f"found {type(xy[1])}"
+        assert type(width) is float, f"found {type(width)}"
+        assert type(height) is float, f"found {type(height)}"
 
         try:
             xy_ranges = [[float(xy[0]), float(xy[0]) + float(width)], [float(xy[1]), float(xy[1]) + float(height)]]
