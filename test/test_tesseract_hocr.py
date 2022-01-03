@@ -36,6 +36,10 @@ class TestTesseractHOCR:
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
         """
+        self.biosynth1 = Resources.BIOSYNTH1
+        self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(self.biosynth1)
+        self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
+        
         self.biosynth3 = Resources.BIOSYNTH3
         self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(self.biosynth3)
         self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
@@ -43,6 +47,10 @@ class TestTesseractHOCR:
     def teardown_method(self, method):
         """teardown any state that was previously setup with a setup_method
         call."""
+        self.biosynth1 = None
+        self.biosynth1_hocr = None
+        self.biosynth1_elem = None
+
         self.biosynth3 = None
         self.biosynth3_hocr = None
         self.biosynth3_elem = None
@@ -114,6 +122,19 @@ class TestTesseractHOCR:
         assert len(bboxes) == 29
         assert bboxes[0] == [201, 45, 830, 68]
         assert phrases[0] == "Straight chain ester biosynthesis from fatty acids"
+
+    def test_find_text_group(self):
+        phrases, bboxes = TesseractOCR.find_phrases(self.biosynth1_elem)
+        assert phrases is not None
+        groups_bboxes = TesseractOCR.find_word_groups(bbox_of_phrases=bboxes)
+        biosynth1_img = io.imread(self.biosynth1)
+        boxed = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=groups_bboxes)
+        io.imshow(boxed)
+        io.show()
+        # assert len(phrases) == 29
+        # assert len(bboxes) == 29
+        # assert bboxes[0] == [201, 45, 830, 68]
+        # assert phrases[0] == "Straight chain ester biosynthesis from fatty acids"
 
     @unittest.skipIf(skip_long_tests, "wikidata lookup")
     def test_phrase_wikidata_search(self):

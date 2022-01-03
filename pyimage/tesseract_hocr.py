@@ -145,6 +145,10 @@ class TesseractOCR:
 
         # and return a numpy array from the generated list
         bboxes = np.array(bboxes)
+
+        #TODO verify this doesn't break the system
+        words, bboxes = TesseractOCR.remove_bad_word_bboxes(words, bboxes)
+
         return bboxes, words
 
     @classmethod
@@ -160,6 +164,7 @@ class TesseractOCR:
         phrases = []
         bbboxes = []
         bboxes, words = cls.extract_bbox_from_hocr(hocr_element)
+
         for i in range(len(words)):
             phrase = [words[i]]
             last_bbox = bboxes[i]
@@ -187,6 +192,74 @@ class TesseractOCR:
                 phrases.append(phrase)
                 bbboxes.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
         return phrases, bbboxes
+
+    @classmethod
+    def find_word_groups(cls, bbox_of_phrases, line_seperation=10, maximum_shear=20):
+        groups = []
+        for bbox in bbox_of_phrases:
+            # sort each bbox into a group
+            
+            # if no group exists create a group
+            if len(groups) == 0:
+                groups.append(bbox)
+                continue
+            
+            group_found = False
+            for group in groups:
+                if group[3] - bbox[3] < line_seperation:
+                    TesseractOCR.envelope_box([group, bbox])
+                    #TODO add check for shear
+                    group_found = True
+                    break
+
+            # if bbox doesn't fit a group, create a new group
+            if not group_found:
+                groups.append(bbox)
+
+        return groups
+
+    @classmethod
+    def envelope_box(cls, bboxes):
+        # given list of bboxes gives the whole box enveloping all the bboxes
+        min_x, min_y, max_x, max_y = bboxes[0][0], bboxes[0][1], bboxes[0][2], bboxes[0][3] 
+        for bbox in bboxes:
+            if bbox[0] < min_x:
+                min_x = bbox[0]
+            if bbox[1] < min_y:
+                min_y = bbox[1]
+            if bbox[2] > max_x:
+                max_x = bbox[2]
+            if bbox[3] > max_y:
+                max_y = bbox[3]
+        return [min_x, min_y, max_x, max_y]
+
+    @classmethod
+    def remove_bad_word_bboxes(cls, words, bboxes, min_char_width=5, min_char_height=10):
+        # remove if recognised word is only some special characters. 
+        good_bboxes = []
+        good_words = []
+        for word, bbox in zip(words, bboxes):
+            # if word is empty, empty strings are false
+            if not word:
+                continue
+            # if the word is not alphanumeric (only special character) then its probably a mistake
+            if not word.isalnum():
+                continue
+            # if bbox is too thin in either dimension
+            if bbox[2] - bbox[0] < min_char_width or bbox[3] - bbox[1] < min_char_height:
+                continue
+            # if the bbox appears in portrait orientation reject
+            if bbox[3] - bbox[1] > bbox[2] - bbox[0]:
+                continue
+
+            good_bboxes.append(bbox)
+            good_words.append(word) 
+
+        return good_words, good_bboxes
+
+    def onion_scan():
+        #TODO Recursive scans of smaller and smaller area until we recognize text
+        pass
 
     @classmethod
     def wikidata_lookup(cls, phrases):
