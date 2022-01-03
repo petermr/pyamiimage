@@ -1,0 +1,190 @@
+<?xml version="1.0"?>
+<svg:svg xmlns:svg="http://www.w3.org/2000/svg" width="1400.0" height="1200.0">
+	<svg:defs>
+		<svg:marker id="arrowhead" markerWidth="10.0" markerHeight="7.0" refX="10.0" refY="3.5" orient="auto">
+			<svg:polygon points="0 0, 10 3.5, 0 7" fill="red" stroke="red" stroke-width="1"/>
+		</svg:marker>
+	</svg:defs>
+	<svg:g id="a" role="arrows">
+		<svg:g id="a0" role="arrow" orient="up">
+			<svg:rect role="bbox" position="core" x="220" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="220" width="40" y="345" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="back" x="220" width="40" y="500" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="180" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="260" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:line orient="up" x1="240" y1="500" x2="240" y2="385" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+			<svg:title>a0</svg:title>
+		</svg:g>
+		<svg:g id="a1" role="arrow" orient="right">
+			<svg:rect role="bbox" position="core" x="682" width="121" y="417" height="40" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="803" width="40" y="417" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="back" x="642" width="40" y="417" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="682" width="121" y="377" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="682" width="121" y="457" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
+			<svg:line orient="right" x1="682" y1="435" x2="803" y2="440" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+			<svg:title>a1</svg:title>
+		</svg:g>
+		<svg:g id="a2" role="arrow" orient="down">
+			<svg:rect role="bbox" position="core" x="537" width="40" y="493" height="134" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="537" width="40" y="627" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="back" x="537" width="40" y="453" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="577" width="40" y="493" height="134" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="497" width="40" y="493" height="134" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:line orient="down" x1="557" y1="493" x2="558" y2="627" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+			<svg:title>a2</svg:title>
+		</svg:g>
+		<svg:g id="a3" role="arrow" orient="up">
+			<svg:rect role="bbox" position="core" x="220" width="40" y="569" height="65" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="220" width="40" y="529" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="back" x="220" width="40" y="634" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="180" width="40" y="569" height="65" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="260" width="40" y="569" height="65" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:line orient="up" x1="241" y1="634" x2="240" y2="569" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+			<svg:title>a3</svg:title>
+		</svg:g>
+		<svg:g id="a4" role="arrow" orient="right">
+			<svg:rect role="bbox" position="core" x="716" width="89" y="621" height="40" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="805" width="40" y="621" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="back" x="676" width="40" y="621" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="716" width="89" y="581" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="716" width="89" y="661" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
+			<svg:line orient="right" x1="716" y1="641" x2="805" y2="641" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+			<svg:title>a4</svg:title>
+		</svg:g>
+		<svg:g id="a5" role="arrow" orient="left">
+			<svg:rect role="bbox" position="core" x="336" width="90" y="627" height="40" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="296" width="40" y="627" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="back" x="426" width="40" y="627" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="336" width="90" y="667" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="336" width="90" y="587" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
+			<svg:line orient="left" x1="446" y1="647" x2="336" y2="648" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+			<svg:title>a5</svg:title>
+		</svg:g>
+		<svg:g id="a6" role="arrow" orient="down">
+			<svg:rect role="bbox" position="core" x="220" width="40" y="669" height="88" stroke-width="1.0" stroke="red" fill="yellow" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="220" width="40" y="757" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="back" x="220" width="40" y="629" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="180" width="40" y="669" height="88" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="260" width="40" y="669" height="88" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:line orient="down" x1="241" y1="669" x2="243" y2="757" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+			<svg:title>a6</svg:title>
+		</svg:g>
+		<svg:g id="a7" role="arrow" orient="down">
+			<svg:rect role="bbox" position="core" x="540" width="40" y="701" height="159" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="540" width="40" y="860" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="back" x="540" width="40" y="661" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="580" width="40" y="701" height="159" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="500" width="40" y="701" height="159" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:line orient="down" x1="559" y1="701" x2="563" y2="860" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+			<svg:title>a7</svg:title>
+		</svg:g>
+		<svg:g id="a8" role="arrow" orient="right">
+			<svg:rect role="bbox" position="core" x="765" width="113" y="895" height="40" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="878" width="40" y="895" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="back" x="725" width="40" y="895" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="765" width="113" y="855" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="765" width="113" y="935" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
+			<svg:line orient="right" x1="765" y1="916" x2="878" y2="915" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+			<svg:title>a8</svg:title>
+		</svg:g>
+		<svg:g id="a9" role="arrow" orient="down">
+			<svg:rect role="bbox" position="core" x="545" width="40" y="973" height="135" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="545" width="40" y="1108" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="back" x="545" width="40" y="933" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="585" width="40" y="973" height="135" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="505" width="40" y="973" height="135" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:line orient="down" x1="565" y1="973" x2="566" y2="1108" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+			<svg:title>a9</svg:title>
+		</svg:g>
+	</svg:g>
+	<svg:g id="t" foo="bar" role="texts">
+		<svg:g id="t0" role="text">
+.           <svg:title>t0</svg:title>
+			<svg:rect role="bbox" x="195" width="148" y="357" height="28" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="195" y="385" font-size="25.2" stroke="blue" font-family="sans-serif">Phytosterols</svg:text>
+		</svg:g>
+		<svg:g id="t1" role="text">
+.           <svg:title>t1</svg:title>
+			<svg:rect role="bbox" x="197" width="162" y="529" height="28" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="197" y="557" font-size="25.2" stroke="blue" font-family="sans-serif">Triterpenoids</svg:text>
+		</svg:g>
+		<svg:g id="t2" role="text">
+.           <svg:title>t2</svg:title>
+			<svg:rect role="bbox" x="198" width="109" y="633" height="28" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="198" y="661" font-size="25.2" stroke="blue" font-family="sans-serif">Squalene</svg:text>
+		</svg:g>
+		<svg:g id="t3" role="text">
+.           <svg:title>t3</svg:title>
+			<svg:rect role="bbox" x="455" width="249" y="631" height="66" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="455" y="659" font-size="25.2" stroke="blue" font-family="sans-serif">Farnasyl diphosphate</svg:text>
+			<svg:text x="516" y="694" font-size="25.2" stroke="blue" font-family="sans-serif">(FPP; Cis)</svg:text>
+		</svg:g>
+		<svg:g id="t4" role="text">
+.           <svg:title>t4</svg:title>
+			<svg:rect role="bbox" x="810" width="400" y="629" height="100" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="810" y="658" font-size="26.1" stroke="blue" font-family="sans-serif">Sesquiterpenes,</svg:text>
+			<svg:text x="807" y="692" font-size="25.2" stroke="blue" font-family="sans-serif">Ubiquinone,</svg:text>
+			<svg:text x="963" y="691" font-size="25.2" stroke="blue" font-family="sans-serif">Plastoquinone,</svg:text>
+			<svg:text x="809" y="722" font-size="20.7" stroke="blue" font-family="sans-serif">Abscisic acid,</svg:text>
+			<svg:text x="984" y="726" font-size="25.2" stroke="blue" font-family="sans-serif">Prenylated proteins</svg:text>
+		</svg:g>
+		<svg:g id="t5" role="text">
+.           <svg:title>t5</svg:title>
+			<svg:rect role="bbox" x="201" width="109" y="806" height="28" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="201" y="834" font-size="25.2" stroke="blue" font-family="sans-serif">Saponins</svg:text>
+		</svg:g>
+		<svg:g id="t6" role="text">
+.           <svg:title>t6</svg:title>
+			<svg:rect role="bbox" x="379" width="36" y="598" height="21" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="379" y="619" font-size="18.9" stroke="blue" font-family="sans-serif">2X</svg:text>
+		</svg:g>
+		<svg:g id="t7" role="text">
+.           <svg:title>t7</svg:title>
+			<svg:rect role="bbox" x="450" width="235" y="424" height="66" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="450" y="452" font-size="25.2" stroke="blue" font-family="sans-serif">Geranyl diphosphate</svg:text>
+			<svg:text x="506" y="487" font-size="25.2" stroke="blue" font-family="sans-serif">(GPP; Cio)</svg:text>
+		</svg:g>
+		<svg:g id="t8" role="text">
+.           <svg:title>t8</svg:title>
+			<svg:rect role="bbox" x="813" width="170" y="423" height="27" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="813" y="450" font-size="24.3" stroke="blue" font-family="sans-serif">Monoterpenes,</svg:text>
+		</svg:g>
+		<svg:g id="t9" role="text">
+.           <svg:title>t9</svg:title>
+			<svg:rect role="bbox" x="571" width="150" y="528" height="64" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="571" y="550" font-size="19.8" stroke="blue" font-family="sans-serif">FPP synthase</svg:text>
+			<svg:text x="574" y="589" font-size="24.3" stroke="blue" font-family="sans-serif">(+IPP)</svg:text>
+		</svg:g>
+		<svg:g id="t10" role="text">
+.           <svg:title>t10</svg:title>
+			<svg:rect role="bbox" x="577" width="177" y="736" height="66" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="577" y="758" font-size="19.8" stroke="blue" font-family="sans-serif">GGPP synthase</svg:text>
+			<svg:text x="578" y="798" font-size="25.2" stroke="blue" font-family="sans-serif">(+IPP)</svg:text>
+		</svg:g>
+		<svg:g id="t11" role="text">
+.           <svg:title>t11</svg:title>
+			<svg:rect role="bbox" x="422" width="330" y="909" height="66" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="422" y="937" font-size="25.2" stroke="blue" font-family="sans-serif">Geranylgeranyl diphosphate</svg:text>
+			<svg:text x="513" y="971" font-size="24.3" stroke="blue" font-family="sans-serif">(GGPP;C20)</svg:text>
+		</svg:g>
+		<svg:g id="t12" role="text">
+.           <svg:title>t12</svg:title>
+			<svg:rect role="bbox" x="887" width="360" y="907" height="98" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="887" y="934" font-size="24.3" stroke="blue" font-family="sans-serif">Diterpenes</svg:text>
+			<svg:text x="888" y="967" font-size="24.3" stroke="blue" font-family="sans-serif">Gibberellins,</svg:text>
+			<svg:text x="1051" y="968" font-size="25.2" stroke="blue" font-family="sans-serif">Chlorophyll,</svg:text>
+			<svg:text x="889" y="1003" font-size="25.2" stroke="blue" font-family="sans-serif">Prenylated proteins</svg:text>
+			<svg:text x="1137" y="996" font-size="20.7" stroke="blue" font-family="sans-serif">Carotenoids</svg:text>
+		</svg:g>
+		<svg:g id="t13" role="text">
+.           <svg:title>t13</svg:title>
+			<svg:rect role="bbox" x="582" width="88" y="1012" height="28" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="582" y="1040" font-size="25.2" stroke="blue" font-family="sans-serif">(+PP)</svg:text>
+		</svg:g>
+		<svg:g id="t14" role="text">
+.           <svg:title>t14</svg:title>
+			<svg:rect role="bbox" x="508" width="154" y="1116" height="28" stroke-width="1.0" stroke="red" fill="none"/>
+			<svg:text x="508" y="1144" font-size="25.2" stroke="blue" font-family="sans-serif">Polyterpenes</svg:text>
+		</svg:g>
+	</svg:g>
+</svg:svg>
