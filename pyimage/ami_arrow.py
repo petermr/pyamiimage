@@ -1,10 +1,11 @@
 import logging
 import math
 from lxml import etree
+from lxml.builder import ElementMaker
 # local
 from ..pyimage.ami_graph_all import AmiNode, AmiEdge
 from ..pyimage.ami_util import AmiUtil
-from ..pyimage.svg import SVGArrow, ns_xpath, SVG_NS
+from ..pyimage.svg import SVGArrow, ns_xpath, SVG_NS, GPML_NS
 from ..pyimage.bbox import BBox
 
 logger = logging.getLogger(__name__)
@@ -162,7 +163,7 @@ class AmiArrow:
         :return:
         """
         pass
-    
+
     @classmethod
     def create_from_svg_arrow(cls, svg_arrow):
         """
@@ -210,11 +211,10 @@ class AmiArrow:
         if core_bbox is None or bbox_type is None:
             return None
 
-
         if bbox_type == ArrowBBox.CORE:
             bbox = core_bbox
         elif bbox_type == ArrowBBox.FRONT:
-             # = core_bbox
+            # = core_bbox
             pass
         elif bbox_type == ArrowBBox.BACK:
             # bbox = translate_and_(bbox, translate=[delta, 0], )
@@ -229,17 +229,21 @@ class AmiArrow:
             logger.warning("unknown direction {}")
 
 
-
 class AmiNetwork:
-
     ARROW = "arrow"
+    ARROWS = "arrows"
     BBOX = "bbox"
+    DATABASE = "Database"
+    ID = "id"
+    POSITIONS = "positions"
     TEXT = "text"
     TYPE = "type"
-    ID = "id"
+    UPPER_ID = "ID"
+    VALUE = "value"
 
     def __init__(self):
         self.arrows_text_dict = dict()
+        self.svgsvg = None
 
     @classmethod
     def create_from_svgsvg(cls, svgsvg):
@@ -253,30 +257,35 @@ class AmiNetwork:
         return ami_network
 
     def overlap_arrows_and_text(self):
-        arrows= ns_xpath(self.svgsvg,
+        arrows = ns_xpath(self.svgsvg,
                           f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']")
         text_boxes = ns_xpath(self.svgsvg, f"{{{SVG_NS}}}g[@role='texts']/{{{SVG_NS}}}g[@role='text']")
         self.arrows_text_dict = dict()
 
         self.arrows_dict = dict()
-        self.arrows_text_dict["arrows"] = self.arrows_dict
+        self.arrows_text_dict[self.ARROWS] = self.arrows_dict
 
         self.text_dict = dict()
-        self.arrows_text_dict["text"] = self.text_dict
+        self.arrows_text_dict[self.TEXT] = self.text_dict
         for arrow_elem in arrows:
             arrow_id = arrow_elem.get(self.ID)
             for position in [ArrowBBox.FRONT, ArrowBBox.BACK, ArrowBBox.RIGHT, ArrowBBox.LEFT]:
                 arrow_box_elem = ns_xpath(arrow_elem,
-                                   f"{{{SVG_NS}}}rect[@position='{position}']")
+                                          f"{{{SVG_NS}}}rect[@position='{position}']")
                 arrow_bbox = AmiNetwork.get_bbox(arrow_box_elem)
                 for text_box in text_boxes:
                     self.merge_texts_and_arrows(arrow_bbox, arrow_id, position, text_box)
 
-        print("arrow+text", self.arrows_text_dict)
         self.clean_overlap_in_arrows()
-        self.create_reactions();
+        self.create_reactions()
 
     def merge_texts_and_arrows(self, arrow_bbox, arrow_id, position, textbox):
+        """merge text and arrows using position
+        :param arrow_bbox: save bbox for arrow, indexed by position
+        :param arrow_id: ID of arrow
+        :param position: of bbox (e.g. LEFT)
+        :param textbox: save textbox coordinates
+        """
         textbox_id = textbox.get(self.ID)
         textbox_bbox_elem = ns_xpath(textbox, f"{{{SVG_NS}}}rect[@role='bbox']")
         textbox_bbox = AmiNetwork.get_bbox(textbox_bbox_elem)
@@ -285,12 +294,20 @@ class AmiNetwork:
             self.add_text_fields_to_dict(textbox_bbox, textbox_id, textbox)
             self.add_arrow_fields_to_dict(arrow_bbox, arrow_id, position, textbox_id)
 
-    def add_text_fields_to_dict(self, text_bbox, textbox_id, txt):
-        text_val = AmiNetwork.get_text_val(txt)
+    def add_text_fields_to_dict(self, text_bbox, textbox_id, text_element):
+        """
+
+        :param text_bbox:
+        :param textbox_id:
+        :param text_element: element containing one or more strings
+        :return:
+        """
+        text_val = AmiNetwork.get_text_val(text_element)
         if textbox_id not in self.text_dict:
             self.text_dict[textbox_id] = dict()
-        self.text_dict[textbox_id] = {"type": "text"}
-        self.text_dict[textbox_id] = {"value": text_val}
+        self.text_dict[textbox_id] = {self.TYPE: self.TEXT}
+        self.text_dict[textbox_id] = {self.VALUE: text_val}
+        self.text_dict[textbox_id] = {self.BBOX: text_bbox}
         return text_val
 
     def add_arrow_fields_to_dict(self, arrow_bbox, arrow_id, position, text_id):
@@ -298,14 +315,138 @@ class AmiNetwork:
             self.arrows_dict[arrow_id] = dict()
         self.arrows_dict[arrow_id][self.BBOX] = arrow_bbox
         self.arrows_dict[arrow_id][self.TYPE] = self.ARROW
-        if "positions" not in self.arrows_dict[arrow_id]:
-            self.arrows_dict[arrow_id]["positions"] = dict()
-        self.arrows_dict[arrow_id]["positions"][position] = text_id
+        if self.POSITIONS not in self.arrows_dict[arrow_id]:
+            self.arrows_dict[arrow_id][self.POSITIONS] = dict()
+        self.arrows_dict[arrow_id][self.POSITIONS][position] = text_id
 
+    def write_gpml(self, path):
+        """
+        write GPML NYI
+        :param path:
+        :return:
+        """
+        """
+<Pathway xmlns="http://pathvisio.org/GPML/2013a" Name="Foo" Version="000" Organism="T. rex">
+  <Graphics BoardWidth="484.0" BoardHeight="234.25" />
+  <DataNode TextLabel="HDL-C" GraphId="bf9b8" Type="Metabolite">
+    <Graphics CenterX="348.5" CenterY="184.25" Width="93.0" Height="35.5" ZOrder="32768" FontSize="12" 
+        Valign="Middle" Color="0000ff" />
+    <Xref Database="ChEBI" ID="CHEBI:47775" />
+  </DataNode>
+  ...
+  <Interaction>
+    <Graphics ZOrder="12288" LineThickness="1.0">
+      <Point X="151.0" Y="182.625" GraphRef="eb089" RelX="1.0" RelY="0.0" />
+      <Point X="302.0" Y="184.25" GraphRef="bf9b8" RelX="-1.0" RelY="0.0" ArrowHead="mim-conversion" />
+    </Graphics>
+    <Xref Database="" ID="" />
+  </Interaction>
+  <InfoBox CenterX="0.0" CenterY="0.0" />
+  <Biopax />
+</Pathway>
+        
+        """
+        E = ElementMaker(namespace=GPML_NS)
+        gpml_root = (
+            E("Pathway",
+              E("Graphics", BoardWidth="484.0", BoardHeight="234.25"),
+              Name="AmiNetwork", Version="000", Organism="T. rex")
+        )
+        data_node = E("DataNode",
+                      E("Graphics", CenterX="348.5", CenterY="184.25", Width="93.0", Height="35.5", ZOrder="32768",
+                        FontSize="12", Valign="Middle", Color="0000ff"),
+                      E("Xref", Database="ChEBI", ID="CHEBI:47775"),
+                      TextLabel="HDL-C", GraphId="t0", Type="Metabolite"
+                      )
+        data_node1 = E("DataNode",
+                       E("Graphics", CenterX="348.5", CenterY="184.25", Width="93.0", Height="35.5", ZOrder="32768",
+                         FontSize="12", Valign="Middle", Color="0000ff"),
+                       self.make_gpml_xref(Database="ChEBI", ID="CHEBI:9000"),
+                       TextLabel="HDL-D", GraphId="t1", Type="Metabolite"
+                       )
+
+        data_node2 = self.make_data_node("348.5", "184.25", "TextLabel", "t0", "Metabolite", "93.0", "35.5",
+                                         ZOrder="32768", FontSize="12",
+                                         Valign="Middle", Color="0000ff", Database="ChEBI", ID="CHEBI:9000")
+        if type(data_node2) is tuple:
+            data_node2 = data_node2[0]  # kludge, FIXME
+        interact = E("Interaction",
+                     E("Graphics",
+                       self.make_gpml_point(X="123", Y="345", GraphRef="t1"),
+                       self.make_gpml_point(X="987", Y="765", GraphRef="t2"),
+                       ),
+                     )
+        gpml_root.append(data_node)
+        gpml_root.append(data_node1)
+        gpml_root.append(data_node2)
+        gpml_root.append(interact)
+
+    def make_gpml_point(self, X, Y, GraphRef, RelX="1.0", RelY="0.0", ZOrder="32768", LineThickness="1.0"):
+        """
+        make GPML point
+        :param X: xcoord of point
+        :param Y: ycoord of point
+        :param GraphRef: id-ref which must correspond to a (point) elsewhere
+        :param RelX: don't know, default = 1.0
+        :param RelY: don't know, default = 0.0
+        :param ZOrder: presumably Z- in painter model; default 32768
+        :param LineThickness: default 1.0
+        :return: GPML point
+
+        """
+        E = ElementMaker(namespace=GPML_NS)
+        return E("Point", X=X, Y=Y, GraphRef=GraphRef, RelX=RelX, RelY=RelY,
+                 ZOrder=ZOrder, LineThickness=LineThickness)
+
+    def make_gpml_xref(self, Database=None, ID=None):
+        """GPML Xref to database
+        :param Database: example - CHEBI
+        :param ID: example - "CHEBI:47775"
+        """
+        E = ElementMaker(namespace=GPML_NS)
+        xref = E("Xref")
+        if Database is not None:
+            xref.set(self.DATABASE, Database)
+        if Database is not None:
+            xref.set(self.UPPER_ID, ID)
+        return xref
+
+    def make_data_node(self, CenterX, CenterY, TextLabel, GraphId, Type, Width, Height, ZOrder="32768", FontSize="12",
+                       Valign="Middle", Color="0000ff", Database=None, ID=None):
+        """Creates a data_node for GPML
+        :param CenterX: x coord
+        :param CenterY: y coord
+        :param TextLabel: label for node
+        :param GraphId: id referenced from , e.g. gpml_point
+        :param Type: type (e.g. "Metabolite")
+        :param Width: presumably width of box
+        :param Height: presumably height of box
+        :param ZOrder: ZOrder (painters model?)
+        :param FontSize:
+        :param Valign: e.g. "Middle"
+        :param Color: I think the line color
+        :param Database: Database (may be None)
+        :param ID: database ID
+
+
+        """
+        E = ElementMaker(namespace=GPML_NS)
+        data_node = E("DataNode", TextLabel=TextLabel, GraphId=GraphId, Type=Type)
+        graphics = E("Graphics", CenterX=CenterX, CenterY=CenterY, Width=Width, Height=Height, ZOrder=ZOrder,
+                     FontSize=FontSize, Valign=Valign, Color=Color)
+        data_node.append(graphics)
+        xref = self.make_gpml_xref(Database=Database, ID=ID)
+        data_node.append(xref)
+        return data_node
 
     @classmethod
-    def get_text_val(cls, txt):
-        text_val = ns_xpath(txt, f"{{{SVG_NS}}}text")
+    def get_text_val(cls, text_container):
+        """gets text value from an element containing <text> element
+        :param text_container:
+        :return: text vallue
+
+        """
+        text_val = ns_xpath(text_container, f"{{{SVG_NS}}}text")
         if type(text_val) is etree._Element:
             text_val = text_val.text
         elif type(text_val) is list:
@@ -314,12 +455,15 @@ class AmiNetwork:
 
     @classmethod
     def get_bbox(cls, bbox_elem):
+        """get BoundingBox from any element with X, Y , width, height
+        :param bbox_elem: element with these attributes
+        :return: BBox element
+        """
         return BBox.create_from_xy_w_h(
             [float(bbox_elem.get(BBox.X)), float(bbox_elem.get(BBox.Y))],
             float(bbox_elem.get(BBox.WIDTH)),
             float(bbox_elem.get(BBox.HEIGHT))
         )
-
 
     def clean_overlap_in_arrows(self):
         """
@@ -331,15 +475,12 @@ class AmiNetwork:
     def create_reactions(self):
         """iterarates over dict keys for arrow and extracts back/front"""
         for key in self.arrows_text_dict.keys():
-            print("key ", key, self.arrows_text_dict[key], type(self.arrows_text_dict[key]))
-            print(self.arrows_text_dict[key])
             if key == self.ARROW:
                 if ArrowBBox.FRONT in self.arrows_text_dict[key] and ArrowBBox.BACK in self.arrows_text_dict[key]:
                     print(self.arrows_text_dict[key][ArrowBBox.BACK], key, self.arrows_text_dict[key][ArrowBBox.FRONT])
 
 
 class ArrowBBox:
-
     CORE = "core"
 
     # arrow frame

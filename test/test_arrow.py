@@ -337,6 +337,7 @@ class TestArrow:
         svgsvg = etree.parse(str(self.resources.BIOSYNTH1_ARROWS_TEXT_SVG))
         ami_network = AmiNetwork.create_from_svgsvg(svgsvg)
         ami_network.overlap_arrows_and_text()
+        ami_network.write_gpml(Path(Resources.TEMP_DIR, "biosynth1_network.gpml"))
 
     # @unittest.skip("under development")
     # def test_raw_arrows_to_bboxes(self):
@@ -360,7 +361,9 @@ class TestArrow:
 
     # ------------ helpers -------------
 
-
+    def test_write_gpml(self):
+        ami_network = AmiNetwork()
+        ami_network.write_gpml(Path(Resources.TEMP_DIR, "test.gpml"))
 
 
 

@@ -14,6 +14,9 @@ elements. We may add functionality to the actual lxml elements
 This is only the common object classes ... at the moment
 
 """
+"""
+https://lxml.de/api/lxml.builder.ElementMaker-class.html
+"""
 
 FILL = "fill"
 NONE = "none"
@@ -24,6 +27,7 @@ STROKE_WIDTH = "stroke-width"
 SVG_NS = "http://www.w3.org/2000/svg"
 SVG_NS_PREF = 'svg'
 
+GPML_NS = "http://pathvisio.org/GPML/2013a"
 
 class AbsSVG(ABC):
     lxml.etree.register_namespace(SVG_NS_PREF, SVG_NS)

@@ -74,6 +74,9 @@ class Resources:
     PRIMITIVES = Path(TEST_RESOURCE_DIR, "primitives.png")
     assert PRIMITIVES.exists(), f"file exists {PRIMITIVES}"
 
+    TEMP_DIR = Path(TEST_RESOURCE_DIR.parent.parent, "temp")
+    assert TEMP_DIR.is_dir(), f"file exists {TEMP_DIR}"
+
     def __init__(self):
         self.cached = False
 
