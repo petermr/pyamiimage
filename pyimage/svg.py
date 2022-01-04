@@ -527,6 +527,8 @@ class SVGArrow(SVGG):
     Y1 = "y1"
     Y2 = "y2"
 
+    MIN_WIDTH = 20
+
     def __init__(self, head_xy=None, tail_xy=None):
         """
         SVGArrow requires the <svg> element to have a <defs> elememt
@@ -572,8 +574,12 @@ class SVGArrow(SVGG):
         svgsvg.add_arrowhead()
 
     def calculate_bbox(self):
+        """
+        assume that width has a minimum value if aligned with axes
+        :return:
+        """
+        bbox = BBox.create_from_corners(self.tail_xy, self.head_xy)
 
-        raise NotImplemented("no BBOX for {self}")
 
     @classmethod
     def create_from_svgg(cls, svgg):

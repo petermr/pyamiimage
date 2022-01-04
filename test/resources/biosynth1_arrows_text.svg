@@ -10,8 +10,8 @@
 			<svg:rect role="bbox" position="core" x="220" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
 			<svg:rect role="bbox" position="front" x="220" width="40" y="345" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
 			<svg:rect role="bbox" position="back" x="220" width="40" y="500" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-			<svg:rect role="bbox" position="left" x="180" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-			<svg:rect role="bbox" position="right" x="260" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="180" width="40" y="395" height="95" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="260" width="40" y="395" height="95" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
 			<svg:line orient="up" x1="240" y1="500" x2="240" y2="385" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
 			<svg:title>a0</svg:title>
 		</svg:g>
@@ -19,8 +19,8 @@
 			<svg:rect role="bbox" position="core" x="682" width="121" y="417" height="40" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
 			<svg:rect role="bbox" position="front" x="803" width="40" y="417" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
 			<svg:rect role="bbox" position="back" x="642" width="40" y="417" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-			<svg:rect role="bbox" position="left" x="682" width="121" y="377" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-			<svg:rect role="bbox" position="right" x="682" width="121" y="457" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="692" width="101" y="377" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="692" width="101" y="457" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
 			<svg:line orient="right" x1="682" y1="435" x2="803" y2="440" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
 			<svg:title>a1</svg:title>
 		</svg:g>
@@ -28,8 +28,8 @@
 			<svg:rect role="bbox" position="core" x="537" width="40" y="493" height="134" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
 			<svg:rect role="bbox" position="front" x="537" width="40" y="627" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
 			<svg:rect role="bbox" position="back" x="537" width="40" y="453" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-			<svg:rect role="bbox" position="left" x="577" width="40" y="493" height="134" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-			<svg:rect role="bbox" position="right" x="497" width="40" y="493" height="134" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="577" width="40" y="503" height="114" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="497" width="40" y="503" height="114" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
 			<svg:line orient="down" x1="557" y1="493" x2="558" y2="627" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
 			<svg:title>a2</svg:title>
 		</svg:g>
@@ -37,8 +37,8 @@
 			<svg:rect role="bbox" position="core" x="220" width="40" y="569" height="65" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
 			<svg:rect role="bbox" position="front" x="220" width="40" y="529" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
 			<svg:rect role="bbox" position="back" x="220" width="40" y="634" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-			<svg:rect role="bbox" position="left" x="180" width="40" y="569" height="65" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-			<svg:rect role="bbox" position="right" x="260" width="40" y="569" height="65" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="180" width="40" y="579" height="45" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="260" width="40" y="579" height="45" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
 			<svg:line orient="up" x1="241" y1="634" x2="240" y2="569" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
 			<svg:title>a3</svg:title>
 		</svg:g>
@@ -46,8 +46,8 @@
 			<svg:rect role="bbox" position="core" x="716" width="89" y="621" height="40" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
 			<svg:rect role="bbox" position="front" x="805" width="40" y="621" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
 			<svg:rect role="bbox" position="back" x="676" width="40" y="621" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-			<svg:rect role="bbox" position="left" x="716" width="89" y="581" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-			<svg:rect role="bbox" position="right" x="716" width="89" y="661" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="726" width="69" y="581" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="726" width="69" y="661" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
 			<svg:line orient="right" x1="716" y1="641" x2="805" y2="641" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
 			<svg:title>a4</svg:title>
 		</svg:g>
@@ -55,26 +55,26 @@
 			<svg:rect role="bbox" position="core" x="336" width="90" y="627" height="40" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
 			<svg:rect role="bbox" position="front" x="296" width="40" y="627" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
 			<svg:rect role="bbox" position="back" x="426" width="40" y="627" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-			<svg:rect role="bbox" position="left" x="336" width="90" y="667" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-			<svg:rect role="bbox" position="right" x="336" width="90" y="587" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="346" width="70" y="667" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="346" width="70" y="587" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
 			<svg:line orient="left" x1="446" y1="647" x2="336" y2="648" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
 			<svg:title>a5</svg:title>
 		</svg:g>
 		<svg:g id="a6" role="arrow" orient="down">
 			<svg:rect role="bbox" position="core" x="220" width="40" y="669" height="88" stroke-width="1.0" stroke="red" fill="yellow" opacity="0.3"/>
-			<svg:rect role="bbox" position="front" x="220" width="40" y="757" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="220" width="40" y="757" height="60" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
 			<svg:rect role="bbox" position="back" x="220" width="40" y="629" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-			<svg:rect role="bbox" position="left" x="180" width="40" y="669" height="88" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-			<svg:rect role="bbox" position="right" x="260" width="40" y="669" height="88" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="180" width="40" y="679" height="68" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="260" width="40" y="679" height="68" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
 			<svg:line orient="down" x1="241" y1="669" x2="243" y2="757" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
 			<svg:title>a6</svg:title>
 		</svg:g>
 		<svg:g id="a7" role="arrow" orient="down">
 			<svg:rect role="bbox" position="core" x="540" width="40" y="701" height="159" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
-			<svg:rect role="bbox" position="front" x="540" width="40" y="860" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="540" width="40" y="860" height="60" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
 			<svg:rect role="bbox" position="back" x="540" width="40" y="661" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-			<svg:rect role="bbox" position="left" x="580" width="40" y="701" height="159" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-			<svg:rect role="bbox" position="right" x="500" width="40" y="701" height="159" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="580" width="40" y="711" height="139" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="500" width="40" y="711" height="139" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
 			<svg:line orient="down" x1="559" y1="701" x2="563" y2="860" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
 			<svg:title>a7</svg:title>
 		</svg:g>
@@ -82,8 +82,8 @@
 			<svg:rect role="bbox" position="core" x="765" width="113" y="895" height="40" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
 			<svg:rect role="bbox" position="front" x="878" width="40" y="895" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
 			<svg:rect role="bbox" position="back" x="725" width="40" y="895" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-			<svg:rect role="bbox" position="left" x="765" width="113" y="855" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-			<svg:rect role="bbox" position="right" x="765" width="113" y="935" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="775" width="93" y="855" height="40" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="775" width="93" y="935" height="40" stroke-width="1.0" stroke="cyan" fill="red" opacity="0.3"/>
 			<svg:line orient="right" x1="765" y1="916" x2="878" y2="915" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
 			<svg:title>a8</svg:title>
 		</svg:g>
@@ -91,8 +91,8 @@
 			<svg:rect role="bbox" position="core" x="545" width="40" y="973" height="135" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
 			<svg:rect role="bbox" position="front" x="545" width="40" y="1108" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
 			<svg:rect role="bbox" position="back" x="545" width="40" y="933" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-			<svg:rect role="bbox" position="left" x="585" width="40" y="973" height="135" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-			<svg:rect role="bbox" position="right" x="505" width="40" y="973" height="135" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="585" width="40" y="983" height="115" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="505" width="40" y="983" height="115" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
 			<svg:line orient="down" x1="565" y1="973" x2="566" y2="1108" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
 			<svg:title>a9</svg:title>
 		</svg:g>

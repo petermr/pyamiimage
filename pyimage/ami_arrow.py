@@ -1,9 +1,11 @@
 import logging
 import math
+from lxml import etree
 # local
 from ..pyimage.ami_graph_all import AmiNode, AmiEdge
-from ..pyimage.svg import SVGArrow
 from ..pyimage.ami_util import AmiUtil
+from ..pyimage.svg import SVGArrow, ns_xpath, SVG_NS
+from ..pyimage.bbox import BBox
 
 logger = logging.getLogger(__name__)
 
@@ -146,9 +148,6 @@ class AmiArrow:
                     longest_dict = value
         return longest_dict
 
-    def get_orient(self):
-        """only for horiz and vert
-        """
     def get_svg(self):
         """
         create line with arrowhead
@@ -215,32 +214,142 @@ class AmiArrow:
         if bbox_type == ArrowBBox.CORE:
             bbox = core_bbox
         elif bbox_type == ArrowBBox.FRONT:
-             = core_bbox
+             # = core_bbox
+            pass
         elif bbox_type == ArrowBBox.BACK:
-            bbox = translate_and_(bbox, translate=[delta, 0], )
+            # bbox = translate_and_(bbox, translate=[delta, 0], )
+            pass
         elif bbox_type == ArrowBBox.RIGHT:
-            bbox = translate_and_(bbox, translate=[delta, 0], )
+            # bbox = translate_and_(bbox, translate=[delta, 0], )
+            pass
         elif bbox_type == ArrowBBox.LEFT:
-            bbox = translate_and_(bbox, translate=[delta, 0], )
+            # bbox = translate_and_(bbox, translate=[delta, 0], )
+            pass
         else:
             logger.warning("unknown direction {}")
 
 
-# ----------- utils -----------
+
+class AmiNetwork:
+
+    ARROW = "arrow"
+    BBOX = "bbox"
+    TEXT = "text"
+    TYPE = "type"
+    ID = "id"
+
+    def __init__(self):
+        self.arrows_text_dict = dict()
+
+    @classmethod
+    def create_from_svgsvg(cls, svgsvg):
+        """
+        process output of pixel analysis
+        :param svgsvg:
+        :return:
+        """
+        ami_network = AmiNetwork()
+        ami_network.svgsvg = svgsvg
+        return ami_network
+
+    def overlap_arrows_and_text(self):
+        arrows= ns_xpath(self.svgsvg,
+                          f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']")
+        text_boxes = ns_xpath(self.svgsvg, f"{{{SVG_NS}}}g[@role='texts']/{{{SVG_NS}}}g[@role='text']")
+        self.arrows_text_dict = dict()
+
+        self.arrows_dict = dict()
+        self.arrows_text_dict["arrows"] = self.arrows_dict
+
+        self.text_dict = dict()
+        self.arrows_text_dict["text"] = self.text_dict
+        for arrow_elem in arrows:
+            arrow_id = arrow_elem.get(self.ID)
+            for position in [ArrowBBox.FRONT, ArrowBBox.BACK, ArrowBBox.RIGHT, ArrowBBox.LEFT]:
+                arrow_box_elem = ns_xpath(arrow_elem,
+                                   f"{{{SVG_NS}}}rect[@position='{position}']")
+                arrow_bbox = AmiNetwork.get_bbox(arrow_box_elem)
+                for text_box in text_boxes:
+                    self.merge_texts_and_arrows(arrow_bbox, arrow_id, position, text_box)
+
+        print("arrow+text", self.arrows_text_dict)
+        self.clean_overlap_in_arrows()
+        self.create_reactions();
+
+    def merge_texts_and_arrows(self, arrow_bbox, arrow_id, position, textbox):
+        textbox_id = textbox.get(self.ID)
+        textbox_bbox_elem = ns_xpath(textbox, f"{{{SVG_NS}}}rect[@role='bbox']")
+        textbox_bbox = AmiNetwork.get_bbox(textbox_bbox_elem)
+        overlap = textbox_bbox.intersect(arrow_bbox)
+        if overlap.is_valid():
+            self.add_text_fields_to_dict(textbox_bbox, textbox_id, textbox)
+            self.add_arrow_fields_to_dict(arrow_bbox, arrow_id, position, textbox_id)
+
+    def add_text_fields_to_dict(self, text_bbox, textbox_id, txt):
+        text_val = AmiNetwork.get_text_val(txt)
+        if textbox_id not in self.text_dict:
+            self.text_dict[textbox_id] = dict()
+        self.text_dict[textbox_id] = {"type": "text"}
+        self.text_dict[textbox_id] = {"value": text_val}
+        return text_val
+
+    def add_arrow_fields_to_dict(self, arrow_bbox, arrow_id, position, text_id):
+        if arrow_id not in self.arrows_dict:
+            self.arrows_dict[arrow_id] = dict()
+        self.arrows_dict[arrow_id][self.BBOX] = arrow_bbox
+        self.arrows_dict[arrow_id][self.TYPE] = self.ARROW
+        if "positions" not in self.arrows_dict[arrow_id]:
+            self.arrows_dict[arrow_id]["positions"] = dict()
+        self.arrows_dict[arrow_id]["positions"][position] = text_id
+
+
+    @classmethod
+    def get_text_val(cls, txt):
+        text_val = ns_xpath(txt, f"{{{SVG_NS}}}text")
+        if type(text_val) is etree._Element:
+            text_val = text_val.text
+        elif type(text_val) is list:
+            text_val = text_val[0].text  # several texts in box
+        return text_val
+
+    @classmethod
+    def get_bbox(cls, bbox_elem):
+        return BBox.create_from_xy_w_h(
+            [float(bbox_elem.get(BBox.X)), float(bbox_elem.get(BBox.Y))],
+            float(bbox_elem.get(BBox.WIDTH)),
+            float(bbox_elem.get(BBox.HEIGHT))
+        )
+
+
+    def clean_overlap_in_arrows(self):
+        """
+        Iterates over overlaps and applies heuristics to clean them
+        :return:
+        """
+        pass
+
+    def create_reactions(self):
+        """iterarates over dict keys for arrow and extracts back/front"""
+        for key in self.arrows_text_dict.keys():
+            print("key ", key, self.arrows_text_dict[key], type(self.arrows_text_dict[key]))
+            print(self.arrows_text_dict[key])
+            if key == self.ARROW:
+                if ArrowBBox.FRONT in self.arrows_text_dict[key] and ArrowBBox.BACK in self.arrows_text_dict[key]:
+                    print(self.arrows_text_dict[key][ArrowBBox.BACK], key, self.arrows_text_dict[key][ArrowBBox.FRONT])
+
 
 class ArrowBBox:
 
     CORE = "core"
 
+    # arrow frame
     BACK = "back"
     FRONT = "front"
     LEFT = "left"
     RIGHT = "right"
 
-    UP = "up"
-    DOWN = "down"
-
-
-    ORDER = [FRONT, RIGHT, BACK, LEFT]
-
-    def expand(self):
+    # graphics frame
+    PLUSX = "plus_x"
+    MINUSX = "minus_x"
+    PLUSY = "plus_y"
+    MINUSY = "minus_y"

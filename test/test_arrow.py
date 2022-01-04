@@ -1,18 +1,20 @@
 import os
 import matplotlib.pyplot as plt
 import pytest
+import unittest
 import logging
 from pathlib import Path
 from lxml import etree
 
 from ..pyimage.ami_graph_all import AmiGraph, AmiIsland
-from ..pyimage.ami_arrow import AmiArrow
+from ..pyimage.ami_arrow import AmiArrow, AmiNetwork
 from ..pyimage.svg import SVGSVG, SVGArrow, SVGG, SVGRect, ns_xpath, SVG_NS
 from ..pyimage.bbox import BBox
 
 from ..test.resources import Resources
 
 logger = logging.getLogger(__name__)
+
 
 class TestArrow:
 
@@ -297,6 +299,7 @@ class TestArrow:
         assert type(text0_text0) is etree._Element, f"element {text0_text0}"
         assert text0_text0.get("y") == "385", f"y"
 
+    @unittest.skip("obsolete")
     def test_analyze_front_arrows_text_biosynth1(self):
         """
         analyze prepared pathway with points of up/down/right/left arrows and multiple texts
@@ -326,62 +329,38 @@ class TestArrow:
                     print("textbox", text_bbox, text_val)
                     print("overlap",  overlap)
 
-    def test_analyze_back_arrows_text_biosynth1(self):
+    def test_analyze_arrows_text_biosynth1(self):
         """
         analyze prepared pathway with tails of up/down/right/left arrows and multiple texts
         :return:
         """
         svgsvg = etree.parse(str(self.resources.BIOSYNTH1_ARROWS_TEXT_SVG))
-        self.overlap_arrows_and_text("back", svgsvg)
+        ami_network = AmiNetwork.create_from_svgsvg(svgsvg)
+        ami_network.overlap_arrows_and_text()
 
-    def test_raw_arrows_to_bboxes(self):
-        """
-        raw arrows in SVG resulting from pixel analysis
-        processed to add bounding boxes
-        :return:
-        """
-        element = etree.parse(str(self.resources.BIOSYNTH1_RAW_ARROWS_SVG))
-        assert element is not None, f"{self.resources.BIOSYNTH1_RAW_ARROWS_SVG}"
-        arrows = ns_xpath(element, f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']")
-        assert len(arrows) == 10, f"expected arrow count"
-        for arrow_svg in arrows:
-            svg_arrow = SVGArrow.create_from_svgg(arrow_svg)
-            ami_arrow = AmiArrow.create_from_svg_arrow(svg_arrow)
-            if ami_arrow is not None:
-                print("ami arrow str:", str(ami_arrow))
-            else:
-                print("cannot create AmiArrow")
-            print(ami_arrow.ge)
+    # @unittest.skip("under development")
+    # def test_raw_arrows_to_bboxes(self):
+    #     """
+    #     raw arrows in SVG resulting from pixel analysis
+    #     processed to add bounding boxes
+    #     :return:
+    #     """
+    #     element = etree.parse(str(self.resources.BIOSYNTH1_RAW_ARROWS_SVG))
+    #     assert element is not None, f"{self.resources.BIOSYNTH1_RAW_ARROWS_SVG}"
+    #     arrows = ns_xpath(element, f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']")
+    #     assert len(arrows) == 10, f"expected arrow count"
+    #     for arrow_svg in arrows:
+    #         svg_arrow = SVGArrow.create_from_svgg(arrow_svg)
+    #         ami_arrow = AmiArrow.create_from_svg_arrow(svg_arrow)
+    #         if ami_arrow is not None:
+    #             print("ami arrow str:", str(ami_arrow))
+    #         else:
+    #             print("cannot create AmiArrow")
+    #         print(ami_arrow.ge)
 
     # ------------ helpers -------------
 
-    def overlap_arrows_and_text(self, position, svgsvg):
-        arrows = ns_xpath(svgsvg,
-                          f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']/{{{SVG_NS}}}rect[@position='{position}']")
-        for arrow_elem in arrows:
-            arrow_bbox = self.get_bbox(arrow_elem)
-        texts = ns_xpath(svgsvg, f"{{{SVG_NS}}}g[@role='texts']/{{{SVG_NS}}}g[@role='text']")
-        for txt in texts:
-            text_bbox_elem = ns_xpath(txt, f"{{{SVG_NS}}}rect[@role='bbox']")
-            text_bbox = self.get_bbox(text_bbox_elem)
-            text_val = ns_xpath(txt, f"{{{SVG_NS}}}text")
-            if type(text_val) is etree._Element:
-                text_val = text_val.text
-            elif type(text_val) is list:
-                text_val = text_val[0].text  # several texts in box
 
-            for arrow_elem in arrows:
-                arrow_bbox = self.get_bbox(arrow_elem)
-                overlap = text_bbox.intersect(arrow_bbox)
-                if overlap.is_valid():
-                    print(position, ":", arrow_bbox, "+", text_val, text_bbox, "=>",  overlap)
-
-    def get_bbox(self, bbox_elem):
-        return BBox.create_from_xy_w_h(
-            [float(bbox_elem.get(BBox.X)), float(bbox_elem.get(BBox.Y))],
-            float(bbox_elem.get(BBox.WIDTH)),
-            float(bbox_elem.get(BBox.HEIGHT))
-        )
 
 
 
