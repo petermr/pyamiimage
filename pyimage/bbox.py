@@ -13,6 +13,8 @@ class BBox:
     def __init__(self, xy_ranges=None):
         """
         Must have a valid bbox
+        Still haven'tb worked out logic of default boxes (must include None's)
+        as [0.0],[0.0] is valid
         :param xy_ranges: [[x1, x2], [y1, y2]] will be set to integers
         """
         self.xy_ranges = [[], []]
@@ -45,8 +47,12 @@ class BBox:
             raise ValueError("no lists given")
         if len(xy_ranges) != 2:
             raise ValueError("must be 2 lists of lists")
+        if xy_ranges[0] is not None and len(xy_ranges[0]) == 0:
+            xy_ranges[0] = None
         if xy_ranges[0] is not None and len(xy_ranges[0]) != 2:
             raise ValueError(f"range {xy_ranges[0]} must be None or 2-tuple")
+        if xy_ranges[1] is not None and len(xy_ranges[1]) == 0:
+            xy_ranges[1] = None
         if xy_ranges[1] is not None and len(xy_ranges[1]) != 2:
             raise ValueError(f"range {xy_ranges[1]} must be None or 2-tuple")
         self.set_xrange(xy_ranges[0])

@@ -1,0 +1,35 @@
+arrow+text 
+{
+'arrows': {
+'a0': {'bbox': [[220, 260], [500, 540]], 'type': 'arrow', 'positions': {'front': 't0', 'back': 't1'}}, 
+'a1': {'bbox': [[642, 682], [417, 457]], 'type': 'arrow', 'positions': {'front': 't8', 'back': 't7'}}, 
+'a2': {'bbox': [[577, 617], [493, 627]], 'type': 'arrow', 'positions': {'front': 't3', 'back': 't7', 'left': 't9'}}, 
+'a3': {'bbox': [[220, 260], [634, 674]], 'type': 'arrow', 'positions': {'front': 't1', 'back': 't2'}}, 
+'a4': {'bbox': [[676, 716], [621, 661]], 'type': 'arrow', 'positions': {'front': 't4', 'back': 't3'}}, 
+'a5': {'bbox': [[336, 426], [587, 627]], 'type': 'arrow', 'positions': {'front': 't2', 'back': 't3', 'right': 't6'}}, 
+'a6': {'bbox': [[220, 260], [629, 669]], 'type': 'arrow', 'positions': {'front': 't5', 'back': 't2'}}, 
+'a7': {'bbox': [[580, 620], [701, 860]], 'type': 'arrow', 'positions': {'front': 't11', 'back': 't3', 'left': 't10'}}, 
+'a8': {'bbox': [[725, 765], [895, 935]], 'type': 'arrow', 'positions': {'front': 't12', 'back': 't11'}}, 
+'a9': {'bbox': [[585, 625], [983, 1098]], 'type': 'arrow', 'positions': {'front': 't14', 'back': 't11', 'left': 't13'}}
+}, 
+
+'text': {
+'t0': {'value': 'Phytosterols'}, 
+'t1': {'value': 'Triterpenoids'}, 
+'t8': {'value': 'Monoterpenes,'}, 
+'t7': {'value': 'Geranyl diphosphate'}, 
+'t3': {'value': 'Farnasyl diphosphate'}, 
+'t9': {'value': 'FPP synthase'}, 
+'t2': {'value': 'Squalene'}, 
+'t4': {'value': 'Sesquiterpenes,'}, 
+'t6': {'value': '2X'}, 
+'t5': {'value': 'Saponins'}, 
+'t11': {'value': 'Geranylgeranyl diphosphate'}, 
+'t10': {'value': 'GGPP synthase'}, 
+'t12': {'value': 'Diterpenes'}, 
+'t14': {'value': 'Polyterpenes'}, 
+'t13': {'value': '(+PP)'}
+}
+
+}
+

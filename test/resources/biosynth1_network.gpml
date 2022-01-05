@@ -1,0 +1,108 @@
+<ns0:Pathway xmlns:ns0="http://pathvisio.org/GPML/2013a" Name="unknown_network" Version="0.0.1" Organism="unknown">
+  <ns0:Graphics BoardWidth="1144" BoardHeight="1247"/>
+  <ns0:DataNode TextLabel="Phytostero" GraphId="t0" Type="Metabolite">
+    <ns0:Graphics CenterX="195" CenterY="357" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="Triterpeno" GraphId="t1" Type="Metabolite">
+    <ns0:Graphics CenterX="197" CenterY="529" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="Monoterpen" GraphId="t8" Type="Metabolite">
+    <ns0:Graphics CenterX="813" CenterY="423" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="Geranyl di" GraphId="t7" Type="Metabolite">
+    <ns0:Graphics CenterX="450" CenterY="424" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="Farnasyl d" GraphId="t3" Type="Metabolite">
+    <ns0:Graphics CenterX="455" CenterY="631" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="FPP syntha" GraphId="t9" Type="Metabolite">
+    <ns0:Graphics CenterX="571" CenterY="528" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="Squalene" GraphId="t2" Type="Metabolite">
+    <ns0:Graphics CenterX="198" CenterY="633" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="Sesquiterp" GraphId="t4" Type="Metabolite">
+    <ns0:Graphics CenterX="810" CenterY="629" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="2X" GraphId="t6" Type="Metabolite">
+    <ns0:Graphics CenterX="379" CenterY="598" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="Saponins" GraphId="t5" Type="Metabolite">
+    <ns0:Graphics CenterX="201" CenterY="806" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="Geranylger" GraphId="t11" Type="Metabolite">
+    <ns0:Graphics CenterX="422" CenterY="909" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="GGPP synth" GraphId="t10" Type="Metabolite">
+    <ns0:Graphics CenterX="577" CenterY="736" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="Diterpenes" GraphId="t12" Type="Metabolite">
+    <ns0:Graphics CenterX="887" CenterY="907" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="Polyterpen" GraphId="t14" Type="Metabolite">
+    <ns0:Graphics CenterX="508" CenterY="1116" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:DataNode TextLabel="(+PP)" GraphId="t13" Type="Metabolite">
+    <ns0:Graphics CenterX="582" CenterY="1012" Width="80" Height="30" ZOrder="32768" FontSize="12" Valign="Middle" Color="0000ff"/>
+  </ns0:DataNode>
+  <ns0:Interaction ZOrder="32768" LineThickness="1.0">
+    <ns0:Graphics>
+      <ns0:Point X="220" Y="260" GraphRef="t0" RelX="1.0" RelY="0.0"/>
+      <ns0:Point X="500" Y="540" GraphRef="t1" RelX="1.0" RelY="0.0" ArrowHead="mim-conversion"/>
+    </ns0:Graphics>
+  </ns0:Interaction>
+  <ns0:Interaction ZOrder="32768" LineThickness="1.0">
+    <ns0:Graphics>
+      <ns0:Point X="642" Y="682" GraphRef="t8" RelX="1.0" RelY="0.0"/>
+      <ns0:Point X="417" Y="457" GraphRef="t7" RelX="1.0" RelY="0.0" ArrowHead="mim-conversion"/>
+    </ns0:Graphics>
+  </ns0:Interaction>
+  <ns0:Interaction ZOrder="32768" LineThickness="1.0">
+    <ns0:Graphics>
+      <ns0:Point X="577" Y="617" GraphRef="t3" RelX="1.0" RelY="0.0"/>
+      <ns0:Point X="503" Y="617" GraphRef="t7" RelX="1.0" RelY="0.0" ArrowHead="mim-conversion"/>
+    </ns0:Graphics>
+  </ns0:Interaction>
+  <ns0:Interaction ZOrder="32768" LineThickness="1.0">
+    <ns0:Graphics>
+      <ns0:Point X="220" Y="260" GraphRef="t1" RelX="1.0" RelY="0.0"/>
+      <ns0:Point X="634" Y="674" GraphRef="t2" RelX="1.0" RelY="0.0" ArrowHead="mim-conversion"/>
+    </ns0:Graphics>
+  </ns0:Interaction>
+  <ns0:Interaction ZOrder="32768" LineThickness="1.0">
+    <ns0:Graphics>
+      <ns0:Point X="676" Y="716" GraphRef="t4" RelX="1.0" RelY="0.0"/>
+      <ns0:Point X="621" Y="661" GraphRef="t3" RelX="1.0" RelY="0.0" ArrowHead="mim-conversion"/>
+    </ns0:Graphics>
+  </ns0:Interaction>
+  <ns0:Interaction ZOrder="32768" LineThickness="1.0">
+    <ns0:Graphics>
+      <ns0:Point X="346" Y="416" GraphRef="t2" RelX="1.0" RelY="0.0"/>
+      <ns0:Point X="587" Y="627" GraphRef="t3" RelX="1.0" RelY="0.0" ArrowHead="mim-conversion"/>
+    </ns0:Graphics>
+  </ns0:Interaction>
+  <ns0:Interaction ZOrder="32768" LineThickness="1.0">
+    <ns0:Graphics>
+      <ns0:Point X="220" Y="260" GraphRef="t5" RelX="1.0" RelY="0.0"/>
+      <ns0:Point X="629" Y="669" GraphRef="t2" RelX="1.0" RelY="0.0" ArrowHead="mim-conversion"/>
+    </ns0:Graphics>
+  </ns0:Interaction>
+  <ns0:Interaction ZOrder="32768" LineThickness="1.0">
+    <ns0:Graphics>
+      <ns0:Point X="580" Y="620" GraphRef="t11" RelX="1.0" RelY="0.0"/>
+      <ns0:Point X="711" Y="850" GraphRef="t3" RelX="1.0" RelY="0.0" ArrowHead="mim-conversion"/>
+    </ns0:Graphics>
+  </ns0:Interaction>
+  <ns0:Interaction ZOrder="32768" LineThickness="1.0">
+    <ns0:Graphics>
+      <ns0:Point X="725" Y="765" GraphRef="t12" RelX="1.0" RelY="0.0"/>
+      <ns0:Point X="895" Y="935" GraphRef="t11" RelX="1.0" RelY="0.0" ArrowHead="mim-conversion"/>
+    </ns0:Graphics>
+  </ns0:Interaction>
+  <ns0:Interaction ZOrder="32768" LineThickness="1.0">
+    <ns0:Graphics>
+      <ns0:Point X="585" Y="625" GraphRef="t14" RelX="1.0" RelY="0.0"/>
+      <ns0:Point X="983" Y="1098" GraphRef="t11" RelX="1.0" RelY="0.0" ArrowHead="mim-conversion"/>
+    </ns0:Graphics>
+  </ns0:Interaction>
+</ns0:Pathway>

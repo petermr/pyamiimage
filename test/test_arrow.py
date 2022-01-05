@@ -337,7 +337,7 @@ class TestArrow:
         svgsvg = etree.parse(str(self.resources.BIOSYNTH1_ARROWS_TEXT_SVG))
         ami_network = AmiNetwork.create_from_svgsvg(svgsvg)
         ami_network.overlap_arrows_and_text()
-        ami_network.write_gpml(Path(Resources.TEMP_DIR, "biosynth1_network.gpml"))
+        ami_network.write_graph(Path(Resources.TEMP_DIR, "biosynth1_network.gpml"))
 
     # @unittest.skip("under development")
     # def test_raw_arrows_to_bboxes(self):
@@ -359,13 +359,13 @@ class TestArrow:
     #             print("cannot create AmiArrow")
     #         print(ami_arrow.ge)
 
-    # ------------ helpers -------------
-
+    @unittest.skip("Obsolete?")
     def test_write_gpml(self):
         ami_network = AmiNetwork()
-        ami_network.write_gpml(Path(Resources.TEMP_DIR, "test.gpml"))
+        ami_network.write_graph(Path(Resources.TEMP_DIR, "test.gpml"))
 
 
+    # ------------ helpers -------------
 
     @classmethod
     def create_and_test_arrows(cls, ami_graph, max_dim, total_islands=None, expected_arrows=None, big_island_count=None, output_temp=None):

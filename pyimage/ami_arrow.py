@@ -237,6 +237,7 @@ class AmiNetwork:
     ID = "id"
     POSITIONS = "positions"
     TEXT = "text"
+    TEXTBOXES = "textboxes"
     TYPE = "type"
     UPPER_ID = "ID"
     VALUE = "value"
@@ -265,8 +266,8 @@ class AmiNetwork:
         self.arrows_dict = dict()
         self.arrows_text_dict[self.ARROWS] = self.arrows_dict
 
-        self.text_dict = dict()
-        self.arrows_text_dict[self.TEXT] = self.text_dict
+        self.textboxes_dict = dict()
+        self.arrows_text_dict[self.TEXTBOXES] = self.textboxes_dict
         for arrow_elem in arrows:
             arrow_id = arrow_elem.get(self.ID)
             for position in [ArrowBBox.FRONT, ArrowBBox.BACK, ArrowBBox.RIGHT, ArrowBBox.LEFT]:
@@ -303,85 +304,148 @@ class AmiNetwork:
         :return:
         """
         text_val = AmiNetwork.get_text_val(text_element)
-        if textbox_id not in self.text_dict:
-            self.text_dict[textbox_id] = dict()
-        self.text_dict[textbox_id] = {self.TYPE: self.TEXT}
-        self.text_dict[textbox_id] = {self.VALUE: text_val}
-        self.text_dict[textbox_id] = {self.BBOX: text_bbox}
+        if textbox_id not in self.textboxes_dict:
+            self.textboxes_dict[textbox_id] = dict()
+        print(f"added {text_val} for {textbox_id}")
+        self.textboxes_dict[textbox_id][self.VALUE] = text_val
+        self.textboxes_dict[textbox_id][self.BBOX] = text_bbox
+        print(f"{textbox_id} gives {self.textboxes_dict}")
         return text_val
 
     def add_arrow_fields_to_dict(self, arrow_bbox, arrow_id, position, text_id):
         if arrow_id not in self.arrows_dict:
             self.arrows_dict[arrow_id] = dict()
         self.arrows_dict[arrow_id][self.BBOX] = arrow_bbox
-        self.arrows_dict[arrow_id][self.TYPE] = self.ARROW
+        # self.arrows_dict[arrow_id][self.TYPE] = self.ARROW
         if self.POSITIONS not in self.arrows_dict[arrow_id]:
             self.arrows_dict[arrow_id][self.POSITIONS] = dict()
         self.arrows_dict[arrow_id][self.POSITIONS][position] = text_id
 
-    def write_gpml(self, path):
+    def write_graph(self, path):
         """
-        write GPML NYI
-        :param path:
-        :return:
+        write graph
+        output format determined by suffix of path
+        :param path: pathname, suffix can be *.gpml, *.dot (NYI), *.svg (NYI)
+        :return: None
         """
+        if path.suffix == ".gpml":
+            self.write_graph_gpml(path)
+        elif path.suffix == ".dot":
+            self.write_graph_dot(path)
+        elif path.suffix == ".svg":
+            self.write_graph_svg(path)
+        else:
+            logger.error(f"unsupported format {path}")
+
+    def write_graph_gpml(self, path):
         """
-<Pathway xmlns="http://pathvisio.org/GPML/2013a" Name="Foo" Version="000" Organism="T. rex">
-  <Graphics BoardWidth="484.0" BoardHeight="234.25" />
-  <DataNode TextLabel="HDL-C" GraphId="bf9b8" Type="Metabolite">
-    <Graphics CenterX="348.5" CenterY="184.25" Width="93.0" Height="35.5" ZOrder="32768" FontSize="12" 
-        Valign="Middle" Color="0000ff" />
-    <Xref Database="ChEBI" ID="CHEBI:47775" />
-  </DataNode>
-  ...
-  <Interaction>
-    <Graphics ZOrder="12288" LineThickness="1.0">
-      <Point X="151.0" Y="182.625" GraphRef="eb089" RelX="1.0" RelY="0.0" />
-      <Point X="302.0" Y="184.25" GraphRef="bf9b8" RelX="-1.0" RelY="0.0" ArrowHead="mim-conversion" />
-    </Graphics>
-    <Xref Database="" ID="" />
-  </Interaction>
-  <InfoBox CenterX="0.0" CenterY="0.0" />
-  <Biopax />
-</Pathway>
-        
+https://github.com/PathVisio/libGPML/blob/main/org.pathvisio.lib/src/main/resources/GPML2013a.xsd
+
+    <Pathway xmlns="http://pathvisio.org/GPML/2013a" Name="Foo" Version="000" Organism="T. rex">
+      <Graphics BoardWidth="484.0" BoardHeight="234.25" />
+      <DataNode TextLabel="HDL-C" GraphId="bf9b8" Type="Metabolite">
+        <Graphics CenterX="348.5" CenterY="184.25" Width="93.0" Height="35.5" ZOrder="32768" FontSize="12"
+            Valign="Middle" Color="0000ff" />
+        <Xref Database="ChEBI" ID="CHEBI:47775" />
+      </DataNode>
+      ...
+      <Interaction>
+        <Graphics ZOrder="12288" LineThickness="1.0">
+          <Point X="151.0" Y="182.625" GraphRef="eb089" RelX="1.0" RelY="0.0" />
+          <Point X="302.0" Y="184.25" GraphRef="bf9b8" RelX="-1.0" RelY="0.0" ArrowHead="mim-conversion" />
+        </Graphics>
+        <Xref Database="" ID="" />
+      </Interaction>
+      <InfoBox CenterX="0.0" CenterY="0.0" />
+      <Biopax />
+    </Pathway>
+
+            """
         """
         E = ElementMaker(namespace=GPML_NS)
-        gpml_root = (
-            E("Pathway",
-              E("Graphics", BoardWidth="484.0", BoardHeight="234.25"),
-              Name="AmiNetwork", Version="000", Organism="T. rex")
-        )
-        data_node = E("DataNode",
-                      E("Graphics", CenterX="348.5", CenterY="184.25", Width="93.0", Height="35.5", ZOrder="32768",
-                        FontSize="12", Valign="Middle", Color="0000ff"),
-                      E("Xref", Database="ChEBI", ID="CHEBI:47775"),
-                      TextLabel="HDL-C", GraphId="t0", Type="Metabolite"
-                      )
-        data_node1 = E("DataNode",
-                       E("Graphics", CenterX="348.5", CenterY="184.25", Width="93.0", Height="35.5", ZOrder="32768",
-                         FontSize="12", Valign="Middle", Color="0000ff"),
-                       self.make_gpml_xref(Database="ChEBI", ID="CHEBI:9000"),
-                       TextLabel="HDL-D", GraphId="t1", Type="Metabolite"
-                       )
-
-        data_node2 = self.make_data_node("348.5", "184.25", "TextLabel", "t0", "Metabolite", "93.0", "35.5",
-                                         ZOrder="32768", FontSize="12",
-                                         Valign="Middle", Color="0000ff", Database="ChEBI", ID="CHEBI:9000")
-        if type(data_node2) is tuple:
-            data_node2 = data_node2[0]  # kludge, FIXME
-        interact = E("Interaction",
-                     E("Graphics",
-                       self.make_gpml_point(X="123", Y="345", GraphRef="t1"),
-                       self.make_gpml_point(X="987", Y="765", GraphRef="t2"),
-                       ),
-                     )
-        gpml_root.append(data_node)
+        BoardWidth = "484.0"
+        BoardHeight = "234.25"
+        ami_network = "AmiNetwork"
+        Version = "000"
+        organism = "T. rex"
+        gpml_root = self.make_gpml_root(BoardHeight, BoardWidth, Version, ami_network, organism)
+        X = "348.5"
+        Y = "184.25"
+        text_label = "TextLabel"
+        text_id = "t0"
+        type = "Metabolite"
+        width = "93.0"
+        label = "35.5"
+        data_node1 = self.make_text_data_node(X, Y, text_label, text_id, type, width, label, Color="0000ff")
+        data_node2 = self.make_text_data_node(X, Y, text_label, text_id, type, width, label, Color="0000ff")
+        point_X1 = "123"
+        point_Y1 = "456"
+        point_X2 = "654"
+        point_Y2 = "321"
+        idref1 = "t0"
+        idref2 = "t2"
+        interact = self.make_interaction(idref1, idref2, point_X1, point_X2, point_Y1, point_Y2)
         gpml_root.append(data_node1)
         gpml_root.append(data_node2)
         gpml_root.append(interact)
+        """
+        total_bbox = self.get_total_bbox()
+        print(f"total box: {total_bbox}")
 
-    def make_gpml_point(self, X, Y, GraphRef, RelX="1.0", RelY="0.0", ZOrder="32768", LineThickness="1.0"):
+        gpml_root = self.make_gpml_root(total_bbox.get_xrange()[1], total_bbox.get_yrange()[1], network_name="unknown_network", organism="unknown")
+        self.create_and_add_text_nodes(gpml_root)
+        self.create_and_add_interactions(gpml_root)
+        with open(path, "w") as f:
+            f.write(etree.tostring(gpml_root, pretty_print=True).decode(encoding="UTF-8"))
+
+    def create_and_add_interactions(self, gpml_root):
+        for arrow_id in self.arrows_dict:
+            arrow = self.arrows_dict[arrow_id]
+            bbox = self.arrows_dict[arrow_id][self.BBOX]
+            print(f"arrow: {arrow_id} {arrow}, {bbox}")
+            # arrow: a0 {'bbox': [[220, 260], [500, 540]], 'positions': {'front': 't0', 'back': 't1'}}
+            positions_dict = arrow[self.POSITIONS]
+            front_id = positions_dict[ArrowBBox.FRONT]
+            back_id = positions_dict[ArrowBBox.BACK]
+            if front_id is None and back_id is None:
+                print(f"need front and back for arrow {positions_dict}")
+            else:
+                print(f" front {front_id} back {back_id}")
+                gpml_interaction = self.make_gpml_interaction(front_id, back_id, bbox.get_xrange()[0],
+                                                              bbox.get_xrange()[1], bbox.get_yrange()[0],
+                                                              bbox.get_yrange()[1])
+                gpml_root.append(gpml_interaction)
+
+    def create_and_add_text_nodes(self, gpml_root):
+        for textbox_id in self.textboxes_dict:
+            bbox = self.textboxes_dict[textbox_id][self.BBOX]
+            text = self.textboxes_dict[textbox_id][self.VALUE]
+            Type = "Metabolite"
+            gpml_data_node = self.make_text_data_node(bbox.get_xrange()[0], bbox.get_yrange()[0], text[:10],
+                                                      textbox_id, Type,
+                                                      Width="80", Height="30")
+            # gpml_point = self.make_gpml_point(bbox.get_xrange()[0], bbox.get_yrange()[0], textbox_id)
+            gpml_root.append(gpml_data_node)
+
+    def make_gpml_interaction(self, idref1, idref2, point_X1, point_Y1, point_X2, point_Y2, ZOrder="32768", LineThickness="1.0"):
+        E = ElementMaker(namespace=GPML_NS)
+        return E("Interaction",
+                 E("Graphics",
+                   self.make_gpml_point(X=point_X1, Y=point_Y1, GraphRef=idref1),
+                   self.make_gpml_point(X=point_X2, Y=point_Y2, GraphRef=idref2, ArrowHead="mim-conversion"),
+                   ),
+                 ZOrder=ZOrder, LineThickness=LineThickness,
+                 )
+
+    def make_gpml_root(self, BoardHeight, BoardWidth, Version="0.0.1", network_name="unknown_network", organism="unknown_organism"):
+        E = ElementMaker(namespace=GPML_NS)
+        return (
+            E("Pathway",
+              E("Graphics", BoardWidth=str(BoardWidth), BoardHeight=str(BoardHeight)),
+              Name=network_name, Version=Version, Organism=organism)
+        )
+
+    def make_gpml_point(self, X, Y, GraphRef, RelX="1.0", RelY="0.0", ArrowHead=None):
         """
         make GPML point
         :param X: xcoord of point
@@ -395,8 +459,10 @@ class AmiNetwork:
 
         """
         E = ElementMaker(namespace=GPML_NS)
-        return E("Point", X=X, Y=Y, GraphRef=GraphRef, RelX=RelX, RelY=RelY,
-                 ZOrder=ZOrder, LineThickness=LineThickness)
+        point = E("Point", X=str(X), Y=str(Y), GraphRef=GraphRef, RelX=str(RelX), RelY=str(RelY))
+        if ArrowHead is not None:
+            point.set("ArrowHead", ArrowHead)
+        return point
 
     def make_gpml_xref(self, Database=None, ID=None):
         """GPML Xref to database
@@ -411,8 +477,8 @@ class AmiNetwork:
             xref.set(self.UPPER_ID, ID)
         return xref
 
-    def make_data_node(self, CenterX, CenterY, TextLabel, GraphId, Type, Width, Height, ZOrder="32768", FontSize="12",
-                       Valign="Middle", Color="0000ff", Database=None, ID=None):
+    def make_text_data_node(self, CenterX, CenterY, TextLabel, GraphId, Type, Width, Height, ZOrder="32768", FontSize="12",
+                            Valign="Middle", Color="0000ff", Database=None, ID=None):
         """Creates a data_node for GPML
         :param CenterX: x coord
         :param CenterY: y coord
@@ -432,11 +498,12 @@ class AmiNetwork:
         """
         E = ElementMaker(namespace=GPML_NS)
         data_node = E("DataNode", TextLabel=TextLabel, GraphId=GraphId, Type=Type)
-        graphics = E("Graphics", CenterX=CenterX, CenterY=CenterY, Width=Width, Height=Height, ZOrder=ZOrder,
-                     FontSize=FontSize, Valign=Valign, Color=Color)
+        graphics = E("Graphics", CenterX=str(CenterX), CenterY=str(CenterY), Width=str(Width), Height=str(Height), ZOrder=ZOrder,
+                     FontSize=str(FontSize), Valign=str(Valign), Color=Color)
         data_node.append(graphics)
-        xref = self.make_gpml_xref(Database=Database, ID=ID)
-        data_node.append(xref)
+        if Database is not None:
+            xref = self.make_gpml_xref(Database=Database, ID=ID)
+            data_node.append(xref)
         return data_node
 
     @classmethod
@@ -479,6 +546,24 @@ class AmiNetwork:
                 if ArrowBBox.FRONT in self.arrows_text_dict[key] and ArrowBBox.BACK in self.arrows_text_dict[key]:
                     print(self.arrows_text_dict[key][ArrowBBox.BACK], key, self.arrows_text_dict[key][ArrowBBox.FRONT])
 
+    def get_total_bbox(self):
+        """iterates over all bboxes to get total extent
+        """
+        total_bbox = BBox()
+
+        print(f"arrows dict {self.arrows_dict}")
+        for arrow_id in self.arrows_dict:
+            bbox = self.arrows_dict[arrow_id][self.BBOX]
+            # print (f"arrow_id: {arrow_id} {bbox}")
+            total_bbox = bbox if not total_bbox.is_valid() else total_bbox.union(bbox)
+            # print(f"new box {total_bbox}")
+        for textbox_id in self.arrows_text_dict[self.TEXTBOXES]:
+            bbox = self.textboxes_dict[textbox_id][self.BBOX]
+            # print (f"textbox_id: {textbox_id} {bbox}")
+            total_bbox = bbox if not total_bbox.is_valid() else total_bbox.union(bbox)
+
+        return total_bbox
+        print(f"total_box {total_bbox}")
 
 class ArrowBBox:
     CORE = "core"
