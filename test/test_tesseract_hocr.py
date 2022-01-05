@@ -124,9 +124,13 @@ class TestTesseractHOCR:
         assert phrases[0] == "Straight chain ester biosynthesis from fatty acids"
 
     def test_find_text_group(self):
+        bbox, words = TesseractOCR.extract_bbox_from_hocr(self.biosynth1_elem)
+        for wo, bo in zip(words, bbox):
+            print(f"{wo} -> {bo}")
         phrases, bboxes = TesseractOCR.find_phrases(self.biosynth1_elem)
         assert phrases is not None
         groups_bboxes = TesseractOCR.find_word_groups(bbox_of_phrases=bboxes)
+        # assert len(groups_bboxes) == 21
         biosynth1_img = io.imread(self.biosynth1)
         boxed = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=groups_bboxes)
         io.imshow(boxed)

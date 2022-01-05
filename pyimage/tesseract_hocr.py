@@ -146,7 +146,7 @@ class TesseractOCR:
         # and return a numpy array from the generated list
         bboxes = np.array(bboxes)
 
-        #TODO verify this doesn't break the system
+        # TODO verify this doesn't break the system
         words, bboxes = TesseractOCR.remove_bad_word_bboxes(words, bboxes)
 
         return bboxes, words
@@ -194,7 +194,7 @@ class TesseractOCR:
         return phrases, bbboxes
 
     @classmethod
-    def find_word_groups(cls, bbox_of_phrases, line_seperation=10, maximum_shear=20):
+    def find_word_groups(cls, bbox_of_phrases, line_seperation=20, maximum_shear=20):
         groups = []
         for bbox in bbox_of_phrases:
             # sort each bbox into a group
@@ -206,7 +206,7 @@ class TesseractOCR:
             
             group_found = False
             for group in groups:
-                if group[3] - bbox[3] < line_seperation:
+                if abs(group[3] - bbox[1]) < line_seperation:
                     TesseractOCR.envelope_box([group, bbox])
                     #TODO add check for shear
                     group_found = True
@@ -242,9 +242,11 @@ class TesseractOCR:
             # if word is empty, empty strings are false
             if not word:
                 continue
-            # if the word is not alphanumeric (only special character) then its probably a mistake
-            if not word.isalnum():
-                continue
+            # if "-" in word or ">" in word or "<" in word or "|" in word or "v" in word:
+            #     continue
+            # # if the word is not alphanumeric (only special character) then its probably a mistake
+            # if not word.isalnum():
+            #     continue
             # if bbox is too thin in either dimension
             if bbox[2] - bbox[0] < min_char_width or bbox[3] - bbox[1] < min_char_height:
                 continue
