@@ -157,12 +157,27 @@ class AmiArrow:
         # svg_arrow = SVGArrow(head_xy=self.point_xy, tail_xy=self.tail_xy)
         return self.svg_arrow
 
-    def get_orient(self):
+    def get_orient(self, deviation=10, min_length=50):
         """
+        orientation of arrow along axes
+        PLUSX, PLUSY, MINUSX, MINUSY
+        arrow must be horizontal (abs(x1-x2) < deviatiom), or vertical (abs(y1-y2) < deviation
+        :param deviation: max difference between aligned coordinates
+        :return: None if not aligned else ArrowBBox.PLUSX/PLUSY/MINUSX/MINUSY
 
-        :return:
+
         """
-        pass
+        if self.svg_arrow is None or self.svg_arrow.head_xy is None or self.svg_arrow.tail_xy is None:
+            return None
+        tail_xy = self.svg_arrow.tail_xy
+        head_xy = self.svg_arrow.head_xy
+        if abs(tail_xy[0] - head_xy[0]) < deviation:
+            if abs(tail_xy[1] - head_xy[1]) > min_length:
+                return ArrowBBox.PLUSY if tail_xy[1] < head_xy[1] else ArrowBBox.MINUSY
+        if abs(tail_xy[1] - head_xy[1]) < deviation:
+            if abs(tail_xy[0] - head_xy[0]) > min_length:
+                return ArrowBBox.PLUSX if tail_xy[0] < head_xy[0] else ArrowBBox.MINUSX
+        return None
 
     @classmethod
     def create_from_svg_arrow(cls, svg_arrow):
@@ -228,6 +243,68 @@ class AmiArrow:
         else:
             logger.warning("unknown direction {}")
 
+    def make_overlap_boxes(self, length=None, arrow_width=40, len_trim=10, colors=None):
+        orient = self.get_orient()
+        head_xy = self.svg_arrow.head_xy
+        tail_xy = self.svg_arrow.tail_xy
+        # core_bbox = BBox(xy_ranges=[
+        #     [tail_xy[0], head_xy[0]] - arrow_width / 2],[]])
+        xmid = (tail_xy[0] + head_xy[0]) / 2
+        ymid = (tail_xy[1] + head_xy[1]) / 2
+        half_width = arrow_width / 2
+        # horizontal
+        if orient == ArrowBBox.PLUSX:
+            ymax = ymid + half_width
+            ymin = ymid - half_width
+            xmin = tail_xy[0]
+            xmax = head_xy[0]
+            bbox_core = BBox(xy_ranges=[[xmin, xmax], [ymin, ymax]], swap_minmax=True)
+            bbox_front = BBox(xy_ranges=[[xmax, xmax + length], [ymin, ymax]], swap_minmax=True)
+            bbox_back = BBox(xy_ranges=[[xmin - length, xmin], [ymin, ymax]], swap_minmax=True)
+            bbox_right = BBox(xy_ranges=[[xmin + len_trim, xmax - len_trim], [ymax, ymax + 2 * arrow_width]], swap_minmax=True)
+            bbox_left = BBox(xy_ranges=[[xmin + len_trim, xmax - len_trim], [ymin - 2 * arrow_width, ymin]], swap_minmax=True)
+            if colors is not None:
+                bbox_core.fill = colors["core"]
+
+        elif orient == ArrowBBox.MINUSX:
+            ymax = ymid + half_width
+            ymin = ymid - half_width
+            xmin = head_xy[0]
+            xmax = tail_xy[0]
+            bbox_core = BBox(xy_ranges=[[xmin, xmax], [ymin, ymax]], swap_minmax=True)
+            bbox_front = BBox(xy_ranges=[[xmin - length, xmin], [ymin, ymax]], swap_minmax=True)
+            bbox_back = BBox(xy_ranges=[[xmax, xmax + length], [ymin, ymax]], swap_minmax=True)
+            bbox_right = BBox(xy_ranges=[[xmin + len_trim, xmax - len_trim], [ymax, ymax + 2 * arrow_width]], swap_minmax=True)
+            bbox_left = BBox(xy_ranges=[[xmin + len_trim, xmax - len_trim], [ymin - 2 * arrow_width, ymin]], swap_minmax=True)
+        # vertical
+        elif orient == ArrowBBox.PLUSY:
+            xmax = xmid + half_width
+            xmin = xmid - half_width
+            ymin = tail_xy[1]
+            ymax = head_xy[1]
+            bbox_core = BBox(xy_ranges=[[xmin, xmax], [ymin, ymax]], swap_minmax=True)
+            bbox_front = BBox(xy_ranges=[[xmin, xmax ], [ymax, ymax + length]], swap_minmax=True)
+            bbox_back = BBox(xy_ranges=[[xmin, xmax], [ymin - length, ymax]], swap_minmax=True)
+            bbox_right = BBox(xy_ranges=[[xmax, xmax + 2 * arrow_width], [ymin + len_trim, ymax - len_trim]], swap_minmax=True)
+            bbox_left = BBox(xy_ranges=[[xmin - 2 * arrow_width, xmin], [ymin + len_trim, ymax - len_trim]], swap_minmax=True)
+        elif orient == ArrowBBox.MINUSY:
+            xmax = xmid + half_width
+            xmin = xmid - half_width
+            ymin = head_xy[1]
+            ymax = tail_xy[1]
+            bbox_core = BBox(xy_ranges=[[xmin, xmax], [ymin, ymax]], swap_minmax=True)
+            bbox_front = BBox(xy_ranges=[[xmin, xmax ], [ymin-length, ymin]], swap_minmax=True)
+            bbox_back = BBox(xy_ranges=[[xmin, xmax], [ymax, ymax + length]], swap_minmax=True)
+            bbox_right = BBox(xy_ranges=[[xmax, xmax + 2 * arrow_width], [ymin + len_trim, ymax - len_trim]], swap_minmax=True)
+            bbox_left = BBox(xy_ranges=[[xmin - 2 * arrow_width, xmin], [ymin + len_trim, ymax - len_trim]], swap_minmax=True)
+
+        bbox_core.color="blue"
+        bbox_front.color="fuchsia"
+        bbox_back.color="blue"
+        bbox_left.color="lime"
+        bbox_right.color="red"
+
+        return bbox_core, bbox_left, bbox_right, bbox_front, bbox_back
 
 class AmiNetwork:
     ARROW = "arrow"
