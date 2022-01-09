@@ -227,14 +227,42 @@ class AmiGraph:
             # ami_edge.read_nx_edge_points_yx(points_yx)
             self.ami_edges.append(ami_edge)
 
-    def get_or_create_ami_islands(self):
+    def get_or_create_ami_islands(self, maxdim=None, mindim=None, minmaxdim=None, maxmindim=None, reset=True):
         """
+        NOT YET TESTED
         AmiIslands are nx_graph 'components' with added functionality
+
+        :param reset: recalculate island list and reset self.ami_island_list ; default = True
+        :param maxdim: maximum maximum dimension (BOTH dimensions <= maxdim)
+        :param mindim: minimum minimum dimension (BOTH dimensions >= mindim
+        :param minmaxdim: maximum maximum dimension (at least ONE >= minmaxdim)
+        :param maxmindim: maximum minimum dimension (at least ONE <= maxmindim
         :return: list of AmiIslands
+
+        if no optional args returns all islands
+        Dimensions:
+        Assume islands of width, height:
+        A[1, 6] B[1,10], C[4,3], D[20, 30] E[1, 20] F[1,2]
+        maxdim = 5 selects C, F
+        mindim = 3 selects C D
+        maxmindim = 2 selects A B E F (i.e thin)
+        minmaxdim = 5 selects A B D E (i.e. not tiny)
+
+        They can be combined:
+        mindim = 3 and maxdim = 4 selects C
+
         """
-        if self.ami_island_list is None and self.nx_graph is not None:
+        if (self.ami_island_list is None or reset) and self.nx_graph is not None:
             self.ami_island_list = [self.create_ami_island(comp) for comp in
                                     nx.algorithms.components.connected_components(self.nx_graph)]
+        if mindim is not None:
+            self.ami_island_list = [isl for isl in self.ami_island_list if isl.get_or_create_bbox().min_dimension() >= mindim]
+        if maxdim is not None:
+            self.ami_island_list = [isl for isl in self.ami_island_list if isl.get_or_create_bbox().max_dimension() <= maxdim]
+        if minmaxdim is not None:
+            self.ami_island_list = [isl for isl in self.ami_island_list if isl.get_or_create_bbox().max_dimension() >= minmaxdim]
+        if maxmindim is not None:
+            self.ami_island_list = [isl for isl in self.ami_island_list if isl.get_or_create_bbox().min_dimension() <= maxmindim]
         return self.ami_island_list
 
     @classmethod
@@ -813,7 +841,7 @@ class AmiNode:
         assert self.nx_graph is not None
         assert node_id is not None
         self.centroid_xy = None if self.nx_graph is None\
-            else self.nx_graph.nodes[node_id][self.CENTROID]
+            else AmiUtil.get_xy_from_sknw_centroid(self.nx_graph.nodes[node_id][self.CENTROID])
         if self.centroid_xy is None:
             raise ValueError(f"Null centroid {node_id}")
         assert self.centroid_xy is not None
@@ -933,7 +961,14 @@ class AmiIsland:
 
     Not sure whether this should subclass AmiGraph or whether we should repeat / functions
     """
-    def __init__(self, ami_graph, node_ids=None):
+    def __init__(self, ami_graph, node_ids=None, make_edges=True):
+        """creates island from nx_graph components and pupulates with nodes and edges
+
+        :param ami_graph: to create from (mandatory)
+        :param node_ids: node ids
+        :param make_edges: uses nx_graph edges to create list of edge ids
+
+        """
         self.id = None
         self.node_ids = node_ids
         self.edge_ids = None
@@ -946,6 +981,8 @@ class AmiIsland:
         self.edges = None
         # self.degree_dict = None
         self.node_degree_dict = None
+        if make_edges:
+            self.create_edges()
 
     def create_island_sub_graph(self, deep_copy=False):
         """
@@ -1043,6 +1080,10 @@ class AmiIsland:
             flooder.plot_used_pixels()
 
     def create_edges(self):
+        """creates self.edges for an island from its node ids and the graph edge generator
+
+        :return: list of graph edges
+        """
         logger.warning(f"{__name__} use subgraph instead")
         assert self.ami_graph.nx_graph is not None
         nx_graph = self.ami_graph.nx_graph
@@ -1052,6 +1093,7 @@ class AmiIsland:
             for e in edges:
                 if e[0] < e[1]:
                     self.edges.append(e)
+        return self.edges
 
     def get_node_ids_of_degree(self, node_count):
         """

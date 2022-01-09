@@ -54,12 +54,13 @@ class AmiUtil:
     def get_xy_from_sknw_centroid(cls, yx):
         """
         yx is a 2-array and coords need swapping
+        and changing from numpy to int
         :param yx:
         :return: [x,y]
         """
         assert yx is not None
         assert len(yx) == 2 and type(yx) is np.ndarray, f"xy was {yx}"
-        return [yx[1], yx[0]]
+        return [int(yx[1]), int(yx[0])]
 
     @classmethod
     def make_numpy_assert(cls, numpy_array, shape=None, maxx=None, dtype=None):

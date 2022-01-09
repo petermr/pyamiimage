@@ -797,6 +797,76 @@ plt.show()"""
             islands_big = AmiIsland.get_islands_with_max_min_dimension(min_dim, islands)
             assert len(islands_big) == counts_by_mindim[min_dim]
 
+    def test_island_sizes(self):
+        """uses mindim, maxdim, to filter in/out islands. etc.
+        """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5);
+        #all islands
+        islands = ami_graph.get_or_create_ami_islands()
+        assert len(islands) == 227, f"expected total islands {len(islands)}"
+        # two largest
+        islands = ami_graph.get_or_create_ami_islands(mindim=50)
+        assert len(islands) == 2, f"expected large islands {len(islands)}"
+        # very small ones (periods, dots, etc.)
+        islands = ami_graph.get_or_create_ami_islands(maxdim=2)
+        assert len(islands) == 16, f"very small islands (periods, dots, decimals) {len(islands)}"
+        # all thin , including dots
+        islands = ami_graph.get_or_create_ami_islands(maxmindim=3)
+        assert len(islands) == 49, f"very thin islands (sans-serif l, i, etc) {len(islands)}"
+        # long thin , excluding dots
+        islands = ami_graph.get_or_create_ami_islands(minmaxdim=19)
+        assert len(islands) == 22, f"thin long islands (sans-serif l, i, etc) {len(islands)}"
+        # long thin , excluding dots
+        islands = ami_graph.get_or_create_ami_islands(minmaxdim=24)
+        assert len(islands) == 9, f"very thin long islands (sans-serif l, i, etc) {len(islands)}"
+        # islands with no thin dimension
+        islands = ami_graph.get_or_create_ami_islands(mindim=15)
+        assert len(islands) == 21, f"chunky islands (H M O etc and the 2 boxes) {len(islands)}"
+
+    def test_graph_plots(self):
+        """uses mindim, maxdim, to filter in/out islands. etc.
+        """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5);
+        # second largest island is a boxed plot
+        #all islands
+        islands = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)
+        assert len(islands) == 1, f"expected single islands {len(islands)}"
+        small_plot = islands[0]
+        node_ids = small_plot.node_ids
+        assert len(node_ids) == 36, f"nodes in small graph {len(node_ids)}"
+        assert node_ids == {258, 132, 389, 136, 24, 288, 546, 36, 40, 424, 46, 177, 569, 63, 448, 193,
+                         323, 590, 591, 592, 593, 594, 595, 596, 86, 605, 606, 607, 608, 609, 354,
+                         101, 103, 487, 114, 510}
+        assert small_plot.edges == [(258, 323), (132, 177), (389, 448), (136, 177), (136, 193), (24, 36),
+                                    (24, 36), (24, 40), (288, 323), (288, 354), (546, 569), (546, 595),
+                                    (36, 46), (40, 46), (40, 63), (424, 448), (424, 487), (46, 86),
+                                    (177, 258), (569, 590), (63, 86), (63, 101), (448, 510), (193, 258),
+                                    (193, 288), (323, 389), (590, 591), (590, 608), (591, 592), (591, 605),
+                                    (592, 593), (592, 606), (593, 594), (593, 596), (594, 595), (594, 607),
+                                    (595, 609), (86, 103), (354, 389), (354, 424), (101, 103), (101, 114),
+                                    (103, 132), (487, 510), (487, 546), (114, 132), (114, 136), (510, 569)]
+        for node_id in node_ids:
+            ami_node = AmiNode(node_id=node_id, ami_graph=ami_graph)
+            node_xy = ami_node.centroid_xy
+
+            for neighbour_id in ami_node.get_neighbors():
+                neighbour_xy = AmiNode(node_id=neighbour_id, ami_graph=ami_graph).centroid_xy
+                if abs(neighbour_xy[0] - node_xy[0]) <= 2:
+                    # vert line
+                    pass
+                elif abs(neighbour_xy[1] - node_xy[1]) <= 2:
+                    # horiz line
+                    pass
+                else:
+                    # only count once
+                    if neighbour_xy[0] < node_xy[0]:
+                        print(f"y plot  {node_id}..{neighbour_id} => {node_xy}...{neighbour_xy}")
+
+
+
+
+
+
 # =====================================
     # test helpers
 # =====================================
