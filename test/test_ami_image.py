@@ -6,8 +6,12 @@ from pathlib import Path
 
 import numpy as np
 from skimage import io, morphology
+from skimage import data
+from skimage.filters import unsharp_mask
+import matplotlib.pyplot as plt
 
 from ..pyimage.ami_image import AmiImage
+from ..test.resources import Resources
 
 RESOURCE_DIR = Path(Path(__file__).parent, "resources")
 COMPARE_DIR = Path(Path(__file__).parent, "comparison_images")
@@ -74,6 +78,38 @@ class TestAmiImage:
 
         TestAmiImage.assert_image_equals_repository_image_file(white_skeleton, "white_skeleton.png", COMPARE_DIR)
 
+
+    def test_sharpen_iucr(self):
+        """shows effect of sharpening (interactive display)
+        """
+        image = io.imread(str(Path(Resources.YW5003_5)))
+        assert image is not None
+        print (image.shape)
+        image = AmiImage.create_rgb_from_rgba(image)
+        image = AmiImage.create_grayscale_from_image(image)
+
+        result_1 = unsharp_mask(image, radius=1, amount=1)
+        result_2 = unsharp_mask(image, radius=5, amount=2)
+        result_3 = unsharp_mask(image, radius=20, amount=1)
+
+
+        fig, axes = plt.subplots(nrows=2, ncols=2,
+                                 sharex=True, sharey=True, figsize=(10, 10))
+        ax = axes.ravel()
+
+        ax[0].imshow(image, cmap=plt.cm.gray)
+        ax[0].set_title('Original image')
+        ax[1].imshow(result_1, cmap=plt.cm.gray)
+        ax[1].set_title('Enhanced image, radius=1, amount=1.0')
+        ax[2].imshow(result_2, cmap=plt.cm.gray)
+        ax[2].set_title('Enhanced image, radius=5, amount=2.0') # best
+        ax[3].imshow(result_3, cmap=plt.cm.gray)
+        ax[3].set_title('Enhanced image, radius=20, amount=1.0')
+        print(f"shape {result_3}")
+
+        plt.show()
+
+
 # ========== helper methods ==============
     @classmethod
     def assert_image_equals_repository_image_file(cls, original_image, expected_filename, repository_dir):
@@ -104,3 +140,4 @@ class TestAmiImage:
         """
         msg = f"{expected_filename} image" if expected_filename is not None else ""
         assert np.array_equal(comparable_image, compare_image), f"Image does not match {msg}"
+

@@ -209,7 +209,7 @@ plt.show()"""
 
         assert str(nx_graph.edges[(1, 2)][AmiEdge.PTS]) == "[[ 83, 680]]"
 
-    @unittest.skip("NYI")
+    @unittest.skip("needs multigraoph adding NYI")
     def test_segmented_edges(self):
         """
         analyse 4 arrows and convert to lines
@@ -797,7 +797,9 @@ plt.show()"""
             islands_big = AmiIsland.get_islands_with_max_min_dimension(min_dim, islands)
             assert len(islands_big) == counts_by_mindim[min_dim]
 
+# =====================================
     # test helpers
+# =====================================
 
     @classmethod
     def display_erode_dilate(cls, image, nx_graph, radius=3, erode=False, dilate=False):

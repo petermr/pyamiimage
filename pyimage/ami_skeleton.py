@@ -10,6 +10,7 @@ import sknw  # must pip install sknw
 import os
 import matplotlib.pyplot as plt
 from skimage import io
+import logging
 # local
 from ..pyimage.ami_image import AmiImage
 from ..pyimage.ami_util import AmiUtil
@@ -18,6 +19,7 @@ from ..pyimage.bbox import BBox
 from ..pyimage.flood_fill import FloodFill
 from ..pyimage.ami_graph_all import AmiGraph
 
+logger = logging.getLogger(__name__)
 
 class AmiSkeleton:
 
@@ -83,6 +85,7 @@ class AmiSkeleton:
         :param path:
         :return: AmiSkeleton
         """
+        logger.warning("maybe obsolete")
         assert path is not None
         path = Path(path)
         self.skeleton_image = AmiImage.create_white_skeleton_from_file(path)

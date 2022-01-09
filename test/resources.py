@@ -74,6 +74,11 @@ class Resources:
     PRIMITIVES = Path(TEST_RESOURCE_DIR, "primitives.png")
     assert PRIMITIVES.exists(), f"file exists {PRIMITIVES}"
 
+    YW5003_5 = Path(TEST_RESOURCE_DIR, "iucr_yw5003_fig5.png")
+    assert YW5003_5.exists(), f"file exists {YW5003_5}"
+
+# =====================
+
     TEMP_DIR = Path(TEST_RESOURCE_DIR.parent.parent, "temp")
     assert TEMP_DIR.is_dir(), f"file exists {TEMP_DIR}"
 
