@@ -39,7 +39,7 @@ class AmiGraph:
     logger = logging.getLogger("ami_graph")
 
     def __init__(self, nx_graph, generate_nodes=False, nd_skeleton=None):
-        """create fro nodes and edges"""
+        """create from nodes and edges"""
         if nx_graph is None:
             raise Exception(f"nx_graph cannot be None")
         self.nx_graph = nx_graph
@@ -66,6 +66,28 @@ class AmiGraph:
     def get_nx_graph(self):
         """try to avoid circular imports or attribute not found"""
         return self.nx_graph
+
+    def create_ami_node(self, node_id):
+        """create from node_id, use this rather than AmiNode() as it's easy to omit graph
+        :param node_id: node_id (should exist in nx_graph but not checked yet
+        :return: AmiNode (None if node_id is None)
+        """
+        if node_id is None:
+            return None
+        ami_node = AmiNode(node_id, ami_graph=self)
+        return ami_node
+
+    def create_ami_edge(self, start_id, end_id, branch_id=None):
+        """create edge from node_ids, prefer this to AmiEdge constructor
+        note: user must check which is start and end
+        currently does nt check validity od node_ids
+        :param start_id: start of edge
+        :param end_id: end of edge
+        :return: None if start_id or end_id is None
+        """
+        if start_id is None or end_id is None:
+            return None
+        ami_edge = AmiEdge(ami_graph=self, start_id=start_id, end_id=end_id, branch_id=branch_id)
 
     def add_raw_node(self, raw_node, fail_on_duplicate=False):
         """add a raw node either a string or string-indexed dict
@@ -118,7 +140,7 @@ class AmiGraph:
         ami_graph = AmiGraph(nx_graph, nd_skeleton=nd_skeleton)
         return ami_graph
 
-    def ingest_graph_info(self):
+    def _ingest_graph_info(self):
         if self.nx_graph is None:
             self.logger.warning("Null graph")
             return
@@ -128,7 +150,7 @@ class AmiGraph:
             return
 
         AmiGraph.assert_nx_island_info(nx_island_list)
-        nx_edgelist = self.get_edge_list_through_mininum_spanning_tree()
+        nx_edgelist = self.get_edge_list_ids_through_maximum_spanning_edges()
         AmiGraph.debug_edges_and_nodes(nx_edgelist, debug_count=7)
         nodes = self.nx_graph.nodes
         self.node_dict = {i: (nodes[node]["o"][0], nodes[node]["o"][1]) for i, node in enumerate(nodes)}
@@ -153,13 +175,17 @@ class AmiGraph:
         pts_index = 2
         for edge in nx_edgelist[:debug_count]:
             pts_ = edge[pts_index]['pts']
-            print(pts_)
+            print("points", pts_)
         edgelist_pts_ = nx_edgelist[0][2]['pts']
         for step in edgelist_pts_[:debug_count]:
             print("step", step)
             pass
 
-    def get_edge_list_through_mininum_spanning_tree(self):
+    def get_edge_list_ids_through_maximum_spanning_edges(self):
+        """
+
+        :return: list of edges as ids
+        """
         mst = tree.maximum_spanning_edges(self.nx_graph, algorithm="kruskal", data=True)
         # mst = tree.minimum_spanning_tree(graph, algorithm="kruskal")
         nx_edgelist = list(mst)
@@ -192,40 +218,62 @@ class AmiGraph:
         :param nx_graph:
         :return:
         """
-        # self.nodes_as_dicts = [nx_graph.node[ndidx] for ndidx in (nx_graph.nodes())]
-        # self.nodes_yx = [nx_graph.node[ndidx][AmiNode.CENTROID] for ndidx in (nx_graph.nodes())]
-        self.read_nx_edges(nx_graph)
-        self.read_nx_nodes(nx_graph)
         # this may be the critical data structure and the others are convenience
         self.nx_graph = nx_graph
+        self.read_nx_edges()
+        self.read_nx_nodes()
         ingest = False
         if ingest:
-            self.ingest_graph_info()
+            self._ingest_graph_info()
         return
 
-    def read_nx_nodes(self, nx_graph):
+    def read_nx_nodes(self):
+        """read nx_graph and create AmiNodes"""
+        assert self.nx_graph is not None, "must set self.nx_graph"
         max_digits = 5
         self.ami_nodes = []
-        node_ids = nx_graph.nodes()
+        node_ids = self.nx_graph.nodes()
         for node_id in node_ids:
             assert len(str(node_id)) < max_digits, f"node_id is {node_id}"
-            ami_node = AmiNode(ami_graph=self, node_id=node_id, nx_graph=nx_graph)
-            ami_node.set_centroid_yx(nx_graph.nodes[node_id][AmiNode.CENTROID])
+            ami_node = AmiNode(ami_graph=self, node_id=node_id, nx_graph=self.nx_graph)
+            ami_node.set_centroid_yx(self.nx_graph.nodes[node_id][AmiNode.CENTROID])
             self.ami_nodes.append(ami_node)
 
-    def read_nx_edges(self, nx_graph):
+    def read_nx_edges(self):
+        """read nx_graph and create AmiEdges
+        """
         self.ami_edges = []
-        for (start, end) in nx_graph.edges():
-            ami_edge = None
-            if nx_graph.is_multigraph:
-                edge_count = len(nx_graph[start][end])
-                for edge_id in range(edge_count):
-                    ami_edge = AmiEdge(self, start, end, edge_id)
-                    self.ami_edges.append(ami_edge)
-            else:
-                ami_edge = AmiEdge(self, start, end)
-            # ami_edge.read_nx_edge_points_yx(points_yx)
-            self.ami_edges.append(ami_edge)
+        for (start_id, end_id) in self.nx_graph.edges():
+            ami_edges = self.get_ami_edges(start_id, end_id)
+            for ami_edge in ami_edges:
+                self.ami_edges.append(ami_edge)
+
+    def get_ami_edges(self, start_id, end_id):
+        """return edges between given nodes
+        takes account of multigraph multiple edges
+        """
+        ami_edges = []
+        if self.nx_graph.is_multigraph:
+            edge_ids = self.get_edge_ids_for_node_ids(start_id, end_id)
+            edge_count = len(edge_ids)
+            for edge_id in range(edge_count):
+                ami_edge = AmiEdge(self, start_id, end_id, edge_id)
+                ami_edges.append(ami_edge)
+        else:
+            ami_edge = AmiEdge(self, start_id, end_id)
+            ami_edges.append(ami_edge)
+        return ami_edges
+
+    def get_edge_ids_for_node_ids(self, start_id, end_id):
+        """get edge_ids for pair of node_ids
+        NOTE: multigrapahs may have several edges
+        also the raw graph (not a Digraph) usually has pairs edges [s, e] and [e,s ]
+        up to the caller to make sure that each edge is correctly extracted
+        :param start_id:
+        :param end_id:
+        :return: edges as pairs of ids"""
+        edge_ids = self.nx_graph[start_id][end_id]
+        return edge_ids
 
     def get_or_create_ami_islands(self, maxdim=None, mindim=None, minmaxdim=None, maxmindim=None, reset=True):
         """
@@ -545,7 +593,7 @@ class AmiGraph:
         iterates over graph.nodes to find those with given degree
         graph may be a subgraph
         :param nx_graph: might be a subgraph
-        :param degree:
+        :param degree: connnectivity
         :return: list of node_ids (may be empty)
         """
         assert type(nx_graph) is nx.Graph or type(nx_graph) is nx.MultiGraph, f"not a graph {type(nx_graph)} "
@@ -569,6 +617,58 @@ class AmiGraph:
         """
         return [AmiNode(ami_graph=self, node_id=node_id) for node_id in node_ids]
 
+    def extract_aligned_node_lists(self, node_ids, pixel_error):
+        """Lists of horizontal, vertical, and other node-node edges
+
+        checks x- and y- coords of connected nodes to propose connections parallel to axes
+        :param node_ids: list of node_ids to analyse
+        :param pixel_error: max deviation from orthogonality in pixels
+        :return: list of horizontal, vectrical and other node-node connections
+        """
+        vertical_lines = []
+        horizontal_lines = []
+        non_hv_lines = []
+        for node_id in node_ids:
+            ami_node = AmiNode(node_id=node_id, ami_graph=self)
+            node_xy = ami_node.centroid_xy
+            for neighbour_id in ami_node.get_neighbour_ids():
+                neighbour_xy = AmiNode(node_id=neighbour_id, ami_graph=self).centroid_xy
+                # only add each line once
+                if node_id < neighbour_id:
+                    # line = SVGLine(node_xy, neighbour_xy)
+                    line = [node_xy, neighbour_xy]
+                    if abs(neighbour_xy[0] - node_xy[0]) <= pixel_error:
+                        vertical_lines.append(line)
+                    elif abs(neighbour_xy[1] - node_xy[1]) <= pixel_error:
+                        horizontal_lines.append(line)
+                    else:
+                        non_hv_lines.append(line)
+        return horizontal_lines, vertical_lines, non_hv_lines,
+
+    def get_unique_edges_and_multibranches(self, node_ids):
+        """gets all unique edges including multibranches
+        only includes edges where start_id < end_id
+        :param node_ids: node_ids
+        :return: unique_edges, multibranches
+        """
+        unique_edges = []
+        multibranches = []
+        for central_node_id in node_ids:
+            ami_node = self.create_ami_node(central_node_id)
+            for neighbour_id in ami_node.get_neighbour_ids():
+                ami_edges = self.get_ami_edges(central_node_id, neighbour_id)
+                # uniquify by  adding multibranch edges if start_id < end_id
+                if len(ami_edges) > 1:
+                    for ami_edge in ami_edges:
+                        if ami_edge.start_id < ami_edge.end_id:
+                            multibranches.append(ami_edge)
+                for ami_edge in ami_edges:
+                    if central_node_id < neighbour_id:
+                        unique_edges.append(ami_edge)
+        return multibranches, unique_edges
+
+# ================================================
+
     @classmethod
     def assert_nodes_of_degree(cls, ami_graph, degree, node_id_list):
         """
@@ -580,6 +680,7 @@ class AmiGraph:
         """
         assert ami_graph.get_node_ids_of_degree(degree) == node_id_list, \
             f"expected nodes of degree {degree} +> {node_id_list}, found {ami_graph.get_node_ids_of_degree(degree)}"
+
 
 
 class AmiGraphError(Exception):
@@ -602,10 +703,12 @@ if __name__ == '__main__':
 class AmiEdge:
     PTS = "pts"
 
-    def __init__(self, ami_graph, start, end, branch_id=None):
+    def __init__(self, ami_graph, start_id, end_id, branch_id=None):
+        """Do not use this, but ami_graph.create_edge instead
+        """
         self.ami_graph = ami_graph
-        self.start = start
-        self.end = end
+        self.start_id = start_id
+        self.end_id = end_id
         self.points_xy = None
         self.bbox = None
         if ami_graph.nx_graph.is_multigraph():
@@ -621,7 +724,7 @@ class AmiEdge:
 
         :return: (self.start, self.end, self.branch_id)
         """
-        return (self.start, self.end, self.branch_id)
+        return (self.start_id, self.end_id, self.branch_id)
 
     def get_id(self):
         """
@@ -629,12 +732,12 @@ class AmiEdge:
 
         :return: <start>_<end>_<branch>
         """
-        return f"{self.start}_{self.end}_{self.branch_id}"
+        return f"{self.start_id}_{self.end_id}_{self.branch_id}"
 
     def get_points(self):
-        assert self.start is not None
-        assert self.end is not None
-        edges = self.nx_graph[self.start][self.end]
+        assert self.start_id is not None
+        assert self.end_id is not None
+        edges = self.nx_graph[self.start_id][self.end_id]
         assert edges is not None
         if self.nx_graph.is_multigraph():
             assert self.branch_id is not None
@@ -655,8 +758,8 @@ class AmiEdge:
 
     def get_cartesian_length(self):
         assert self.ami_graph is not None
-        xy0 = AmiNode(ami_graph=self.ami_graph, node_id=self.start).centroid_xy
-        xy1 = AmiNode(ami_graph=self.ami_graph, node_id=self.end).centroid_xy
+        xy0 = AmiNode(ami_graph=self.ami_graph, node_id=self.start_id).centroid_xy
+        xy1 = AmiNode(ami_graph=self.ami_graph, node_id=self.end_id).centroid_xy
         dist = AmiUtil.get_dist(xy0, xy1)
         assert dist is not None
         return dist
@@ -682,7 +785,7 @@ class AmiEdge:
         s = ""
         if self.points_xy is not None:
             ll = int(self.pixel_length() / 2)
-            s = f"ami_edge {self.start}...{self.end} ({self.pixel_length()}) " \
+            s = f"ami_edge {self.start_id}...{self.end_id} ({self.pixel_length()}) " \
                 f"{self.points_xy[:1]}___{self.points_xy[ll - 0:ll + 1]}___{self.points_xy[-1:]}"
         return s
 
@@ -701,10 +804,10 @@ class AmiEdge:
         """
         if node_id is None:
             return None
-        elif node_id == self.start:
-            return self.end
-        elif node_id == self.end:
-            return self.start
+        elif node_id == self.start_id:
+            return self.end_id
+        elif node_id == self.end_id:
+            return self.start_id
         else:
             return None
 
@@ -840,6 +943,7 @@ class AmiNode:
             self.nx_graph = self.ami_graph.nx_graph
         assert self.nx_graph is not None
         assert node_id is not None
+
         self.centroid_xy = None if self.nx_graph is None\
             else AmiUtil.get_xy_from_sknw_centroid(self.nx_graph.nodes[node_id][self.CENTROID])
         if self.centroid_xy is None:
@@ -871,9 +975,9 @@ class AmiNode:
         self.centroid_xy = [point_yx[1], point_yx[0]]  # note coords reverse in sknw
         return
 
-    def get_neighbors(self):
+    def get_neighbour_ids(self):
         """
-        returns list of neighbouts of current node
+        returns list of neighbours of current node
         :return: list of neighbours as node_ids
         """
         return list(self.nx_graph.neighbors(self.node_id))
@@ -885,7 +989,7 @@ class AmiNode:
         return s
 
     def __str__(self):
-        s = f"centroid {self.centroid_xy}"
+        s = f"{self.node_id} centroid {self.centroid_xy}"
         return s
 
     def get_or_create_ami_edges(self):

@@ -22,7 +22,6 @@ from ..pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
 from ..pyimage.ami_image import AmiImage
 from ..pyimage.ami_util import AmiUtil
 from ..pyimage.bbox import BBox
-from ..pyimage.tesseract_hocr import TesseractOCR
 from ..pyimage.text_box import TextBox
 from ..pyimage.text_box import TextUtil
 from ..test.resources import Resources
@@ -355,7 +354,7 @@ plt.show()"""
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         edge = ami_graph.get_nx_edge_list_for_node(1)[0]
         ami_edge0 = AmiEdge(ami_graph, edge[0], edge[1], edge[2])
-        assert ami_edge0.start == 1
+        assert ami_edge0.start_id == 1
         assert ami_edge0.remote_node_id(1) == 4
         assert ami_edge0.remote_node_id(4) == 1
         assert ami_edge0.remote_node_id(None) is None
@@ -363,10 +362,10 @@ plt.show()"""
 
     def test_get_neighbours(self):
         ami_graph = self.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        assert [2] == AmiNode(ami_graph=ami_graph, node_id=0).get_neighbors()
-        assert [4] == AmiNode(ami_graph=ami_graph, node_id=1).get_neighbors()
-        assert [0, 4, 3, 7] == AmiNode(ami_graph=ami_graph, node_id=2).get_neighbors()
-        assert [10, 13, 18] == AmiNode(ami_graph=ami_graph, node_id=12).get_neighbors()
+        assert [2] == AmiNode(ami_graph=ami_graph, node_id=0).get_neighbour_ids()
+        assert [4] == AmiNode(ami_graph=ami_graph, node_id=1).get_neighbour_ids()
+        assert [0, 4, 3, 7] == AmiNode(ami_graph=ami_graph, node_id=2).get_neighbour_ids()
+        assert [10, 13, 18] == AmiNode(ami_graph=ami_graph, node_id=12).get_neighbour_ids()
 
     def create_ami_graph_from_arbitrary_image_file(self, path):
         """
@@ -825,6 +824,7 @@ plt.show()"""
 
     def test_graph_plots(self):
         """uses mindim, maxdim, to filter in/out islands. etc.
+        then finds horizontal, vertical and other cnnectiosn between nodes
         """
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5);
         # second largest island is a boxed plot
@@ -845,30 +845,43 @@ plt.show()"""
                                     (592, 593), (592, 606), (593, 594), (593, 596), (594, 595), (594, 607),
                                     (595, 609), (86, 103), (354, 389), (354, 424), (101, 103), (101, 114),
                                     (103, 132), (487, 510), (487, 546), (114, 132), (114, 136), (510, 569)]
-        for node_id in node_ids:
-            ami_node = AmiNode(node_id=node_id, ami_graph=ami_graph)
-            node_xy = ami_node.centroid_xy
 
-            for neighbour_id in ami_node.get_neighbors():
-                neighbour_xy = AmiNode(node_id=neighbour_id, ami_graph=ami_graph).centroid_xy
-                if abs(neighbour_xy[0] - node_xy[0]) <= 2:
-                    # vert line
-                    pass
-                elif abs(neighbour_xy[1] - node_xy[1]) <= 2:
-                    # horiz line
-                    pass
-                else:
-                    # only count once
-                    if neighbour_xy[0] < node_xy[0]:
-                        print(f"y plot  {node_id}..{neighbour_id} => {node_xy}...{neighbour_xy}")
+        pixel_error = 2;
+        # I have struggled to find the right term. "axial" suggests the actual axis
+        horizontal_lines, vertical_lines, non_hv_lines = \
+            ami_graph.extract_aligned_node_lists(node_ids, pixel_error)
 
+        horiz_node_ids = [[[66, 758], [107, 759]], [[107, 759], [149, 759]], [[149, 759], [191, 759]], [[191, 759], [232, 759]],
+             [[232, 759], [274, 759]]]
+        assert horizontal_lines == horiz_node_ids, f"horizontal lines should be {horiz_node_ids}"
+        vert_node_ids = [[[66, 462], [66, 520]], [[66, 355], [66, 408]], [[66, 577], [66, 632]], [[295, 372], [295, 427]],
+           [[295, 96], [295, 151]], [[295, 483], [295, 542]], [[66, 131], [66, 185]], [[295, 151], [295, 206]],
+           [[295, 598], [295, 655]], [[66, 185], [66, 241]], [[66, 408], [66, 462]], [[66, 752], [66, 758]],
+           [[295, 206], [295, 267]], [[66, 632], [66, 692]], [[295, 427], [295, 483]], [[66, 520], [66, 577]],
+           [[66, 758], [65, 770]], [[107, 759], [107, 764]], [[149, 759], [149, 764]], [[191, 759], [191, 762]],
+           [[232, 759], [232, 764]], [[274, 759], [274, 770]], [[66, 241], [66, 300]], [[295, 542], [295, 598]],
+           [[295, 267], [295, 324]], [[66, 300], [66, 355]], [[295, 655], [295, 715]], [[295, 324], [295, 372]],
+           [[66, 692], [66, 752]]
+            ]
+        assert vertical_lines == vert_node_ids, f"vertical lines should be {vert_node_ids}"
+        non_horvert_node_ids = [
+            [[295, 372], [66, 408]], [[295, 96], [66, 131]], [[295, 483], [66, 520]], [[295, 715], [66, 752]],
+            [[295, 715],[274, 759]], [[295, 151], [66, 185]], [[295, 598], [66, 632]], [[295, 206], [66, 241]],
+            [[295, 427], [66, 462]], [[295, 542], [66, 577]], [[295, 267], [66, 300]], [[295, 655], [66, 692]],
+            [[295, 324], [66, 355]]]
+        assert non_hv_lines == non_horvert_node_ids, f"non-axial lines should be {non_hv_lines}"
 
-
-
-
+    def test_enumerate_unique_edges(self):
+        """separates 3- connected nodes into separate lines """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5);
+        small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
+        triply_connected_ids = AmiGraph.get_node_ids_from_graph_with_degree(small_plot_island.island_nx_graph, 3)
+        multibranches, unique_edges = ami_graph.get_unique_edges_and_multibranches(triply_connected_ids)
+        assert len(unique_edges) == 48, f"should be {len(unique_edges)}"
+        assert len(multibranches) == 2, f"should be {len(multibranches)} multibranches"
 
 # =====================================
-    # test helpers
+# test helpers
 # =====================================
 
     @classmethod

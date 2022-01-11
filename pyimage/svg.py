@@ -365,6 +365,12 @@ class SVGLine(AbsSVG):
         self.set_xy2(xy2)
         set_default_styles(self)
 
+    def __repr__(self):
+        """[x1, y1], [x2, y2]"""
+        s = f"[{self.get_float_attribute(self, self.X1)}, {self.get_float_attribute(self, self.Y1)}], " \
+            f"[{self.get_float_attribute(self, self.Y1)}, {self.get_float_attribute(self, self.Y2)}]"
+        return s
+
     def set_xy1(self, xy):
         if xy is not None:
             self.set_attribute(self.X1, str(xy[0]))
