@@ -18,6 +18,7 @@ from ..pyimage.ami_util import AmiUtil
 from ..pyimage.svg import BBox
 from ..pyimage.text_box import TextBox
 from ..pyimage.flood_fill import FloodFill
+from ..pyimage.ami_plot import AmiLine
 
 logger = logging.getLogger(__name__)
 
@@ -67,27 +68,82 @@ class AmiGraph:
         """try to avoid circular imports or attribute not found"""
         return self.nx_graph
 
-    def create_ami_node(self, node_id):
-        """create from node_id, use this rather than AmiNode() as it's easy to omit graph
+    def get_or_create_ami_node(self, node_id):
+        """create from node_id or rerieve from node_dict
+        use this method rather than AmiNode() constructor
+        Stores AmiNodes in self.node_dict
         :param node_id: node_id (should exist in nx_graph but not checked yet
         :return: AmiNode (None if node_id is None)
         """
         if node_id is None:
             return None
-        ami_node = AmiNode(node_id, ami_graph=self)
+        if self.node_dict is None:
+            self.node_dict = dict()
+        if node_id not in self.node_dict:
+            ami_node = AmiNode(node_id, ami_graph=self)
+            self.node_dict[node_id] = ami_node
+        else:
+            ami_node = self.node_dict[node_id]
         return ami_node
 
-    def create_ami_edge(self, start_id, end_id, branch_id=None):
-        """create edge from node_ids, prefer this to AmiEdge constructor
-        note: user must check which is start and end
-        currently does nt check validity od node_ids
-        :param start_id: start of edge
-        :param end_id: end of edge
+# AmiGraph
+
+    def get_or_create_ami_edge(self, node_id1, node_id2, branch_id=None):
+        """create or lookup AmiEdge from node_ids, or retrievs from edge_dict
+        prefer this to AmiEdge constructor
+        key is (sorted(node_id1, node_id2)),
+        looks up AmiNode to check validity of node_ids
+        If there are multiple branches between two nodes they must have different branch_ids
+        (It's up to the user to manage this). Adding an edge without a branch_id will replace
+        the current one)
+
+        :param node_id1: start of edge
+        :param node_id2: end of edge
+        :param branch_id: id there are multiple branches; up to the user to manage these
         :return: None if start_id or end_id is None
         """
-        if start_id is None or end_id is None:
+        if type(node_id1) is not int or type(node_id2) is not int:
             return None
-        ami_edge = AmiEdge(ami_graph=self, start_id=start_id, end_id=end_id, branch_id=branch_id)
+        key = (node_id1, node_id2) if node_id1 < node_id2 else (node_id2, node_id1)
+        if self.ami_edge_dict is None:
+            self.ami_edge_dict = dict()
+        # new edge?
+        if key not in self.ami_edge_dict:
+            ami_edge = AmiEdge(ami_graph=self, start_id=node_id1, end_id=node_id2, branch_id=branch_id)
+            # single edge?
+            if branch_id is None:
+                self.ami_edge_dict[key] = ami_edge
+                return ami_edge
+            # user- defined branch store a list, requires branch_id = 0
+            elif branch_id == 0:
+                self.ami_edge_dict[key] = [ami_edge]
+                return ami_edge
+            else:
+                raise ValueError(f"unexpected branch {branch_id} with first edge")
+        # existing edge/s
+        else:
+            # assume we might have multiple edges
+            ami_edge = self.ami_edge_dict[key]
+            #single branch
+            if branch_id is None:
+                if type(ami_edge) is not list:
+                    return ami_edge
+                else:
+                    raise ValueError(f"Cannot return list without branch_id")
+            # single branch
+            elif type(ami_edge) is not list:
+                if branch_id == 0:
+                    return ami_edge
+                else:
+                    raise ValueError(f"branch_id {branch_id} with non-list")
+            # already list
+            else:
+                if branch_id >= len(ami_edge):
+                    raise ValueError(f"branch_id {branch_id} larger than ami_edge list {len(ami_edge)}")
+                else:
+                    return ami_edge[branch_id]
+
+
 
     def add_raw_node(self, raw_node, fail_on_duplicate=False):
         """add a raw node either a string or string-indexed dict
@@ -126,6 +182,8 @@ class AmiGraph:
         edge1 = ("n" + str(raw_edge[0]), "n" + str(raw_edge[1]))
         self.ami_edge_dict[idx] = edge1
 
+# AmiGraph
+
     def generate_nodes_from_edges(self):
         if self.ami_edges is not None:
             for edge in self.ami_edges:
@@ -133,7 +191,7 @@ class AmiGraph:
                 self.add_raw_node(edge[1])
 
     @classmethod
-    def create_ami_graph(cls, nd_skeleton):
+    def create_ami_graph_from_skeleton(cls, nd_skeleton):
         """Uses Sknw to create a graph object within a new AmiGraph"""
         # currently only called in a test
         nx_graph = sknw.build_sknw(nd_skeleton)
@@ -169,6 +227,8 @@ class AmiGraph:
         assert len(nx_island0) > 0
         elem0 = list(nx_island0)[0]
         assert type(elem0) is int, f"island elem are {type(elem0)}"
+
+# AmiGraph
 
     @classmethod
     def debug_edges_and_nodes(cls, nx_edgelist, debug_count=5):
@@ -220,7 +280,7 @@ class AmiGraph:
         """
         # this may be the critical data structure and the others are convenience
         self.nx_graph = nx_graph
-        self.read_nx_edges()
+        self.read_nx_edges_into_ami_edges()
         self.read_nx_nodes()
         ingest = False
         if ingest:
@@ -239,14 +299,18 @@ class AmiGraph:
             ami_node.set_centroid_yx(self.nx_graph.nodes[node_id][AmiNode.CENTROID])
             self.ami_nodes.append(ami_node)
 
-    def read_nx_edges(self):
+# AmiGraph
+
+    def read_nx_edges_into_ami_edges(self):
         """read nx_graph and create AmiEdges
+        :return: self.ami_edges
         """
         self.ami_edges = []
         for (start_id, end_id) in self.nx_graph.edges():
             ami_edges = self.get_ami_edges(start_id, end_id)
             for ami_edge in ami_edges:
                 self.ami_edges.append(ami_edge)
+        return self.ami_edges
 
     def get_ami_edges(self, start_id, end_id):
         """return edges between given nodes
@@ -313,6 +377,8 @@ class AmiGraph:
             self.ami_island_list = [isl for isl in self.ami_island_list if isl.get_or_create_bbox().min_dimension() <= maxmindim]
         return self.ami_island_list
 
+# AmiGraph
+
     @classmethod
     def create_nx_graph_from_arbitrary_image_file(cls, path, interactive=False):
         assert path.exists() and not path.is_dir(), f"{path} should be existing file"
@@ -368,6 +434,8 @@ class AmiGraph:
             ami_islands.append(ami_island)
         return ami_islands
 
+# AmiGraph
+
     def extract_coords_for_node(self, idx):
         """
         gets coords for a single node with given id
@@ -418,6 +486,8 @@ class AmiGraph:
             angle = self.get_angle_between_nodes(node_ids[0], node_id, node1)
             angle_dict[node1] = angle
         return node_ids[0], node_id, angle_dict
+
+# AmiGraph
 
     def get_angle_between_nodes(self, node_id0, node_id1, node_id2):
         """
@@ -487,6 +557,8 @@ class AmiGraph:
             for i in nodes:
                 plt.text(ps[i, 1], ps[i, 0], str(i))
 
+# AmiGraph
+
     @classmethod
     def add_bbox_rect(cls, axis, bbox, linewidth=1, edgecolor="red", facecolor="none"):
         """
@@ -529,6 +601,7 @@ class AmiGraph:
         """
         assert self.nx_graph.is_multigraph(), "should be multigraph"
         nx_edges = list(self.nx_graph.edges(node_id, keys=True))
+
         return nx_edges
 
     def get_angle_to_x(self, edge):
@@ -536,7 +609,8 @@ class AmiGraph:
         n0 = self.nx_graph.nodes[edge[0]]
         n1 = self.nx_graph.nodes[edge[1]]
         print(f"x0 {n0} x1 {n1}")
-        pass
+
+# AmiGraph
 
     def get_direct_length(self, nx_edge):
         """
@@ -577,6 +651,8 @@ class AmiGraph:
 
         angle = AmiUtil.get_angle(xy0, xyc, xy1)
         return angle
+
+# AmiGraph
 
     def get_or_create_centroid_xy(self, node_id):
         """
@@ -632,40 +708,43 @@ class AmiGraph:
             ami_node = AmiNode(node_id=node_id, ami_graph=self)
             node_xy = ami_node.centroid_xy
             for neighbour_id in ami_node.get_neighbour_ids():
-                neighbour_xy = AmiNode(node_id=neighbour_id, ami_graph=self).centroid_xy
                 # only add each line once
                 if node_id < neighbour_id:
+                    ami_edge = self.get_or_create_ami_edge(node_id, neighbour_id)
+                    neighbour_xy = AmiNode(node_id=neighbour_id, ami_graph=self).centroid_xy
                     # line = SVGLine(node_xy, neighbour_xy)
-                    line = [node_xy, neighbour_xy]
+                    line = AmiLine([node_xy, neighbour_xy])
                     if abs(neighbour_xy[0] - node_xy[0]) <= pixel_error:
                         vertical_lines.append(line)
                     elif abs(neighbour_xy[1] - node_xy[1]) <= pixel_error:
                         horizontal_lines.append(line)
                     else:
                         non_hv_lines.append(line)
-        return horizontal_lines, vertical_lines, non_hv_lines,
+        return horizontal_lines, vertical_lines, non_hv_lines
 
-    def get_unique_edges_and_multibranches(self, node_ids):
+# AmiGraph
+
+    def get_unique_ami_edges_and_multibranches(self, node_ids):
         """gets all unique edges including multibranches
         only includes edges where start_id < end_id
         :param node_ids: node_ids
         :return: unique_edges, multibranches
         """
-        unique_edges = []
+        unique_ami_edges = []
         multibranches = []
         for central_node_id in node_ids:
-            ami_node = self.create_ami_node(central_node_id)
+            ami_node = self.get_or_create_ami_node(central_node_id)
             for neighbour_id in ami_node.get_neighbour_ids():
                 ami_edges = self.get_ami_edges(central_node_id, neighbour_id)
                 # uniquify by  adding multibranch edges if start_id < end_id
                 if len(ami_edges) > 1:
                     for ami_edge in ami_edges:
-                        if ami_edge.start_id < ami_edge.end_id:
+                        if ami_edge.has_start_lt_end():
                             multibranches.append(ami_edge)
                 for ami_edge in ami_edges:
-                    if central_node_id < neighbour_id:
-                        unique_edges.append(ami_edge)
-        return multibranches, unique_edges
+                    if ami_edge.has_start_lt_end():
+                        unique_ami_edges.append(ami_edge)
+        return unique_ami_edges, multibranches
 
 # ================================================
 
@@ -713,10 +792,32 @@ class AmiEdge:
         self.bbox = None
         if ami_graph.nx_graph.is_multigraph():
             if branch_id is None:
-                raise ValueError("branch_id for {self.start} {self.end} should be set")
+                branch_id = 0
+                # raise ValueError("branch_id for {self.start} {self.end} should be set")
             self.branch_id = branch_id
         self.nx_graph = ami_graph.nx_graph
         self.get_points()
+
+    def __eq__(self, other):
+        """equality is based on node_ids and branch_id alone
+        later we want to add this object to the nx_graph which will guarantee uniqueness
+        :param other: another edge
+        """
+        if not isinstance(other, type(self)):
+            return False
+        if self.branch_id != other.branch_id:
+            return False
+        if self.start_id == other.start_id and self.end_id == other.end_id:
+            return True
+        # if self.start_id == other.end_id and self.end_id == other.start_id:
+        #     return True
+        return False
+
+    # class AmiEdge:
+
+    def __hash__(self):
+        """uses node_id"""
+        return hash(self.start_id) + hash(self.end_id)
 
     def get_tuple(self):
         """
@@ -789,6 +890,11 @@ class AmiEdge:
                 f"{self.points_xy[:1]}___{self.points_xy[ll - 0:ll + 1]}___{self.points_xy[-1:]}"
         return s
 
+    def has_start_lt_end(self):
+        """True if start_id is numerically less than end_id
+        Used to prune duplicate edges (s, e) and (e,s)
+        """
+        return self.start_id < self.end_id
     def pixel_length(self):
         """
         returns len(self.points_xy)
@@ -821,6 +927,20 @@ class AmiEdge:
 
         logger.debug(f"bbox {self.bbox}")
         return self.bbox
+
+    def create_line_segments(self, tolerance=1):
+        """create AmiLine segments from sknw points
+        :param tolerance: totlerance in pixels
+        :return: array of lines
+        """
+        points = self.nx_graph[self.start_id][self.end_id][AmiEdge.PTS]
+
+        # original wiggly line
+        # x and y are reversed in sknw
+        # ax1.plot(points[:, 1], -points[:, 0])  # negative since down the page
+        points2 = approximate_polygon(points, tolerance=tolerance)
+        return points2
+
 
     def plot_edge(self, pts, plot_region, edge_id=None, boxcolor=None):
         """
@@ -864,6 +984,7 @@ class AmiEdge:
                 assert type(j) is int, f"j should be int {type(j)}"
                 AmiEdge.douglas_peucker_plot_line(nx_graph, i, j, tolerance, ax1, ax2)
             plt.show()
+
 
     @classmethod
     def douglas_peucker_plot_line(cls, nx_graph, i, j, tolerance, ax1, ax2):
@@ -957,7 +1078,17 @@ class AmiNode:
         self.edge_dict = None
         self.ami_edges = None
 
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        if self.node_id != other.node_id:
+            return False
+        return True
 # class AmiNode:
+
+    def __hash__(self):
+        """uses node_id"""
+        return hash(self.node_id)
 
     def read_nx_node(self, node_dict):
         """read dict for node, contains coordinates
@@ -1086,7 +1217,7 @@ class AmiIsland:
         # self.degree_dict = None
         self.node_degree_dict = None
         if make_edges:
-            self.create_edges()
+            self.create_nx_edges()
 
     def create_island_sub_graph(self, deep_copy=False):
         """
@@ -1183,7 +1314,7 @@ class AmiIsland:
         if self.interactive:
             flooder.plot_used_pixels()
 
-    def create_edges(self):
+    def create_nx_edges(self):
         """creates self.edges for an island from its node ids and the graph edge generator
 
         :return: list of graph edges

@@ -13,17 +13,17 @@ import numpy as np
 import pytest
 import sknw
 from skimage import data
-from skimage import io, morphology
+from skimage import morphology
 from skimage.measure import approximate_polygon, subdivide_polygon
 from skimage.morphology import skeletonize
 
 # local
 from ..pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
 from ..pyimage.ami_image import AmiImage
+from ..pyimage.ami_plot import AmiEdgeTool
 from ..pyimage.ami_util import AmiUtil
 from ..pyimage.bbox import BBox
-from ..pyimage.text_box import TextBox
-from ..pyimage.text_box import TextUtil
+from ..pyimage.text_box import TextBox, TextUtil
 from ..test.resources import Resources
 
 logger = logging.getLogger(__name__)
@@ -442,7 +442,6 @@ plt.show()"""
             tolerance = 0.02
             appr_hand = approximate_polygon(new_hand, tolerance=tolerance)
 
-
             ax1.plot(hand[:, 0], hand[:, 1])
             ax1.plot(appr_hand[:, 0], appr_hand[:, 1])
 
@@ -492,6 +491,7 @@ plt.show()"""
             logger.warning("skipping line segmentation test")
             AmiEdge.plot_all_lines(nx_graph, lines, tolerance, nodes=nodes)
 
+
     def test_prisma(self):
         """extract primitives from partial prisma diagram"""
         assert Resources.PRISMA.exists()
@@ -505,12 +505,12 @@ plt.show()"""
                 big_islands.append(island)
         assert len(big_islands) == 6
 
-    def test_extract_raw_image(self):
-        """extract the raw pixels (not the skeletonm) underlying the extracted lines
-        plot boxes
-        erode and dilate
-        """
-        TestAmiGraph.display_erode_dilate(self.arrows1, self.nx_graph_arrows1)
+    # def test_extract_raw_image(self):
+    #     """extract the raw pixels (not the skeletonm) underlying the extracted lines
+    #     plot boxes
+    #     erode and dilate
+    #     """
+    #     TestAmiGraph.display_erode_dilate(self.arrows1, self.nx_graph_arrows1)
 
     def test_extract_raw_image(self):
         """extract the raw pixels (not the skeletonm) underlying the extracted lines
@@ -778,7 +778,7 @@ plt.show()"""
         islands_big = [island for island in islands if island.get_or_create_bbox().min_dimension() > 20]
         assert len(islands_big) == 20
 
-    def test_whole_image(self):
+    def test_whole_image1(self):
         """
         analyse min-maximum and max-min of islands
         :return:
@@ -787,11 +787,13 @@ plt.show()"""
         biosynth3_ami_graph = AmiGraph(nx_graph=self.nx_graph_biosynth3)
         islands = biosynth3_ami_graph.get_or_create_ami_islands()
         assert len(islands) == 436
-        counts_by_maxdim = {0: 436, 1:408, 2:408, 3: 401, 4:396,  5: 389, 6: 376, 7: 368, 10: 368, 15: 211, 22: 19, 30: 6, 50: 5, 80: 1}
+        counts_by_maxdim = {0: 436, 1: 408, 2: 408, 3: 401, 4: 396, 5: 389, 6: 376, 7: 368, 10: 368, 15: 211, 22: 19,
+                            30: 6, 50: 5, 80: 1}
         for max_dim in counts_by_maxdim:
             islands_big = AmiIsland.get_islands_with_max_dimension_greater_than(max_dim, islands)
             assert len(islands_big) == counts_by_maxdim[max_dim]
-        counts_by_mindim = {0: 42, 1: 51, 2: 79, 3: 102, 4: 115, 5: 149, 6: 169, 7:182, 8:236, 9:323, 10: 352, 15: 423, 22: 432, 30: 435, 50: 435, 100: 435}
+        counts_by_mindim = {0: 42, 1: 51, 2: 79, 3: 102, 4: 115, 5: 149, 6: 169, 7: 182, 8: 236, 9: 323, 10: 352,
+                            15: 423, 22: 432, 30: 435, 50: 435, 100: 435}
         for min_dim in counts_by_mindim:
             islands_big = AmiIsland.get_islands_with_max_min_dimension(min_dim, islands)
             assert len(islands_big) == counts_by_mindim[min_dim]
@@ -799,8 +801,8 @@ plt.show()"""
     def test_island_sizes(self):
         """uses mindim, maxdim, to filter in/out islands. etc.
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5);
-        #all islands
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        # all islands
         islands = ami_graph.get_or_create_ami_islands()
         assert len(islands) == 227, f"expected total islands {len(islands)}"
         # two largest
@@ -826,17 +828,17 @@ plt.show()"""
         """uses mindim, maxdim, to filter in/out islands. etc.
         then finds horizontal, vertical and other cnnectiosn between nodes
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5);
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
         # second largest island is a boxed plot
-        #all islands
+        # all islands
         islands = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)
         assert len(islands) == 1, f"expected single islands {len(islands)}"
         small_plot = islands[0]
         node_ids = small_plot.node_ids
         assert len(node_ids) == 36, f"nodes in small graph {len(node_ids)}"
         assert node_ids == {258, 132, 389, 136, 24, 288, 546, 36, 40, 424, 46, 177, 569, 63, 448, 193,
-                         323, 590, 591, 592, 593, 594, 595, 596, 86, 605, 606, 607, 608, 609, 354,
-                         101, 103, 487, 114, 510}
+                            323, 590, 591, 592, 593, 594, 595, 596, 86, 605, 606, 607, 608, 609, 354,
+                            101, 103, 487, 114, 510}
         assert small_plot.edges == [(258, 323), (132, 177), (389, 448), (136, 177), (136, 193), (24, 36),
                                     (24, 36), (24, 40), (288, 323), (288, 354), (546, 569), (546, 595),
                                     (36, 46), (40, 46), (40, 63), (424, 448), (424, 487), (46, 86),
@@ -846,43 +848,85 @@ plt.show()"""
                                     (595, 609), (86, 103), (354, 389), (354, 424), (101, 103), (101, 114),
                                     (103, 132), (487, 510), (487, 546), (114, 132), (114, 136), (510, 569)]
 
-        pixel_error = 2;
+        pixel_error = 2
         # I have struggled to find the right term. "axial" suggests the actual axis
         horizontal_lines, vertical_lines, non_hv_lines = \
             ami_graph.extract_aligned_node_lists(node_ids, pixel_error)
 
-        horiz_node_ids = [[[66, 758], [107, 759]], [[107, 759], [149, 759]], [[149, 759], [191, 759]], [[191, 759], [232, 759]],
-             [[232, 759], [274, 759]]]
+        horiz_node_ids = [[[66, 758], [107, 759]], [[107, 759], [149, 759]], [[149, 759], [191, 759]],
+                          [[191, 759], [232, 759]],
+                          [[232, 759], [274, 759]]]
         assert horizontal_lines == horiz_node_ids, f"horizontal lines should be {horiz_node_ids}"
-        vert_node_ids = [[[66, 462], [66, 520]], [[66, 355], [66, 408]], [[66, 577], [66, 632]], [[295, 372], [295, 427]],
-           [[295, 96], [295, 151]], [[295, 483], [295, 542]], [[66, 131], [66, 185]], [[295, 151], [295, 206]],
-           [[295, 598], [295, 655]], [[66, 185], [66, 241]], [[66, 408], [66, 462]], [[66, 752], [66, 758]],
-           [[295, 206], [295, 267]], [[66, 632], [66, 692]], [[295, 427], [295, 483]], [[66, 520], [66, 577]],
-           [[66, 758], [65, 770]], [[107, 759], [107, 764]], [[149, 759], [149, 764]], [[191, 759], [191, 762]],
-           [[232, 759], [232, 764]], [[274, 759], [274, 770]], [[66, 241], [66, 300]], [[295, 542], [295, 598]],
-           [[295, 267], [295, 324]], [[66, 300], [66, 355]], [[295, 655], [295, 715]], [[295, 324], [295, 372]],
-           [[66, 692], [66, 752]]
-            ]
+        vert_node_ids = [[[66, 462], [66, 520]], [[66, 355], [66, 408]], [[66, 577], [66, 632]],
+                         [[295, 372], [295, 427]],
+                         [[295, 96], [295, 151]], [[295, 483], [295, 542]], [[66, 131], [66, 185]],
+                         [[295, 151], [295, 206]],
+                         [[295, 598], [295, 655]], [[66, 185], [66, 241]], [[66, 408], [66, 462]],
+                         [[66, 752], [66, 758]],
+                         [[295, 206], [295, 267]], [[66, 632], [66, 692]], [[295, 427], [295, 483]],
+                         [[66, 520], [66, 577]],
+                         [[66, 758], [65, 770]], [[107, 759], [107, 764]], [[149, 759], [149, 764]],
+                         [[191, 759], [191, 762]],
+                         [[232, 759], [232, 764]], [[274, 759], [274, 770]], [[66, 241], [66, 300]],
+                         [[295, 542], [295, 598]],
+                         [[295, 267], [295, 324]], [[66, 300], [66, 355]], [[295, 655], [295, 715]],
+                         [[295, 324], [295, 372]],
+                         [[66, 692], [66, 752]]
+                         ]
         assert vertical_lines == vert_node_ids, f"vertical lines should be {vert_node_ids}"
         non_horvert_node_ids = [
             [[295, 372], [66, 408]], [[295, 96], [66, 131]], [[295, 483], [66, 520]], [[295, 715], [66, 752]],
-            [[295, 715],[274, 759]], [[295, 151], [66, 185]], [[295, 598], [66, 632]], [[295, 206], [66, 241]],
+            [[295, 715], [274, 759]], [[295, 151], [66, 185]], [[295, 598], [66, 632]], [[295, 206], [66, 241]],
             [[295, 427], [66, 462]], [[295, 542], [66, 577]], [[295, 267], [66, 300]], [[295, 655], [66, 692]],
             [[295, 324], [66, 355]]]
         assert non_hv_lines == non_horvert_node_ids, f"non-axial lines should be {non_hv_lines}"
 
     def test_enumerate_unique_edges(self):
         """separates 3- connected nodes into separate lines """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5);
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         triply_connected_ids = AmiGraph.get_node_ids_from_graph_with_degree(small_plot_island.island_nx_graph, 3)
-        multibranches, unique_edges = ami_graph.get_unique_edges_and_multibranches(triply_connected_ids)
-        assert len(unique_edges) == 48, f"should be {len(unique_edges)}"
+        unique_ami_edges, multibranches = ami_graph.get_unique_ami_edges_and_multibranches(triply_connected_ids)
+        assert len(unique_ami_edges) == 48, f"should be {len(unique_ami_edges)}"
         assert len(multibranches) == 2, f"should be {len(multibranches)} multibranches"
 
-# =====================================
-# test helpers
-# =====================================
+    def test_analyze_topology(self):
+        """merges short horizontal and verstical lines from sknw
+        """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
+        node_ids = small_plot_island.node_ids
+        ami_edges, multibranches = ami_graph.get_unique_ami_edges_and_multibranches(node_ids)
+        assert len(ami_edges) == 48, f"expected edge count {len(ami_edges)}"
+        # ami_nodes = ami_graph.create_ami_nodes_from_ids(node_ids)
+
+        edge_tool = AmiEdgeTool.create_tool(ami_graph, ami_edges=ami_edges)
+        assert edge_tool is not None
+        assert len(edge_tool.ami_nodes) == 36, f"expected {len(edge_tool.ami_nodes)} nodes in edge_tool"
+        new_ami_nodes, new_ami_edges = edge_tool.analyze_topology()
+        assert len(new_ami_nodes) == 36 and len(new_ami_edges) == 48,\
+            f"nodes {len(new_ami_nodes)} edges {len(new_ami_edges)}"
+
+    def test_create_straight_edges(self):
+        """tests straightness between nodes (horiz and vert)
+        """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
+        node_ids = small_plot_island.node_ids
+        pixel_error = 2
+        horizontal_lines, vertical_lines, non_hv_lines = ami_graph.extract_aligned_node_lists(node_ids, pixel_error)
+
+        for vertical_line in vertical_lines:
+            print(f"vline {vertical_line}")
+
+        edges = small_plot_island.create_nx_edges()
+        for edge in edges:
+            print(f"edge {edge}")
+
+
+    # =====================================
+    # test helpers
+    # =====================================
 
     @classmethod
     def display_erode_dilate(cls, image, nx_graph, radius=3, erode=False, dilate=False):
