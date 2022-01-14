@@ -146,9 +146,6 @@ class TesseractOCR:
         # and return a numpy array from the generated list
         bboxes = np.array(bboxes)
 
-        # TODO verify this doesn't break the system
-        words, bboxes = TesseractOCR.remove_bad_word_bboxes(words, bboxes)
-
         return bboxes, words
 
     @classmethod
@@ -164,7 +161,10 @@ class TesseractOCR:
         phrases = []
         bbboxes = []
         bboxes, words = cls.extract_bbox_from_hocr(hocr_element)
-
+        
+        # TODO verify this doesn't break the system
+        words, bboxes = TesseractOCR.remove_bad_word_bboxes(words, bboxes)
+        
         for i in range(len(words)):
             phrase = [words[i]]
             last_bbox = bboxes[i]
@@ -194,7 +194,15 @@ class TesseractOCR:
         return phrases, bbboxes
 
     @classmethod
-    def find_word_groups(cls, bbox_of_phrases, line_seperation=20, maximum_shear=20):
+    def find_word_groups(cls, bbox_of_phrases, line_seperation=10, min_x_overlap=0.20):
+        """
+        :param bbox_of_phrases: bounding boxes of phrases in an image
+        :type bbox_of_phrases: list
+        :param line_seperation: allowable distance between two lines
+        :type line_seperation: int
+        :param min_x_overlap: ratio of horizontal overlap between two bboxes
+        :type min_x_overlap: float
+        """
         groups = []
         for bbox in bbox_of_phrases:
             # sort each bbox into a group
@@ -205,18 +213,53 @@ class TesseractOCR:
                 continue
             
             group_found = False
-            for group in groups:
-                if abs(group[3] - bbox[1]) < line_seperation:
-                    TesseractOCR.envelope_box([group, bbox])
-                    #TODO add check for shear
-                    group_found = True
-                    break
+            for index, group in enumerate(groups):
+                if abs(group[3] - bbox[1]) < line_seperation or abs(group[1] - bbox[3]) < line_seperation:
+                    if cls.x_overlap(group, bbox) > min_x_overlap:
+                        groups[index] = TesseractOCR.envelope_box([group, bbox])
+                        group_found = True
+                        break
 
             # if bbox doesn't fit a group, create a new group
             if not group_found:
                 groups.append(bbox)
 
         return groups
+
+    @classmethod 
+    def x_overlap(cls, bbox1, bbox2):
+        # find which bbox is wider
+        pixel_overlap = max(0, min(bbox1[2], bbox2[2]) - max(bbox1[0], bbox2[0]) + 1)
+        
+        if pixel_overlap == 0:
+            return 0
+        
+        bbox1_width = bbox1[2] - bbox1[0]
+        bbox2_width = bbox2[2] - bbox2[0]
+        narrower_bbox_width = min(bbox1_width, bbox2_width)
+        
+        overlap = pixel_overlap/narrower_bbox_width
+        return overlap
+
+
+    @classmethod
+    def split_image_into_snippets(cls, image):
+        """Given an image, returns a list of snippets and their bounding boxes
+        :param image: input image
+        :type image: numpy array
+        :return snippets: list of snippets
+        :type snippets: list of numpy arrays"""
+        split_horizontal = 2
+        split_vertical = 2
+        image_shape = image.shape
+        height, width = image_shape[0], image_shape[1]
+        M = image.shape[0]//split_vertical
+        N = image.shape[1]//split_horizontal
+        tiles = [image[x:x+M,y:y+N] for x in range(0,image.shape[0],M) for y in range(0,image.shape[1],N)]
+        coordinates = [[x, x+M, y, y+N] for x in range(0,image.shape[0],M) for y in range(0,image.shape[1],N)]
+        return tiles, coordinates
+
+
 
     @classmethod
     def envelope_box(cls, bboxes):

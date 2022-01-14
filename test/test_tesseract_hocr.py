@@ -39,6 +39,10 @@ class TestTesseractHOCR:
         self.biosynth1 = Resources.BIOSYNTH1
         self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(self.biosynth1)
         self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
+
+        self.biosynth2 = Resources.BIOSYNTH2
+        self.biosynth2_hocr = TesseractOCR.hocr_from_image_path(self.biosynth2)
+        self.biosynth2_elem = TesseractOCR.parse_hocr_string(self.biosynth2_hocr)
         
         self.biosynth3 = Resources.BIOSYNTH3
         self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(self.biosynth3)
@@ -123,22 +127,44 @@ class TestTesseractHOCR:
         assert bboxes[0] == [201, 45, 830, 68]
         assert phrases[0] == "Straight chain ester biosynthesis from fatty acids"
 
-    def test_find_text_group(self):
-        bbox, words = TesseractOCR.extract_bbox_from_hocr(self.biosynth1_elem)
-        for wo, bo in zip(words, bbox):
-            print(f"{wo} -> {bo}")
-        phrases, bboxes = TesseractOCR.find_phrases(self.biosynth1_elem)
-        assert phrases is not None
-        groups_bboxes = TesseractOCR.find_word_groups(bbox_of_phrases=bboxes)
-        # assert len(groups_bboxes) == 21
-        biosynth1_img = io.imread(self.biosynth1)
-        boxed = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=groups_bboxes)
-        io.imshow(boxed)
+    def test_find_text_group_biosynth2(self):
+        biosynth2_img = io.imread(self.biosynth2)
+        
+        word_bboxes, words = TesseractOCR.extract_bbox_from_hocr(self.biosynth2_elem)
+        raw_tesseract = TesseractOCR.draw_bbox_around_words(image=biosynth2_img, bbox_coordinates=word_bboxes)
+        
+        io.imshow(raw_tesseract)
         io.show()
-        # assert len(phrases) == 29
-        # assert len(bboxes) == 29
-        # assert bboxes[0] == [201, 45, 830, 68]
-        # assert phrases[0] == "Straight chain ester biosynthesis from fatty acids"
+
+    def test_find_text_group(self):
+        biosynth1_img = io.imread(self.biosynth1)
+        
+        word_bboxes, words = TesseractOCR.extract_bbox_from_hocr(self.biosynth1_elem)
+        raw_tesseract = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=word_bboxes)
+        
+        # io.imshow(raw_tesseract)
+        # io.show()
+
+        phrases, phrase_bboxes = TesseractOCR.find_phrases(self.biosynth1_elem)
+        groups_bboxes = TesseractOCR.find_word_groups(bbox_of_phrases=phrase_bboxes)
+        grouped_text = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=groups_bboxes)
+
+        io.imshow(grouped_text)
+        io.show()
+        # f, ax = plt.subplots(1, 2)
+        # ax[0].imshow(raw_tesseract)
+        # ax[1].imshow(grouped_text)
+
+        # plt.show()
+
+    def test_cropped_test_group(self):
+        biosynth2_img = io.imread(self.biosynth2)
+        tiles, limits = TesseractOCR.split_image_into_snippets(biosynth2_img)
+        assert limits == []
+        for tile in tiles:
+            io.imshow(tile)
+            io.show()
+
 
     @unittest.skipIf(skip_long_tests, "wikidata lookup")
     def test_phrase_wikidata_search(self):
@@ -180,3 +206,12 @@ class TestTesseractHOCR:
         svg_str = ET.tostring(svg_rect).decode('utf-8')
         assert svg_str == '<svg:rect xmlns:svg="http://www.w3.org/2000/svg" x="10" width="10" ' \
                           'y="30" height="20" stroke-width="1.0" stroke="red" fill="none"/>'
+
+
+    def test_envelope(self):
+        phrases, bboxes = TesseractOCR.find_phrases(self.biosynth1_elem)
+        full_box = TesseractOCR.envelope_box(bboxes)
+        biosynth1_img = io.imread(self.biosynth1)
+        boxed = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=[full_box])
+        io.imshow(boxed)
+        io.show()
