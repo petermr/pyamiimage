@@ -27,6 +27,7 @@ from ..pyimage.text_box import TextBox, TextUtil
 from ..test.resources import Resources
 
 logger = logging.getLogger(__name__)
+
 interactive = False
 
 
@@ -144,8 +145,8 @@ plt.show()"""
             edge = graph[s][e]
             if i < nprint and prnt:
                 print(f"{s} {e} {edge.keys()}")
-            ps = edge[AmiEdge.PTS]
-            plt.plot(ps[:, 1], ps[:, 0], 'green')
+            points = edge[AmiEdge.PTS]
+            plt.plot(points[:, 1], points[:, 0], 'green')
 
         # draw node by o
         print(f"=========neighbours=========")
@@ -155,8 +156,8 @@ plt.show()"""
             print(f"neighbours {node} {list(graph.neighbors(node))}")
 
         # coordinates are arranged y-array, x-array
-        ps = np.array([nodes[i]['o'] for i in nodes])
-        plt.plot(ps[:, 1], ps[:, 0], 'r.')
+        points = np.array([nodes[i]['o'] for i in nodes])
+        plt.plot(points[:, 1], points[:, 0], 'r.')
 
         # title and show
         plt.title('Build Graph')
@@ -178,10 +179,12 @@ plt.show()"""
         assert connected_components == [{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}]
         assert connected_components[0] == {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}
 
-    @unittest.skip("exploration")
+    # @unittest.skip("exploration")
     def test_sknw_5_islands(self):
         """
         This checks all the fields that sknw returns
+        also explares many primitives in nx.graph
+
         :return:
         """
         skel_path = Resources.BIOSYNTH1_ARROWS
@@ -190,25 +193,56 @@ plt.show()"""
         skeleton_array = AmiImage.create_white_skeleton_from_file(skel_path)
         AmiUtil.check_type_and_existence(skeleton_array, np.ndarray)
 
-        nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)
-        AmiUtil.check_type_and_existence(nx_graph, nx.classes.graph.Graph)
+        # nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        AmiUtil.check_type_and_existence(nx_graph, nx.classes.multigraph.MultiGraph)
 
-        AmiUtil.check_type_and_existence(nx_graph.nodes, nx.classes.reportviews.NodeView)
         assert list(nx_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                                         18, 19, 20, 21, 22, 23, 24, 25, 26]
-        AmiUtil.check_type_and_existence(nx_graph.edges, nx.classes.reportviews.EdgeView)
-        assert list(nx_graph.edges) == [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6),
-                                        (8, 19), (9, 19), (10, 12), (11, 13), (12, 13), (12, 18),
-                                        (13, 14), (13, 15), (16, 18), (17, 18), (18, 20), (19, 26),
-                                        (21, 24), (22, 24), (23, 24), (24, 25)]
+        # this fails because it's a NodeView
+        # assert nx_graph.nodes() == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+        #                                18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
+
+        print (f"nodes {type(nx_graph.nodes)} {nx_graph.nodes()}")
+
+        # print (f"edges {nx_graph.edges()}")
+        assert list(nx_graph.edges) == [
+            (0, 2, 0), (1, 4, 0), (2, 4, 0), (2, 3, 0), (2, 7, 0), (4, 5, 0), (4, 6, 0), (8, 19, 0),
+            (9, 19, 0), (10, 12, 0), (11, 13, 0), (12, 13, 0), (12, 18, 0), (13, 14, 0), (13, 15, 0),
+            (16, 18, 0), (17, 18, 0), (18, 20, 0), (19, 26, 0), (21, 24, 0), (22, 24, 0), (23, 24, 0),
+            (24, 25, 0)], f"edges {list(nx_graph.edges)}"
+
+        # np.testing.assert_array_equal(x, y, msg)
+        # AmiUtil.check_type_and_existence(nx_graph.nodes, nx.classes.reportviews.NodeView)
+        #
+        # AmiUtil.check_type_and_existence(nx_graph.edges, nx.classes.reportviews.MultiEdgeView)
 
         node1ps = nx_graph.nodes[1][AmiNode.CENTROID]
-        node1ps0 = node1ps[0]
-        assert str(node1ps) == "[[ 83 680]]"
+        assert str(node1ps) == "[ 83 680]"
 
-        assert str(nx_graph.edges[(1, 2)][AmiEdge.PTS]) == "[[ 83, 680]]"
+        edge_yx = nx_graph.edges[(0, 2, 0)][AmiEdge.PTS]
+        edge_xy = np.flip(edge_yx, 1)
+        expected = np.array(
+                [[844,  82], [845,  83], [846,  84], [847,  84], [848,  85], [849,  85], [850,  86], [851,  86],
+                 [852,  87], [853,  87], [854,  87], [855,  88], [856,  89], [857,  91]], dtype=np.int16)
+        # print(f"expected {type(expected)} {expected}")
+        # can't get this to work
+        # assert np.testing.assert_array_equal(edge_xy, expected) #, err_msg=f"found {edge_xy}")
+        # but this does
+        assert np.array_equal(edge_xy, expected), f"found {edge_xy}"
 
-    @unittest.skip("needs multigraoph adding NYI")
+    def test_ami_edges(self):
+        """wrappers for nx_graph
+        """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        print("------------------")
+        ami_edges = ami_graph.get_or_create_all_ami_edges()
+        print("==================")
+        assert len(ami_edges) == 23, f"found {len(ami_edges)}"
+        print(f"len edges {len(ami_edges)}")
+        # print (f"ami_edge 0 {ami_edges[0]}")
+
+    # @unittest.skip("needs multigraph adding NYI")
     def test_segmented_edges(self):
         """
         analyse 4 arrows and convert to lines
@@ -221,6 +255,7 @@ plt.show()"""
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
 
+
         """
         {0, 1, 2, 3, 4, 5, 6, 7},  # double arrow
             0         6
@@ -230,17 +265,22 @@ plt.show()"""
            7          1
          [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6),
         """
-        print("\n2 0", nx_graph[2][0]["pts"][:2:-2])
-        print("\n2 7", nx_graph[2][7])
-        print("\n2 3", nx_graph[2][3])
 
-        print("\n2 4", nx_graph[2][4])
+        print("\n2 0", nx_graph[2][0][0]["pts"][:2:-2])
+        # print("\n2 7", nx_graph[2][7][0])
+        points0_2 = nx_graph[2][0][0]["pts"]
+        assert str(points0_2) == "2 0 [[ 91 857]\
+ [ 88 855]\
+ [ 87 853]\
+ [ 86 851]\
+ [ 85 849]\
+ [ 84 847]]\
+        ]", f"points [2][0][0]['pts'] should be {str(points0_2)} "
 
-        print("\n4 5", nx_graph[4][5])
-        print("\n4 6", nx_graph[4][6])
-        print("\n1 4", nx_graph[1][4])
-
-        points0_2 = nx_graph[2][0]["pts"]
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        edges = ami_graph.get_or_create_all_ami_edges()
+        for edge in edges:
+            print(f"edge {edge.start_id, edge.end_id} {edge.create_line_segments()}")
 
         """
         {8, 9, 26, 19},            # y-shaped arrow-less
@@ -353,7 +393,7 @@ plt.show()"""
     def test_distal_node(self):
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         edge = ami_graph.get_nx_edge_list_for_node(1)[0]
-        ami_edge0 = AmiEdge(ami_graph, edge[0], edge[1], edge[2])
+        ami_edge0 = ami_graph.get_or_create_ami_edge(edge[0], edge[1], edge[2])
         assert ami_edge0.start_id == 1
         assert ami_edge0.remote_node_id(1) == 4
         assert ami_edge0.remote_node_id(4) == 1
@@ -362,10 +402,10 @@ plt.show()"""
 
     def test_get_neighbours(self):
         ami_graph = self.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        assert [2] == AmiNode(ami_graph=ami_graph, node_id=0).get_neighbour_ids()
-        assert [4] == AmiNode(ami_graph=ami_graph, node_id=1).get_neighbour_ids()
-        assert [0, 4, 3, 7] == AmiNode(ami_graph=ami_graph, node_id=2).get_neighbour_ids()
-        assert [10, 13, 18] == AmiNode(ami_graph=ami_graph, node_id=12).get_neighbour_ids()
+        assert [2] == ami_graph.get_or_create_ami_node(0).get_neighbour_ids()
+        assert [4] == ami_graph.get_or_create_ami_node(1).get_neighbour_ids()
+        assert [0, 4, 3, 7] == ami_graph.get_or_create_ami_node(2).get_neighbour_ids()
+        assert [10, 13, 18] == ami_graph.get_or_create_ami_node(12).get_neighbour_ids()
 
     def create_ami_graph_from_arbitrary_image_file(self, path):
         """
@@ -461,7 +501,7 @@ plt.show()"""
         if interactive:
             plt.show()
 
-    @unittest.skipUnless(interactive, "ignorte plotting in routine tests")
+    @unittest.skipUnless(interactive, "ignore plotting in routine tests")
     def test_plot_line(self):
         """straightens lines by Douglas Peucker and plots"""
         nx_graph = self.nx_graph_arrows1
@@ -776,7 +816,7 @@ plt.show()"""
         islands = biosynth3_ami_graph.get_or_create_ami_islands()
         assert len(islands) == 436
         islands_big = [island for island in islands if island.get_or_create_bbox().min_dimension() > 20]
-        assert len(islands_big) == 20
+        assert len(islands_big) == 5
 
     def test_whole_image1(self):
         """
@@ -853,33 +893,52 @@ plt.show()"""
         horizontal_lines, vertical_lines, non_hv_lines = \
             ami_graph.extract_aligned_node_lists(node_ids, pixel_error)
 
-        horiz_node_ids = [[[66, 758], [107, 759]], [[107, 759], [149, 759]], [[149, 759], [191, 759]],
-                          [[191, 759], [232, 759]],
-                          [[232, 759], [274, 759]]]
-        assert horizontal_lines == horiz_node_ids, f"horizontal lines should be {horiz_node_ids}"
-        vert_node_ids = [[[66, 462], [66, 520]], [[66, 355], [66, 408]], [[66, 577], [66, 632]],
-                         [[295, 372], [295, 427]],
-                         [[295, 96], [295, 151]], [[295, 483], [295, 542]], [[66, 131], [66, 185]],
-                         [[295, 151], [295, 206]],
-                         [[295, 598], [295, 655]], [[66, 185], [66, 241]], [[66, 408], [66, 462]],
-                         [[66, 752], [66, 758]],
-                         [[295, 206], [295, 267]], [[66, 632], [66, 692]], [[295, 427], [295, 483]],
-                         [[66, 520], [66, 577]],
-                         [[66, 758], [65, 770]], [[107, 759], [107, 764]], [[149, 759], [149, 764]],
-                         [[191, 759], [191, 762]],
-                         [[232, 759], [232, 764]], [[274, 759], [274, 770]], [[66, 241], [66, 300]],
-                         [[295, 542], [295, 598]],
-                         [[295, 267], [295, 324]], [[66, 300], [66, 355]], [[295, 655], [295, 715]],
-                         [[295, 324], [295, 372]],
-                         [[66, 692], [66, 752]]
-                         ]
-        assert vertical_lines == vert_node_ids, f"vertical lines should be {vert_node_ids}"
-        non_horvert_node_ids = [
+        horiz_line_coord_pairs = str([
+            [[66, 758], [107, 759]],
+            [[107, 759], [149, 759]],
+            [[149, 759], [191, 759]],
+            [[191, 759], [232, 759]],
+            [[232, 759], [274, 759]]
+        ])
+        assert str(horizontal_lines) == horiz_line_coord_pairs, f"horizontal lines should be {horiz_line_coord_pairs}"
+        vert_line_coord_pairs = str([
+            [[66, 462], [66, 520]],
+            [[66, 355], [66, 408]],
+            [[66, 577], [66, 632]],
+            [[295, 372], [295, 427]],
+            [[295, 96], [295, 151]],
+            [[295, 483], [295, 542]],
+            [[66, 131], [66, 185]],
+            [[295, 151], [295, 206]],
+            [[295, 598], [295, 655]],
+            [[66, 185], [66, 241]],
+            [[66, 408], [66, 462]],
+            [[66, 752], [66, 758]],
+            [[295, 206], [295, 267]],
+            [[66, 632], [66, 692]],
+            [[295, 427], [295, 483]],
+            [[66, 520], [66, 577]],
+            [[66, 758], [65, 770]],
+            [[107, 759], [107, 764]],
+            [[149, 759], [149, 764]],
+            [[191, 759], [191, 762]],
+            [[232, 759], [232, 764]],
+            [[274, 759], [274, 770]],
+            [[66, 241], [66, 300]],
+            [[295, 542], [295, 598]],
+            [[295, 267], [295, 324]],
+            [[66, 300], [66, 355]],
+            [[295, 655], [295, 715]],
+            [[295, 324], [295, 372]],
+            [[66, 692], [66, 752]]
+        ])
+        assert str(vertical_lines) == vert_line_coord_pairs, f"vertical lines should be {vert_line_coord_pairs}"
+        non_horvert_node_ids = str([
             [[295, 372], [66, 408]], [[295, 96], [66, 131]], [[295, 483], [66, 520]], [[295, 715], [66, 752]],
             [[295, 715], [274, 759]], [[295, 151], [66, 185]], [[295, 598], [66, 632]], [[295, 206], [66, 241]],
             [[295, 427], [66, 462]], [[295, 542], [66, 577]], [[295, 267], [66, 300]], [[295, 655], [66, 692]],
-            [[295, 324], [66, 355]]]
-        assert non_hv_lines == non_horvert_node_ids, f"non-axial lines should be {non_hv_lines}"
+            [[295, 324], [66, 355]]])
+        assert str(non_hv_lines) == non_horvert_node_ids, f"non-axial lines should be {non_hv_lines}"
 
     def test_enumerate_unique_edges(self):
         """separates 3- connected nodes into separate lines """

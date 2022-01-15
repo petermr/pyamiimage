@@ -21,6 +21,9 @@ class AmiLine:
         else:
             self.xy2 = None
 
+    def __repr__(self):
+        return str([self.xy1, self.xy2])
+
     def __str__(self):
         return str([str(self.xy1), str(self.xy2)])
 

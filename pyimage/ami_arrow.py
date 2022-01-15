@@ -81,7 +81,7 @@ class AmiArrow:
         logger.debug(f"edge_dict {edge_dict}")
 
         longest_dict = cls._find_dict_with_longest_edge(edge_dict)
-        longest_edge = AmiEdge(ami_graph=island.ami_graph, start_id=central_node_id, end_id=longest_dict[AmiNode.REMOTE],
+        longest_edge = island.ami_graph.get_or_create_ami_edge(central_node_id, longest_dict[AmiNode.REMOTE],
                                branch_id=0)
         logger.debug(f"longest edge {longest_edge}")
         logger.debug(f"longest dict {longest_dict}")
