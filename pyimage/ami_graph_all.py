@@ -81,7 +81,7 @@ class AmiGraph:
         if self.node_dict is None:
             self.node_dict = dict()
         if node_id not in self.node_dict:
-            ami_node = AmiNode(node_id, ami_graph=self)
+            ami_node = AmiNode(node_id, ami_graph=self, _private=True)
             self.node_dict[node_id] = ami_node
         else:
             ami_node = self.node_dict[node_id]
@@ -138,7 +138,7 @@ class AmiGraph:
 
     def create_new_edge(self, key, node_id1, node_id2, branch_id):
         """create new Edge and index it in edge_dict"""
-        ami_edge = AmiEdge(self, node_id1, node_id2, branch_id=branch_id)
+        ami_edge = AmiEdge(self, node_id1, node_id2, branch_id=branch_id, _private=True)
         # single edge?
         if branch_id is None:
             self.ami_edge_dict[key] = ami_edge
@@ -856,10 +856,12 @@ if __name__ == '__main__':
 class AmiEdge:
     PTS = "pts"
 
-    def __init__(self, ami_graph, start_id, end_id, branch_id=None):
+    def __init__(self, ami_graph, start_id, end_id, branch_id=None, _private=False):
         """ Only for initial development
         Do not use this, but various ami_graph.create_edge instead
         """
+        if not _private:
+            raise ValueError(f"Do not call AmiEdge() directly, use AmiGraph.get_or_create_edge*()")
         self.ami_graph = ami_graph
         self.start_id = start_id
         self.end_id = end_id
@@ -1118,14 +1120,15 @@ class AmiNode:
     PIXLEN = "pixlen"
     REMOTE = "remote"
 
-    def __init__(self, node_id, ami_graph=None, nx_graph=None):
+    def __init__(self, node_id, ami_graph=None, nx_graph=None, _private=False):
         """
 
         :param node_id: mandatory
         :param ami_graph: will use ami_graph.nx_graph
         :param nx_graph: else will use nx_graph
         """
-
+        if not _private:
+            raise ValueError("Do not call AmiNode directly; ise ami_graph.get_or_create_node*() factories")
         if node_id is None:
             raise ValueError("AmiNode must have node_id")
         if len(str(node_id)) > 4:
