@@ -129,12 +129,15 @@ class AmiGraph:
                 else:
                     raise ValueError(f"branch_id {branch_id} with non-list")
             # already list
+            elif len(ami_edge) == 1:
+                ami_edge = ami_edge[0]
             else:
                 if branch_id >= len(ami_edge):
                     pass
                     # raise ValueError(f"branch_id {branch_id} larger than ami_edge list {len(ami_edge)}")
                 else:
                     ami_edge = ami_edge[branch_id]
+        return ami_edge
 
     def create_new_edge(self, key, node_id1, node_id2, branch_id):
         """create new Edge and index it in edge_dict"""
@@ -593,11 +596,11 @@ class AmiGraph:
                 nedges = len(list(self.nx_graph[s][e]))
                 for edge_id in range(nedges):
                     pts = self.nx_graph[s][e][edge_id]['pts']
-                    ami_edge = self.ami_graph.get_or_create_ami_edge(self, s, e, branch_id=edge_id)
+                    ami_edge = self.get_or_create_ami_edge(self, s, e, branch_id=edge_id)
                     ami_edge.plot_edge(pts, plot_target, edge_id=edge_id)
             else:
                 pts = self.nx_graph[s][e]['pts']
-                ami_edge = self.ami_graph.get_or_create_ami_edge(s, e)
+                ami_edge = self.get_or_create_ami_edge(s, e)
                 ami_edge.plot_edge(pts, plot_target)
 
     def pre_plot_nodes(self, node_color="red", plot_ids=False):
@@ -1013,7 +1016,8 @@ class AmiEdge:
         :param tolerance: totlerance in pixels
         :return: array of lines
         """
-        points = self.nx_graph[self.start_id][self.end_id][AmiEdge.PTS]
+
+        points = self.nx_graph[self.start_id][self.end_id][self.branch_id][AmiEdge.PTS]
 
         # original wiggly line
         # x and y are reversed in sknw
@@ -1169,12 +1173,12 @@ class AmiNode:
         """uses node_id"""
         return hash(self.node_id)
 
-    def read_nx_node(self, node_dict):
-        """read dict for node, contains coordinates
-        typically: 'o': array([ 82., 844.]), 'pts': array([[ 82, 844]], dtype=int16)}
-        dict ket
-        """
-        self.node_dict = copy.deepcopy(node_dict)
+    # def read_nx_node(self, node_dict):
+    #     """read dict for node, contains coordinates
+    #     typically: 'o': array([ 82., 844.]), 'pts': array([[ 82, 844]], dtype=int16)}
+    #     dict ket
+    #     """
+    #     self.node_dict = copy.deepcopy(node_dict)
 
     def set_centroid_yx(self, point_yx):
         """
@@ -1338,12 +1342,12 @@ class AmiIsland:
             f"ami_graph: {self.ami_graph}" + \
             "\n"
 
-        return s
+        # return s
 
-    def get_raw_box(self):
-        bbox = None
-        return bbox
-
+    # def get_raw_box(self):
+    #     bbox = None
+    #     return bbox
+    #
     def get_or_create_coords(self):
         coords = []
         assert self.ami_graph is not None, "must have AmiGraph"
@@ -1380,20 +1384,20 @@ class AmiIsland:
         logger.debug(f"final {self.bbox}")
         return self.bbox
 
-    def plot_island(self):
-        """
-        Plots a given component
-        :return:
-        """
-        # start_node_index = list(component)[0]  # take first node
-        # start_node = self.nodes[start_node_index]
-        # start_pixel = start_node[self.NODE_PTS][0]  # may be a list of xy for a complex node always pick first.
-        start_pixel = self.coords_xy[0]
-        flooder = FloodFill()
-        flooder.flood_fill(self.binary, start_pixel)
-        if self.interactive:
-            flooder.plot_used_pixels()
-
+    # def plot_island(self):
+    #     """
+    #     Plots a given component
+    #     :return:
+    #     """
+    #     # start_node_index = list(component)[0]  # take first node
+    #     # start_node = self.nodes[start_node_index]
+    #     # start_pixel = start_node[self.NODE_PTS][0]  # may be a list of xy for a complex node always pick first.
+    #     start_pixel = self.coords_xy[0]
+    #     flooder = FloodFill()
+    #     flooder.flood_fill(self.binary, start_pixel)
+    #     if self.interactive:
+    #         flooder.plot_used_pixels()
+    #
     def create_nx_edges(self):
         """creates self.edges for an island from its node ids and the graph edge generator
 

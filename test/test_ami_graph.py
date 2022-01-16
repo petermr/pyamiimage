@@ -269,16 +269,25 @@ plt.show()"""
         print("\n2 0", nx_graph[2][0][0]["pts"][:2:-2])
         # print("\n2 7", nx_graph[2][7][0])
         points0_2 = nx_graph[2][0][0]["pts"]
-        assert str(points0_2) == "2 0 [[ 91 857]\
- [ 88 855]\
- [ 87 853]\
- [ 86 851]\
- [ 85 849]\
- [ 84 847]]\
-        ]", f"points [2][0][0]['pts'] should be {str(points0_2)} "
+        expected_numpy = np.array([[ 82, 844],
+             [ 83, 845],
+             [ 84, 846],
+             [ 84, 847],
+             [ 85, 848],
+             [ 85, 849],
+             [ 86, 850],
+             [ 86, 851],
+             [ 87, 852],
+             [ 87, 853],
+             [ 87, 854],
+             [ 88, 855],
+             [ 89, 856],
+             [ 91, 857]] )
+        assert np.array_equal(points0_2, expected_numpy), f"found {points0_2}"
 
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         edges = ami_graph.get_or_create_all_ami_edges()
+        print(f"len(edges) {len(edges)}")
         for edge in edges:
             print(f"edge {edge.start_id, edge.end_id} {edge.create_line_segments()}")
 
@@ -827,7 +836,7 @@ plt.show()"""
         biosynth3_ami_graph = AmiGraph(nx_graph=self.nx_graph_biosynth3)
         islands = biosynth3_ami_graph.get_or_create_ami_islands()
         assert len(islands) == 436
-        counts_by_maxdim = {0: 436, 1: 408, 2: 408, 3: 401, 4: 396, 5: 389, 6: 376, 7: 368, 10: 368, 15: 211, 22: 19,
+        counts_by_maxdim = {0: 436, 1: 408, 2: 408, 3: 401, 4: 396, 5: 389, 6: 376, 7: 368, 10: 366, 15: 211, 22: 19,
                             30: 6, 50: 5, 80: 1}
         for max_dim in counts_by_maxdim:
             islands_big = AmiIsland.get_islands_with_max_dimension_greater_than(max_dim, islands)
