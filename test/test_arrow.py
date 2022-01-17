@@ -134,6 +134,7 @@ class TestArrow:
             assert str(ami_arrow) == test_arrows[i]
 
     def test_biosynth1_arrows(self):
+        # TODO get interedge angles
         """
         extract all large islands and analyse as simple arrows
         There are several false positives
@@ -179,6 +180,7 @@ class TestArrow:
         TestArrow.create_and_test_arrows(self.biosynth3_ami_graph, 40, output_temp="biosynth3_arrows.svg")
 
     def test_biosynth6_compounds_arrows(self):
+        # TODO get interedge angles
         """
         extract all large islands and analyse as simple arrows
         There are several false positives

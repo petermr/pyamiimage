@@ -203,7 +203,7 @@ plt.show()"""
         # assert nx_graph.nodes() == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
         #                                18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
 
-        print (f"nodes {type(nx_graph.nodes)} {nx_graph.nodes()}")
+        print(f"nodes {type(nx_graph.nodes)} {nx_graph.nodes()}")
 
         # print (f"edges {nx_graph.edges()}")
         assert list(nx_graph.edges) == [
@@ -223,8 +223,8 @@ plt.show()"""
         edge_yx = nx_graph.edges[(0, 2, 0)][AmiEdge.PTS]
         edge_xy = np.flip(edge_yx, 1)
         expected = np.array(
-                [[844,  82], [845,  83], [846,  84], [847,  84], [848,  85], [849,  85], [850,  86], [851,  86],
-                 [852,  87], [853,  87], [854,  87], [855,  88], [856,  89], [857,  91]], dtype=np.int16)
+            [[844, 82], [845, 83], [846, 84], [847, 84], [848, 85], [849, 85], [850, 86], [851, 86],
+             [852, 87], [853, 87], [854, 87], [855, 88], [856, 89], [857, 91]], dtype=np.int16)
         # print(f"expected {type(expected)} {expected}")
         # can't get this to work
         # assert np.testing.assert_array_equal(edge_xy, expected) #, err_msg=f"found {edge_xy}")
@@ -255,7 +255,6 @@ plt.show()"""
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
 
-
         """
         {0, 1, 2, 3, 4, 5, 6, 7},  # double arrow
             0         6
@@ -269,20 +268,20 @@ plt.show()"""
         print("\n2 0", nx_graph[2][0][0]["pts"][:2:-2])
         # print("\n2 7", nx_graph[2][7][0])
         points0_2 = nx_graph[2][0][0]["pts"]
-        expected_numpy = np.array([[ 82, 844],
-             [ 83, 845],
-             [ 84, 846],
-             [ 84, 847],
-             [ 85, 848],
-             [ 85, 849],
-             [ 86, 850],
-             [ 86, 851],
-             [ 87, 852],
-             [ 87, 853],
-             [ 87, 854],
-             [ 88, 855],
-             [ 89, 856],
-             [ 91, 857]] )
+        expected_numpy = np.array([[82, 844],
+                                   [83, 845],
+                                   [84, 846],
+                                   [84, 847],
+                                   [85, 848],
+                                   [85, 849],
+                                   [86, 850],
+                                   [86, 851],
+                                   [87, 852],
+                                   [87, 853],
+                                   [87, 854],
+                                   [88, 855],
+                                   [89, 856],
+                                   [91, 857]])
         assert np.array_equal(points0_2, expected_numpy), f"found {points0_2}"
 
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
@@ -503,7 +502,6 @@ plt.show()"""
 
         ])
         ax2.plot(points[:, 0], points[:, 1])
-        tolerance = 0.02
         tolerance = 0.5
         points2 = approximate_polygon(points, tolerance=tolerance)
         ax2.plot(points2[:, 0], points2[:, 1])
@@ -539,7 +537,6 @@ plt.show()"""
             # TODO split into line segmentattion and plotting
             logger.warning("skipping line segmentation test")
             AmiEdge.plot_all_lines(nx_graph, lines, tolerance, nodes=nodes)
-
 
     def test_prisma(self):
         """extract primitives from partial prisma diagram"""
@@ -836,7 +833,7 @@ plt.show()"""
         biosynth3_ami_graph = AmiGraph(nx_graph=self.nx_graph_biosynth3)
         islands = biosynth3_ami_graph.get_or_create_ami_islands()
         assert len(islands) == 436
-        counts_by_maxdim = {0: 436, 1: 408, 2: 408, 3: 401, 4: 396, 5: 389, 6: 376, 7: 368, 10: 366, 15: 211, 22: 19,
+        counts_by_maxdim = {0: 436, 1: 408, 2: 408, 3: 401, 4: 396, 5: 389, 6: 376, 7: 368, 10: 368, 15: 211, 22: 19,
                             30: 6, 50: 5, 80: 1}
         for max_dim in counts_by_maxdim:
             islands_big = AmiIsland.get_islands_with_max_dimension_greater_than(max_dim, islands)
@@ -877,6 +874,8 @@ plt.show()"""
         """uses mindim, maxdim, to filter in/out islands. etc.
         then finds horizontal, vertical and other cnnectiosn between nodes
         """
+        # NOTE these tests seem correct but pixel-fragile
+
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
         # second largest island is a boxed plot
         # all islands
@@ -927,7 +926,7 @@ plt.show()"""
             [[66, 632], [66, 692]],
             [[295, 427], [295, 483]],
             [[66, 520], [66, 577]],
-            [[66, 758], [65, 770]],
+            # [[66, 758], [65, 770]],
             [[107, 759], [107, 764]],
             [[149, 759], [149, 764]],
             [[191, 759], [191, 762]],
@@ -945,15 +944,16 @@ plt.show()"""
         non_horvert_node_ids = str([
             [[295, 372], [66, 408]], [[295, 96], [66, 131]], [[295, 483], [66, 520]], [[295, 715], [66, 752]],
             [[295, 715], [274, 759]], [[295, 151], [66, 185]], [[295, 598], [66, 632]], [[295, 206], [66, 241]],
-            [[295, 427], [66, 462]], [[295, 542], [66, 577]], [[295, 267], [66, 300]], [[295, 655], [66, 692]],
+            [[295, 427], [66, 462]], [[66, 758], [65, 770]], [[295, 542], [66, 577]], [[295, 267], [66, 300]], [[295, 655], [66, 692]],
             [[295, 324], [66, 355]]])
         assert str(non_hv_lines) == non_horvert_node_ids, f"non-axial lines should be {non_hv_lines}"
 
     def test_enumerate_unique_edges(self):
         """separates 3- connected nodes into separate lines """
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
-        small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
-        triply_connected_ids = AmiGraph.get_node_ids_from_graph_with_degree(small_plot_island.island_nx_graph, 3)
+        small_plot_island_0 = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
+        triply_connected_ids = AmiGraph.get_node_ids_from_graph_with_degree(small_plot_island_0.island_nx_graph, 3)
+        assert len(triply_connected_ids) == 30, f"found {len(triply_connected_ids)}"
         unique_ami_edges, multibranches = ami_graph.get_unique_ami_edges_and_multibranches(triply_connected_ids)
         assert len(unique_ami_edges) == 48, f"should be {len(unique_ami_edges)}"
         assert len(multibranches) == 2, f"should be {len(multibranches)} multibranches"
@@ -972,7 +972,7 @@ plt.show()"""
         assert edge_tool is not None
         assert len(edge_tool.ami_nodes) == 36, f"expected {len(edge_tool.ami_nodes)} nodes in edge_tool"
         new_ami_nodes, new_ami_edges = edge_tool.analyze_topology()
-        assert len(new_ami_nodes) == 36 and len(new_ami_edges) == 48,\
+        assert len(new_ami_nodes) == 36 and len(new_ami_edges) == 48, \
             f"nodes {len(new_ami_nodes)} edges {len(new_ami_edges)}"
 
     def test_create_straight_edges(self):
@@ -990,7 +990,6 @@ plt.show()"""
         edges = small_plot_island.create_nx_edges()
         for edge in edges:
             print(f"edge {edge}")
-
 
     # =====================================
     # test helpers

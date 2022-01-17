@@ -10,9 +10,10 @@ class AmiPlot:
 class AmiLine:
     """This will probably include a third-party tool supporting geometry for lines"""
 
-    def __init__(self, xy12=None):
+    def __init__(self, xy12=None, ami_edge=None):
         """xy12 of form [[x1, y1], [x2, y2]]
         direction is xy1 -> xy2 if significant"""
+        self.ami_edge = ami_edge
         if xy12 is not None:
             if len(xy12) != 2 or len(xy12[0]) != 2 or len(xy12[1]) != 2:
                 raise ValueError(f"bad xy pair for line {xy12}")
@@ -26,6 +27,9 @@ class AmiLine:
 
     def __str__(self):
         return str([str(self.xy1), str(self.xy2)])
+
+    def set_ami_edge(self, ami_edge):
+        self.ami_edge = ami_edge
 
 
 class AmiEdgeTool:
