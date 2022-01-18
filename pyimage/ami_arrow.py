@@ -101,7 +101,7 @@ class AmiArrow:
             barbs1 = []
             arrow_point_line = None
             for line in short_lines:
-                line_tuple = (central_node_id, line[AmiNode.REMOTE], 0)  # assume only one branch
+                line_tuple = AmiEdge.create_normalized_edge_id_tuple(central_node_id, line[AmiNode.REMOTE], 0)  # assume only one branch
                 angle = island.ami_graph.get_interedge_tuple_angle(longest_edge.get_tuple(), line_tuple)
                 assert angle is not None
                 if abs(angle) > AmiArrow.HEAD_WOBBLE:

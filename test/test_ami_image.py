@@ -107,7 +107,8 @@ class TestAmiImage:
         ax[3].set_title('Enhanced image, radius=20, amount=1.0')
         print(f"shape {result_3}")
 
-        plt.show()
+        if interactive:
+            plt.show()
 
 
 # ========== helper methods ==============

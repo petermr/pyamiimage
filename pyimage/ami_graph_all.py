@@ -323,7 +323,8 @@ class AmiGraph:
         branch_ids = self.get_branch_ids_for_start_end(start_id, end_id)
         for branch_id in branch_ids:
             ami_edge = self.get_or_create_ami_edge_for_start_end_branch(start_id, end_id, branch_id)
-            self.ami_edges.append(ami_edge)
+            ami_edges.append(ami_edge)
+
         return ami_edges
 
     def get_branch_ids_for_start_end(self, start_id, end_id):
@@ -345,9 +346,11 @@ class AmiGraph:
         :param end_id: end_id (for loops/circles this may be equal to start_id
         """
         branch_ids = []
-        branch_dict = self.nx_graph[start_id][end_id]
-        for key in branch_dict.keys():
-            branch_ids.append(key)
+        # count each branch once only
+        if AmiEdge.is_normalized_edge(start_id, end_id):
+            branch_dict = self.nx_graph[start_id][end_id]
+            for key in branch_dict.keys():
+                branch_ids.append(key)
         return branch_ids
 
     def get_or_create_ami_islands(self, maxdim=None, mindim=None, minmaxdim=None, maxmindim=None, reset=True):
@@ -673,10 +676,21 @@ class AmiGraph:
         assert (type(nx_edge1) is tuple), f"nx_edge1 is {type(nx_edge1)}"
         assert len(nx_edge0) == 3, f"edge should be 3 integers {nx_edge0}"
         assert len(nx_edge1) == 3, f"edge should be 3 integers {nx_edge1}"
-        assert nx_edge0[0] == nx_edge1[0], f"edges should have a common node {nx_edge0} {nx_edge1}"
-        xy0 = AmiUtil.float_list(self.get_or_create_centroid_xy(nx_edge0[1]))
-        xyc = AmiUtil.float_list(self.get_or_create_centroid_xy(nx_edge0[0]))
-        xy1 = AmiUtil.float_list(self.get_or_create_centroid_xy(nx_edge1[1]))
+        # find the common node and the other ends
+        # this is not pretty, but OK (nodes = end1, centre, end2)
+        if nx_edge0[0] == nx_edge1[0]:
+            nodes = nx_edge0[1], nx_edge0[0], nx_edge1[1]
+        elif nx_edge0[1] == nx_edge1[1]:
+            nodes = nx_edge0[0], nx_edge0[1], nx_edge1[0]
+        elif nx_edge0[1] == nx_edge1[0]:
+            nodes = nx_edge0[0], nx_edge0[1], nx_edge1[1]
+        elif nx_edge0[0] == nx_edge1[1]:
+            nodes = nx_edge0[1], nx_edge0[0], nx_edge1[0]
+        else:
+            raise ValueError(f"edges should have a common node {nx_edge0} {nx_edge1}")
+        xy0 = AmiUtil.float_list(self.get_or_create_centroid_xy(nodes[0]))
+        xyc = AmiUtil.float_list(self.get_or_create_centroid_xy(nodes[1]))
+        xy1 = AmiUtil.float_list(self.get_or_create_centroid_xy(nodes[2]))
 
         angle = AmiUtil.get_angle(xy0, xyc, xy1)
         return angle
@@ -1080,6 +1094,22 @@ class AmiEdge:
             delta_dist = math.dist(pts[0], node_pts[0]) + math.dist(pts[1], node_pts[1])
 
         return delta_dist
+
+    @classmethod
+    def create_normalized_edge_id_tuple(cls, node_id1, node_id2, branch_id):
+        """ensures that node_id1 <= node_id2
+        This counts each edge only once"""
+        if branch_id is None:
+            return (node_id1, node_id2) if node_id1 <= node_id2 else (node_id2, node_id1)
+        return (node_id1, node_id2, branch_id) if node_id1 <= node_id2 else (node_id2, node_id1, branch_id)
+
+    @classmethod
+    def is_normalized_edge(cls, start_id, end_id):
+        """requires not None and start_id <= end_id
+        :param start_id:
+        :param end_id:
+        """
+        return start_id is not None and end_id is not None and start_id <= end_id
 
 
 """a wrapper for an sknw/nx node, still being developed"""
