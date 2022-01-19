@@ -92,6 +92,7 @@ class TestArrow:
         assert pytest.approx(edge_lengths, rel=0.001) == [30.00, 8.944, 9.848, 12.041]
 
     def test_get_interedge_angles(self):
+        """test get angles round node 24"""
         node_id = 24
         interactive = False
         nx_edges = self.arrows1_ami_graph.get_nx_edge_list_for_node(node_id)

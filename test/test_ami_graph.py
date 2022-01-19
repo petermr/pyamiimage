@@ -401,7 +401,7 @@ plt.show()"""
     def test_distal_node(self):
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
         edge = ami_graph.get_nx_edge_list_for_node(1)[0]
-        ami_edge0 = ami_graph.get_or_create_ami_edge(edge[0], edge[1], edge[2])
+        ami_edge0 = ami_graph.get_or_create_ami_edge_from_ids(edge[0], edge[1], edge[2])
         assert ami_edge0.start_id == 1
         assert ami_edge0.remote_node_id(1) == 4
         assert ami_edge0.remote_node_id(4) == 1
@@ -887,14 +887,14 @@ plt.show()"""
         assert node_ids == {258, 132, 389, 136, 24, 288, 546, 36, 40, 424, 46, 177, 569, 63, 448, 193,
                             323, 590, 591, 592, 593, 594, 595, 596, 86, 605, 606, 607, 608, 609, 354,
                             101, 103, 487, 114, 510}
-        assert small_plot.edges == [(258, 323), (132, 177), (389, 448), (136, 177), (136, 193), (24, 36),
-                                    (24, 36), (24, 40), (288, 323), (288, 354), (546, 569), (546, 595),
-                                    (36, 46), (40, 46), (40, 63), (424, 448), (424, 487), (46, 86),
-                                    (177, 258), (569, 590), (63, 86), (63, 101), (448, 510), (193, 258),
-                                    (193, 288), (323, 389), (590, 591), (590, 608), (591, 592), (591, 605),
-                                    (592, 593), (592, 606), (593, 594), (593, 596), (594, 595), (594, 607),
-                                    (595, 609), (86, 103), (354, 389), (354, 424), (101, 103), (101, 114),
-                                    (103, 132), (487, 510), (487, 546), (114, 132), (114, 136), (510, 569)]
+        assert small_plot.nx_edges == [(258, 323), (132, 177), (389, 448), (136, 177), (136, 193), (24, 36),
+                                       (24, 36), (24, 40), (288, 323), (288, 354), (546, 569), (546, 595),
+                                       (36, 46), (40, 46), (40, 63), (424, 448), (424, 487), (46, 86),
+                                       (177, 258), (569, 590), (63, 86), (63, 101), (448, 510), (193, 258),
+                                       (193, 288), (323, 389), (590, 591), (590, 608), (591, 592), (591, 605),
+                                       (592, 593), (592, 606), (593, 594), (593, 596), (594, 595), (594, 607),
+                                       (595, 609), (86, 103), (354, 389), (354, 424), (101, 103), (101, 114),
+                                       (103, 132), (487, 510), (487, 546), (114, 132), (114, 136), (510, 569)]
 
         pixel_error = 2
         # I have struggled to find the right term. "axial" suggests the actual axis
@@ -990,6 +990,19 @@ plt.show()"""
         edges = small_plot_island.create_nx_edges()
         for edge in edges:
             print(f"edge {edge}")
+
+    @unittest.skip("NYI")
+    def test_create_line_segments(self):
+        """tests straightness between nodes (horiz and vert)
+        """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
+        node_ids = small_plot_island.node_ids
+        pixel_error = 2
+        ami_edges = small_plot_island.get_or_create_ami_edges()
+
+
+    # TODO not yet finished
 
     # =====================================
     # test helpers
