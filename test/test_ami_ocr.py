@@ -1,6 +1,7 @@
 import unittest
+from skimage import io
 from ..pyimage.ami_ocr import TextBox, AmiOCR
-from ..test.resources import Resources
+from ..test.resources import Resources # Asserting all images take time
 
 class TestTextBox:
     def setup_method(self, method):
@@ -20,9 +21,13 @@ class TestTextBox:
     def test_get_w_h(self):
         assert self.textbox.get_ranges() == [[10, 50], [40, 50]]
 
+    def plot_bbox():
+        pass
+
 class TestAmiOCR:
     def setup_method(self, method):
         self.biosynth2 = Resources.BIOSYNTH2
+        self.biosynth2_img = io.imread(self.biosynth2)
         self.biosynth2_ocr = AmiOCR(self.biosynth2)
 
     def teardown_method(self, method):
@@ -48,4 +53,13 @@ class TestAmiOCR:
     @unittest.skip("NYI")
     def test_groups(self):
         groups = self.biosynth2_ocr.get_groups()
+
+    def test_clean(self):
+        pass
+
+    def test_plot_bbox_on_image(self):
+        words = self.biosynth2_ocr.get_words()
+        biosynth2_img_bboxes = AmiOCR.plot_bboxes_on_image(self.biosynth2_img, words)
+        io.imshow(biosynth2_img_bboxes)
+        io.show()
 

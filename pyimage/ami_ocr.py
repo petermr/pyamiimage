@@ -231,6 +231,22 @@ class AmiOCR:
                 max_y = bbox[3]
         return [min_x, min_y, max_x, max_y]
 
+    @classmethod
+    def plot_bboxes_on_image(self, image, textboxes):
+        """draws bboxes on image 
+        :param: image
+        :type: numpy array
+        :textboxes: array of TextBox objects
+        :returns: image
+        """
+        for textbox in textboxes:
+            try:
+                image = BBox.plot_bbox_on(image, textbox)
+            except IndexError as e:
+                continue
+        return image
+
+
 
 
 def main():

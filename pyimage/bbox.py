@@ -1,5 +1,5 @@
 """bounding box"""
-
+from skimage import draw
 
 class BBox:
     """bounding box 2array of 2arrays, based on integers
@@ -295,6 +295,47 @@ class BBox:
         :return: max(height, width)
         """
         return max(self.get_width(), self.get_height())
+
+    def get_point_pair(self):
+        """
+        BBox stores the location as ranges of x and y values:
+        [[x1, x2], [y1, y2]]
+        sometimes it is necessary to work with points instead:
+        [(y1, x1), (y2, x2)]
+        :returns: list of 2 tuples
+        """
+        return [(self.get_yrange()[0], self.get_xrange()[0]),
+         (self.get_yrange()[1], self.get_xrange()[1])]
+         # remember that the indexing is in terms of rows and columns
+         # hence x(columns) y(rows) values are flipped when returning point pair
+
+    @classmethod
+    def plot_bbox_on(cls, image, bbox):
+        """
+        Plots bbox on an image
+        :param: image
+        :type: numpy array 
+        :param: bbox
+        :type: BBox or list
+        :returns: fig, ax
+        """
+        # bbox can either be BBox object or in form of [[a, b][c, d]]
+        
+        # if type(bbox) == BBox:
+        #     assert bbox.is_valid()
+        # elif type(bbox) == list:
+        #     bbox = BBox(bbox)
+        #     assert bbox.is_valid()
+        # else:
+        #     # the bbox passed is not invalid
+        #     return None
+        point_pair = bbox.get_point_pair()
+        row, col = draw.rectangle_perimeter(start=point_pair[0], end=point_pair[1])
+        image[row, col] = 0
+
+        return image
+
+
 
 """If you looking for the overlap between two real-valued bounded intervals, then this is quite nice:
 
