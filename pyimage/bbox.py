@@ -54,6 +54,9 @@ class BBox:
         self.set_xrange(xy_ranges[0])
         self.set_yrange(xy_ranges[1])
 
+    def get_ranges(self):
+        return self.xy_ranges
+
     def set_xrange(self, rrange):
         self.set_range(0, rrange)
 

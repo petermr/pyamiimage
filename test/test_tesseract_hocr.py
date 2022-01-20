@@ -136,6 +136,11 @@ class TestTesseractHOCR:
         io.imshow(raw_tesseract)
         io.show()
 
+        phrases, phrases_bboxes = TesseractOCR.find_phrases(self.biosynth2_elem)
+        phrases_tess = TesseractOCR.draw_bbox_around_words(image=biosynth2_img, bbox_coordinates=phrases_bboxes)
+        io.imshow(phrases_tess)
+        io.show()
+
     def test_find_text_group(self):
         biosynth1_img = io.imread(self.biosynth1)
         
@@ -160,7 +165,7 @@ class TestTesseractHOCR:
     def test_cropped_test_group(self):
         biosynth2_img = io.imread(self.biosynth2)
         tiles, limits = TesseractOCR.split_image_into_snippets(biosynth2_img)
-        assert limits == []
+        assert limits is not None
         for tile in tiles:
             io.imshow(tile)
             io.show()

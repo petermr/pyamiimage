@@ -2,44 +2,72 @@ from os import path
 import numpy as np
 import pytesseract
 from lxml import etree as et
-
+from PIL import Image
+from skimage import io
 from ..pyimage.bbox import BBox
 
 class TextBox(BBox):
     # TextBox inherits BBox
     def __init__(self, text, xy_ranges) -> None:
         self.text = text
-        BBox(xy_ranges)
+        BBox.__init__(self, xy_ranges)
+    
+    def __repr__(self): 
+        return f"Textbox({self.text}, {self.xy_ranges})"
+
+    def __str__(self): 
+        return f"text: {self.text} bbox: {self.xy_ranges}"
+
+    def __eq__(self, other):
+        if type(other) is not TextBox:
+            return False
+        return self.text == other.text and self.xy_ranges == other.xy_ranges
+
+    def set_text(self, text):
+        self.text = text
+    
+    def get_text(self):
+        return self.text
 
 class AmiOCR:
-    def __init__(self) -> None:
-        self.image_path = None
-        self.hocr = None
-        self.textboxes = []
+    def __init__(self, path=None) -> None:
+        self.hocr = self.run_ocr(path)
+        self.words = []
         self.phrases = []
         self.groups = []
 
-    def set_image_path(self, path):
-        self.image_path = path
-
-    def run_ocr(self):
+    def run_ocr(self, path=None):
         if path is None:
             return None
         else:
-            return self.hocr_from_image_path(self.image_path)
+            return self.hocr_from_image_path(path)
+
+    def get_words(self):
+        if self.words == []:
+            self.words = self.parse_hocr_tree()
+        return self.words
+        
+    def get_phrases(self):
+        if self.phrases == []:
+            self.phrases = self.find_phrases()
+        return self.phrases
+    
+    def get_groups(self):
+        if self.groups == []:
+            self.groups = self.find_word_groups()
+        return self.phrases
 
     def hocr_from_image_path(self, path):
         """Runs tesseract hocr on the given image
         :param: Path
-        :returns: hocr string
+        :returns: hocr
         """
         # pytesseract only seems to accept string for image path
         if path is not str:
             path = str(path)
 
-        hocr = pytesseract.image_to_pdf_or_hocr(path, extension='hocr', config='11')
-        # TODO what is this doing?
-        self.parse_hocr_string(hocr)
+        hocr_string = pytesseract.image_to_pdf_or_hocr(path, extension='hocr', config='11')
+        hocr = self.parse_hocr_string(hocr_string)
         return hocr
 
     def parse_hocr_string(self, hocr_string):
@@ -49,7 +77,6 @@ class AmiOCR:
         """
         parser = et.HTMLParser()
         root = et.HTML(hocr_string, parser)
-        self.hocr = root
         return root
 
     def parse_hocr_tree(self, hocr_element=None):
@@ -66,7 +93,7 @@ class AmiOCR:
         """
         if hocr_element is None:
             hocr_element = self.hocr
-        self.textboxes = []
+        words = []
 
         # Each of the bbox coordinates are in span
         # iterdescendants('span') iterates over all the span elements in the tree
@@ -78,14 +105,14 @@ class AmiOCR:
                 bbox_string = child.attrib['title'].split(';')[0]
                 xy_range = self.create_xy_range_from_bbox_string(bbox_string)
                 textbox = TextBox(child.text, xy_range)
-                self.textboxes.append(textbox)
-        return self.textboxes
-
+                words.append(textbox)
+        self.words = words
+        return self.words
     
     def find_words_from_image_path(self, image_path):
         self.hocr_from_image_path(image_path)
         self.parse_hocr_tree(self.hocr)
-        return self.textboxes
+        return self.words
 
     def create_xy_range_from_bbox_string(self, bbox_string):
         # now we have a list with string elenments like 'bbox 333 74 471 102'
@@ -203,3 +230,13 @@ class AmiOCR:
             if bbox[3] > max_y:
                 max_y = bbox[3]
         return [min_x, min_y, max_x, max_y]
+
+
+
+def main():
+    biosynth2 = Resources.BIOSYNTH2
+    ocr = AmiOCR(biosynth2)
+    assert ocr.get_words() is None
+
+if __name__ == "__main__":
+    main()

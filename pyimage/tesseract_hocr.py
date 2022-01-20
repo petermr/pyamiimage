@@ -163,7 +163,7 @@ class TesseractOCR:
         bboxes, words = cls.extract_bbox_from_hocr(hocr_element)
         
         # TODO verify this doesn't break the system
-        words, bboxes = TesseractOCR.remove_bad_word_bboxes(words, bboxes)
+        # words, bboxes = TesseractOCR.remove_bad_word_bboxes(words, bboxes)
         
         for i in range(len(words)):
             phrase = [words[i]]
@@ -186,11 +186,14 @@ class TesseractOCR:
             elif not phrases:
                 # if array is empty add element
                 phrases.append(phrase)
-                bbboxes.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
+                bbboxes.append(last_bbox)
+                # bbboxes.append(cls.envelope_box([bbboxes[i], last_bbox]))
+                # bbboxes.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
             elif not phrases[-1].endswith(phrase):
                 # only add phrase if the last phrase added does not end with current phrase
                 phrases.append(phrase)
-                bbboxes.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
+                bbboxes.append(cls.envelope_box([bbboxes[i], last_bbox]))
+                #bbboxes.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
         return phrases, bbboxes
 
     @classmethod
