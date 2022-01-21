@@ -6,9 +6,14 @@ from skimage import io
 import logging
 import numpy as np
 # local
-from ..pyimage.ami_graph_all import AmiGraph
-from ..pyimage.tesseract_hocr import TesseractOCR
-from ..pyimage.ami_image import AmiImageDTO
+try:
+    from ..pyimage.ami_graph_all import AmiGraph
+    from ..pyimage.tesseract_hocr import TesseractOCR
+    from ..pyimage.ami_image import AmiImageDTO
+except:
+    from pyimage.ami_graph_all import AmiGraph
+    from pyimage.tesseract_hocr import TesseractOCR
+    from pyimage.ami_image import AmiImageDTO
 
 logger = logging.getLogger(__name__)
 

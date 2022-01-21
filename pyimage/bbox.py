@@ -329,11 +329,35 @@ class BBox:
         # else:
         #     # the bbox passed is not invalid
         #     return None
+
+
         point_pair = bbox.get_point_pair()
-        row, col = draw.rectangle_perimeter(start=point_pair[0], end=point_pair[1])
-        image[row, col] = 0
+        if point_pair[0][0] > image.shape[0] or point_pair[0][1] >image.shape[1]:
+            # if the starting point is outside the image, ignore bbox
+            return image
+        
+        try:
+            row, col = draw.rectangle_perimeter(start=point_pair[0], end=point_pair[1])
+            image[row, col] = 0
+        except IndexError as e:
+            point_pair = BBox.fit_point_pair_within_image(image, point_pair)
+            row, col = draw.rectangle_perimeter(start=point_pair[0], end=point_pair[1])
+            image[row, col] = 0
 
         return image
+
+    @classmethod
+    def fit_point_pair_within_image(cls, image, point_pair):
+        max_row = image.shape[0]
+        max_col = image.shape[1]
+        bbox_row = point_pair[1][0]
+        bbox_col = point_pair[1][1]
+        if bbox_row >= max_row-1:
+            bbox_row = max_row - 2
+        if bbox_col >= max_col-1:
+            bbox_col = max_col - 2
+        point_pair[1] = (bbox_row, bbox_col)
+        return point_pair
 
 
 

@@ -4,7 +4,12 @@ import pytesseract
 from lxml import etree as et
 from PIL import Image
 from skimage import io
-from ..pyimage.bbox import BBox
+try:
+    from pyimage.bbox import BBox
+    from pyimage.cleaner import WordCleaner
+except: 
+    from ..pyimage.bbox import BBox
+    from ..pyimage.cleaner import WordCleaner
 
 class TextBox(BBox):
     # TextBox inherits BBox
@@ -28,10 +33,10 @@ class TextBox(BBox):
     
     def get_text(self):
         return self.text
-
 class AmiOCR:
     def __init__(self, path=None) -> None:
         self.hocr = self.run_ocr(path)
+        self.raw_tesseract = []
         self.words = []
         self.phrases = []
         self.groups = []
@@ -106,7 +111,7 @@ class AmiOCR:
                 xy_range = self.create_xy_range_from_bbox_string(bbox_string)
                 textbox = TextBox(child.text, xy_range)
                 words.append(textbox)
-        self.words = words
+        self.words = AmiOCR.clean(words)
         return self.words
     
     def find_words_from_image_path(self, image_path):
@@ -245,14 +250,10 @@ class AmiOCR:
             except IndexError as e:
                 continue
         return image
-
-
-
-
-def main():
-    biosynth2 = Resources.BIOSYNTH2
-    ocr = AmiOCR(biosynth2)
-    assert ocr.get_words() is None
-
-if __name__ == "__main__":
-    main()
+    
+    @classmethod
+    def clean(self, textboxes):
+        cleaned = WordCleaner.remove_trailing_special_characters(textboxes)
+        cleaned = WordCleaner.remove_all_single_characters(cleaned)
+        cleaned = WordCleaner.remove_all_sequences_of_special_characters(cleaned)
+        return cleaned

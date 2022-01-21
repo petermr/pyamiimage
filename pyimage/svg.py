@@ -4,7 +4,10 @@ import lxml.etree
 from abc import ABC
 import logging
 # local
-from ..pyimage.bbox import BBox
+try:
+    from ..pyimage.bbox import BBox
+except:
+    from pyimage.bbox import BBox
 
 logger = logging.getLogger(__name__)
 

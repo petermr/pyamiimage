@@ -13,11 +13,18 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 # local
-from ..pyimage.ami_image import AmiImage
-from ..pyimage.ami_util import AmiUtil
-from ..pyimage.svg import BBox
-from ..pyimage.text_box import TextBox
-from ..pyimage.flood_fill import FloodFill
+try:
+    from ..pyimage.ami_image import AmiImage
+    from ..pyimage.ami_util import AmiUtil
+    from ..pyimage.svg import BBox
+    from ..pyimage.text_box import TextBox
+    from ..pyimage.flood_fill import FloodFill
+except:
+    from pyimage.ami_image import AmiImage
+    from pyimage.ami_util import AmiUtil
+    from pyimage.svg import BBox
+    from pyimage.text_box import TextBox
+    from pyimage.flood_fill import FloodFill
 
 logger = logging.getLogger(__name__)
 
