@@ -20,16 +20,31 @@ class AmiLine:
             self.xy1 = [xy12[0][0], xy12[0][1]]
             self.xy2 = [xy12[1][0], xy12[1][1]]
         else:
+            self.xy1 = None
             self.xy2 = None
 
     def __repr__(self):
         return str([self.xy1, self.xy2])
 
     def __str__(self):
-        return str([str(self.xy1), str(self.xy2)])
+        return str([self.xy1, self.xy2])
 
     def set_ami_edge(self, ami_edge):
         self.ami_edge = ami_edge
+
+    def get_vector(self):
+        """vector between end points
+        :return: xy2 - xy1
+        """
+        return None if self.xy2 is None else (self.xy2[0] - self.xy1[0], self.xy2[1] - self.xy1[1])
+
+    def is_horizontal(self, tolerance=1):
+        vector = self.get_vector()
+        return abs(vector[0]) <= tolerance and abs(vector[1]) > tolerance
+
+    def is_vertical(self, tolerance=1):
+        vector = self.get_vector()
+        return abs(vector[1]) <= tolerance and abs(vector[0]) > tolerance
 
 
 class AmiEdgeTool:
@@ -89,7 +104,3 @@ class AmiEdgeTool:
                 node_ids.add(ami_edge.start_id)
                 node_ids.add(ami_edge.end_id)
             self.ami_nodes = self.ami_graph.create_ami_nodes_from_ids(node_ids)
-
-    def create_ami_lines_from_edge_points(self, points):
-        """apply Dougkas-Peucker to points from an AMIEdge (or elsewhere
-        """

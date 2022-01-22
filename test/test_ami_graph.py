@@ -16,6 +16,7 @@ from skimage import data
 from skimage import morphology
 from skimage.measure import approximate_polygon, subdivide_polygon
 from skimage.morphology import skeletonize
+from rdp import rdp
 
 # local
 from ..pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
@@ -129,14 +130,14 @@ plt.show()"""
         if interactive:
             plt.imshow(img, cmap='gray')
 
-        assert str(graph.nodes[0].keys()) == "dict_keys(['pts', 'o'])", \
+        assert str(graph.nodes[0].keys()) == "dict_keys([AmiEdge.PTS, 'o'])", \
             "nodes have 'pts' and 'o "
         # this is a 2-array with ["pts", "weights'] Not sure what th structure is
         # this is an edges generator, so may need wrapping in a list
         edges_gen = graph[0][2]  # plural because there may be multiple edges between nodes
-        assert f"{list(edges_gen)[:1]}" == "['pts']"  # pts are connected points in an edge
-        assert len(edges_gen['pts']) == 18
-        assert str(edges_gen.keys()) == "dict_keys(['pts', 'weight'])"
+        assert f"{list(edges_gen)[:1]}" == "[AmiEdge.PTS]"  # pts are connected points in an edge
+        assert len(edges_gen[AmiEdge.PTS]) == 18
+        assert str(edges_gen.keys()) == "dict_keys([AmiEdge.PTS, 'weight'])"
 
         print(f"\n=========nodes=========")
         prnt = True
@@ -156,7 +157,7 @@ plt.show()"""
             print(f"neighbours {node} {list(graph.neighbors(node))}")
 
         # coordinates are arranged y-array, x-array
-        points = np.array([nodes[i]['o'] for i in nodes])
+        points = np.array([nodes[i][AmiNode.CENTROID] for i in nodes])
         plt.plot(points[:, 1], points[:, 0], 'r.')
 
         # title and show
@@ -250,6 +251,7 @@ plt.show()"""
 
         Note:
         nx_graph[i][j]["pts"] seens to be the same as nx_graph[j][i]["pts"]
+        NO! there are 2 edges in opposite directions
         Note: double backslash is an escape, not meaningful
         :return:
         """
@@ -265,9 +267,9 @@ plt.show()"""
          [(0, 2), (1, 4), (2, 4), (2, 3), (2, 7), (4, 5), (4, 6),
         """
 
-        print("\n2 0", nx_graph[2][0][0]["pts"][:2:-2])
-        # print("\n2 7", nx_graph[2][7][0])
-        points0_2 = nx_graph[2][0][0]["pts"]
+        print("\n2 0", nx_graph[2][0][0][AmiEdge.PTS][:2:-2])
+
+        points0_2 = nx_graph[2][0][0][AmiEdge.PTS]
         expected_numpy = np.array([[82, 844],
                                    [83, 845],
                                    [84, 846],
@@ -282,13 +284,17 @@ plt.show()"""
                                    [88, 855],
                                    [89, 856],
                                    [91, 857]])
+        assert type(expected_numpy[0]) is np.ndarray
+        assert type(expected_numpy[0][0]) is np.int64
         assert np.array_equal(points0_2, expected_numpy), f"found {points0_2}"
 
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        edges = ami_graph.get_or_create_all_ami_edges()
-        print(f"len(edges) {len(edges)}")
-        for edge in edges:
-            print(f"edge {edge.start_id, edge.end_id} {edge.create_line_segments()}")
+        ami_edges = ami_graph.get_or_create_all_ami_edges()
+        print(f"len(edges) {len(ami_edges)}")
+        for ami_edge in ami_edges:
+            for tol in range(1, 10, 3):
+                segments = ami_edge.create_line_segments(tolerance=tol)
+                print(f"tol {tol} edge {ami_edge.start_id, ami_edge.end_id} segments {len(segments)} -> {segments}")
 
         """
         {8, 9, 26, 19},            # y-shaped arrow-less
@@ -508,6 +514,41 @@ plt.show()"""
         if interactive:
             plt.show()
 
+    @unittest.skip("not needed as skimage works")
+    def test_rdp_line_segments(self):
+        """rdp method may interface better than the approximate_polygon one"""
+        arr = np.array([1, 1, 2, 2, 3, 3, 4, 4]).reshape(4, 2)
+        mask = rdp(arr, algo="iter", return_mask=True)
+        print(f"mask {mask}")
+        print(f"arr {arr[mask]}")
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        islands = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)
+        assert len(islands) == 1, f"expected single islands {len(islands)}"
+        small_plot = islands[0]
+        node_ids = small_plot.node_ids
+        assert len(node_ids) == 36, f"nodes in small graph {len(node_ids)}"
+        assert node_ids == {258, 132, 389, 136, 24, 288, 546, 36, 40, 424, 46, 177, 569, 63, 448, 193,
+                            323, 590, 591, 592, 593, 594, 595, 596, 86, 605, 606, 607, 608, 609, 354,
+                            101, 103, 487, 114, 510}, f"found {node_ids}"
+        assert small_plot.nx_edges == [
+            (258, 323, 0), (132, 177, 0), (389, 448, 0), (136, 177, 0), (136, 193, 0), (24, 36, 0), (24, 36, 1),
+            (24, 40, 0),
+            (288, 323, 0), (288, 354, 0), (546, 569, 0), (546, 595, 0), (36, 46, 0), (40, 46, 0), (40, 63, 0),
+            (424, 448, 0),
+            (424, 487, 0), (46, 86, 0), (177, 258, 0), (569, 590, 0), (63, 86, 0), (63, 101, 0), (448, 510, 0),
+            (193, 258, 0),
+            (193, 288, 0), (323, 389, 0), (590, 591, 0), (590, 608, 0), (591, 592, 0), (591, 605, 0), (592, 593, 0),
+            (592, 606, 0),
+            (593, 594, 0), (593, 596, 0), (594, 595, 0), (594, 607, 0), (595, 609, 0), (86, 103, 0), (354, 389, 0),
+            (354, 424, 0),
+            (101, 103, 0), (101, 114, 0), (103, 132, 0), (487, 510, 0), (487, 546, 0), (114, 132, 0), (114, 136, 0),
+            (510, 569, 0)], \
+            f"found {small_plot.nx_edges}"
+
+        ami_edges = small_plot.get_or_create_ami_edges()
+        print(f"ami_edges {ami_edges}")
+        ami_edges = AmiEdge.get_ami_edge_start_end
+
     @unittest.skipUnless(interactive, "ignore plotting in routine tests")
     def test_plot_line(self):
         """straightens lines by Douglas Peucker and plots"""
@@ -690,9 +731,8 @@ plt.show()"""
         print("edges(0, 1)[0]", "tuple->", list(nx_graph.edges(0, 1))[0], type(list(nx_graph.edges(0, 1))[0]))  # start
         print("=======  edges  =======")
         for (s, e) in nx_graph.edges():
-            # nx_graph[s][e][0]["nxg"] = AmiGraph(nx_graph=nx_graph)
             nx_graph[s][e][0]["nxg"] = "foo"
-            ps = nx_graph[s][e][0]['pts']
+            ps = nx_graph[s][e][0][AmiEdge.PTS]
             print("ps", type(ps))
             print("keys", nx_graph[s][e][0].keys(), nx_graph[s][e][0]["nxg"])
 
@@ -886,15 +926,21 @@ plt.show()"""
         assert len(node_ids) == 36, f"nodes in small graph {len(node_ids)}"
         assert node_ids == {258, 132, 389, 136, 24, 288, 546, 36, 40, 424, 46, 177, 569, 63, 448, 193,
                             323, 590, 591, 592, 593, 594, 595, 596, 86, 605, 606, 607, 608, 609, 354,
-                            101, 103, 487, 114, 510}
-        assert small_plot.nx_edges == [(258, 323), (132, 177), (389, 448), (136, 177), (136, 193), (24, 36),
-                                       (24, 36), (24, 40), (288, 323), (288, 354), (546, 569), (546, 595),
-                                       (36, 46), (40, 46), (40, 63), (424, 448), (424, 487), (46, 86),
-                                       (177, 258), (569, 590), (63, 86), (63, 101), (448, 510), (193, 258),
-                                       (193, 288), (323, 389), (590, 591), (590, 608), (591, 592), (591, 605),
-                                       (592, 593), (592, 606), (593, 594), (593, 596), (594, 595), (594, 607),
-                                       (595, 609), (86, 103), (354, 389), (354, 424), (101, 103), (101, 114),
-                                       (103, 132), (487, 510), (487, 546), (114, 132), (114, 136), (510, 569)]
+                            101, 103, 487, 114, 510}, f"found {node_ids}"
+        assert small_plot.nx_edges == [
+            (258, 323, 0), (132, 177, 0), (389, 448, 0), (136, 177, 0), (136, 193, 0), (24, 36, 0), (24, 36, 1),
+            (24, 40, 0),
+            (288, 323, 0), (288, 354, 0), (546, 569, 0), (546, 595, 0), (36, 46, 0), (40, 46, 0), (40, 63, 0),
+            (424, 448, 0),
+            (424, 487, 0), (46, 86, 0), (177, 258, 0), (569, 590, 0), (63, 86, 0), (63, 101, 0), (448, 510, 0),
+            (193, 258, 0),
+            (193, 288, 0), (323, 389, 0), (590, 591, 0), (590, 608, 0), (591, 592, 0), (591, 605, 0), (592, 593, 0),
+            (592, 606, 0),
+            (593, 594, 0), (593, 596, 0), (594, 595, 0), (594, 607, 0), (595, 609, 0), (86, 103, 0), (354, 389, 0),
+            (354, 424, 0),
+            (101, 103, 0), (101, 114, 0), (103, 132, 0), (487, 510, 0), (487, 546, 0), (114, 132, 0), (114, 136, 0),
+            (510, 569, 0)], \
+            f"found {small_plot.nx_edges}"
 
         pixel_error = 2
         # I have struggled to find the right term. "axial" suggests the actual axis
@@ -944,7 +990,8 @@ plt.show()"""
         non_horvert_node_ids = str([
             [[295, 372], [66, 408]], [[295, 96], [66, 131]], [[295, 483], [66, 520]], [[295, 715], [66, 752]],
             [[295, 715], [274, 759]], [[295, 151], [66, 185]], [[295, 598], [66, 632]], [[295, 206], [66, 241]],
-            [[295, 427], [66, 462]], [[66, 758], [65, 770]], [[295, 542], [66, 577]], [[295, 267], [66, 300]], [[295, 655], [66, 692]],
+            [[295, 427], [66, 462]], [[66, 758], [65, 770]], [[295, 542], [66, 577]], [[295, 267], [66, 300]],
+            [[295, 655], [66, 692]],
             [[295, 324], [66, 355]]])
         assert str(non_hv_lines) == non_horvert_node_ids, f"non-axial lines should be {non_hv_lines}"
 
@@ -991,16 +1038,32 @@ plt.show()"""
         for edge in edges:
             print(f"edge {edge}")
 
-    @unittest.skip("NYI")
     def test_create_line_segments(self):
         """tests straightness between nodes (horiz and vert)
         """
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
-        node_ids = small_plot_island.node_ids
-        pixel_error = 2
+        # node_ids = small_plot_island.node_ids
         ami_edges = small_plot_island.get_or_create_ami_edges()
+        assert len(ami_edges) == 48, f"found {len(ami_edges)}"
+        tolerance = 1
+        for ami_edge in ami_edges:
+            single_ami_line = ami_edge.get_single_segment(tolerance)
+            if single_ami_line is not None:
+                print(f"single_ami_line hor: {single_ami_line.is_horizontal()}; vert: {single_ami_line.is_vertical()}; "
+                      f"(coords) {single_ami_line}")
+            else:
+                tol = 2  # this is lafrge enough for this example
+                ami_lines = ami_edge.get_segments(tol)
+                print(f"ami_edge {len(ami_lines)} ... {ami_edge}")
+                corners = ami_edge.get_axial_corners(tol)
+                if len(corners) > 0:
+                    print(f"corners {corners}")
+                if len(corners) == len(ami_lines) - 1:
+                    print(f"{__name__} line consists of {len(ami_lines)} axial segments")
 
+            # axial_ami_lines = ami_edge.get_axial_ami_lines(tolerance)
+            # print(f"axial_ami_lines (coords) ", axial_ami_lines)
 
     # TODO not yet finished
 

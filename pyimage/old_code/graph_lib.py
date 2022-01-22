@@ -202,7 +202,7 @@ class AmiGraph:
         for (start, end) in nx_graph.nx_edges():
             points_yx = nx_graph[start][end][AmiSkeleton.NODE_PTS]
             ami_edge = AmiEdge()
-            ami_edge.read_nx_edge_points_yx(points_yx)
+            ami_edge.read_nx_edge_points_yx_into_self_points_xy(points_yx)
             self.ami_edges.append(ami_edge)
 
     def get_or_create_ami_islands(self):
