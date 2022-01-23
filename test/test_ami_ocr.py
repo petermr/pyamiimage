@@ -36,14 +36,14 @@ class TestAmiOCR:
 
     def test_words(self):
         words = self.biosynth2_ocr.get_words()
-        assert len(words) == 79, f"words are {len(words)}"
+        assert len(words) == 56, f"words are {len(words)}"
         expected_textbox = TextBox("Glycolysis", [[405, 638], [1, 57]])
         assert words[0] == expected_textbox, f"{expected_textbox} and found: {words[0]}" 
         assert words[0:5] ==[TextBox("Glycolysis", [[405, 638], [1, 57]]), 
-                             TextBox("Terpene", [[182, 349], [57, 99]]), 
-                             TextBox("\'", [[521, 525], [65, 93]]), 
+                             TextBox("Terpene", [[182, 349], [57, 99]]),
                              TextBox("Biosynthetic", [[140, 390], [111, 145]]), 
-                             TextBox(";", [[1037, 1045], [131, 137]])], f"words and bounds are {words[:5]}"
+                             TextBox("Bethea", [[178, 329], [122, 200]]),
+                             TextBox("Acetyl-Co", [[606, 798], [149, 187]])], f"words and bounds are {words[:5]}"
 
     @unittest.skip("NYI")
     def test_phrases(self):

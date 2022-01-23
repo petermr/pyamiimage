@@ -47,6 +47,7 @@ class AmiOCR:
         else:
             return self.hocr_from_image_path(path)
 
+
     def get_words(self):
         if self.words == []:
             self.words = self.parse_hocr_tree()
