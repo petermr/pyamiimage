@@ -1,4 +1,5 @@
 import logging
+from collections import Counter
 
 logger = logging.getLogger(__name__)
 
@@ -32,19 +33,44 @@ class AmiLine:
     def set_ami_edge(self, ami_edge):
         self.ami_edge = ami_edge
 
-    def get_vector(self):
+    @property
+    def vector(self):
         """vector between end points
         :return: xy2 - xy1
         """
-        return None if self.xy2 is None else (self.xy2[0] - self.xy1[0], self.xy2[1] - self.xy1[1])
+        return None if (self.xy1 is None or self.xy2 is None) else \
+            (self.xy2[0] - self.xy1[0], self.xy2[1] - self.xy1[1])
 
-    def is_horizontal(self, tolerance=1):
-        vector = self.get_vector()
-        return abs(vector[0]) <= tolerance and abs(vector[1]) > tolerance
+    @property
+    def xy_mid(self):
+        """get midpoint of line
+        :return: 2-array [x, y] of None if coords not set"""
 
-    def is_vertical(self, tolerance=1):
-        vector = self.get_vector()
-        return abs(vector[1]) <= tolerance and abs(vector[0]) > tolerance
+        if self.xy1 is not None and self.xy2 is not None:
+            return [(self.xy1[0] + self.xy2[0]) / 2, (self.xy1[1] + self.xy2[1]) // 2]
+        return None
+
+    def is_horizontal(self, tolerance=1) -> int:
+        return abs(self.vector[1]) <= tolerance < abs(self.vector[0])
+
+    def is_vertical(self, tolerance=1) -> int:
+        return abs(self.vector[0]) <= tolerance < abs(self.vector[1])
+
+    @classmethod
+    def get_horiz_vert_counter(cls, ami_lines, xy_index) -> Counter:
+        """
+        counts midpoint coordinates of lines (normally ints)
+
+        :param ami_lines: horiz or vert ami_lines
+        :param xy_index: 0 (x) 0r 1 (y) (normally 0 for vert lines, 1 for horiz)
+        :return: Counter
+        """
+        hv_dict = Counter()
+        for ami_line in ami_lines:
+            xy_mid = ami_line.xy_mid[xy_index]
+            if xy_mid is not None:
+                hv_dict[int(xy_mid)] += 1
+        return hv_dict
 
 
 class AmiEdgeTool:

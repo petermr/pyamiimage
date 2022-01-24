@@ -4,6 +4,7 @@ tests AmiGraph, AmiNode, AmiEdge, AmiIsland
 
 import logging
 import unittest
+from collections import Counter
 # library
 from pathlib import PurePath
 
@@ -16,12 +17,12 @@ from skimage import data
 from skimage import morphology
 from skimage.measure import approximate_polygon, subdivide_polygon
 from skimage.morphology import skeletonize
-from rdp import rdp
 
 # local
+from ..pyimage.ami_edge_manager import AmiEdgeAnalyzer, X, Y
 from ..pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
 from ..pyimage.ami_image import AmiImage
-from ..pyimage.ami_plot import AmiEdgeTool
+from ..pyimage.ami_plot import AmiEdgeTool, AmiLine
 from ..pyimage.ami_util import AmiUtil
 from ..pyimage.bbox import BBox
 from ..pyimage.text_box import TextBox, TextUtil
@@ -336,7 +337,7 @@ plt.show()"""
         * half arrow. point with one edge backwards (e.g. in chemical equilibrium
         :return:
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
 
     def test_islands(self):
         """
@@ -514,40 +515,40 @@ plt.show()"""
         if interactive:
             plt.show()
 
-    @unittest.skip("not needed as skimage works")
-    def test_rdp_line_segments(self):
-        """rdp method may interface better than the approximate_polygon one"""
-        arr = np.array([1, 1, 2, 2, 3, 3, 4, 4]).reshape(4, 2)
-        mask = rdp(arr, algo="iter", return_mask=True)
-        print(f"mask {mask}")
-        print(f"arr {arr[mask]}")
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
-        islands = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)
-        assert len(islands) == 1, f"expected single islands {len(islands)}"
-        small_plot = islands[0]
-        node_ids = small_plot.node_ids
-        assert len(node_ids) == 36, f"nodes in small graph {len(node_ids)}"
-        assert node_ids == {258, 132, 389, 136, 24, 288, 546, 36, 40, 424, 46, 177, 569, 63, 448, 193,
-                            323, 590, 591, 592, 593, 594, 595, 596, 86, 605, 606, 607, 608, 609, 354,
-                            101, 103, 487, 114, 510}, f"found {node_ids}"
-        assert small_plot.nx_edges == [
-            (258, 323, 0), (132, 177, 0), (389, 448, 0), (136, 177, 0), (136, 193, 0), (24, 36, 0), (24, 36, 1),
-            (24, 40, 0),
-            (288, 323, 0), (288, 354, 0), (546, 569, 0), (546, 595, 0), (36, 46, 0), (40, 46, 0), (40, 63, 0),
-            (424, 448, 0),
-            (424, 487, 0), (46, 86, 0), (177, 258, 0), (569, 590, 0), (63, 86, 0), (63, 101, 0), (448, 510, 0),
-            (193, 258, 0),
-            (193, 288, 0), (323, 389, 0), (590, 591, 0), (590, 608, 0), (591, 592, 0), (591, 605, 0), (592, 593, 0),
-            (592, 606, 0),
-            (593, 594, 0), (593, 596, 0), (594, 595, 0), (594, 607, 0), (595, 609, 0), (86, 103, 0), (354, 389, 0),
-            (354, 424, 0),
-            (101, 103, 0), (101, 114, 0), (103, 132, 0), (487, 510, 0), (487, 546, 0), (114, 132, 0), (114, 136, 0),
-            (510, 569, 0)], \
-            f"found {small_plot.nx_edges}"
-
-        ami_edges = small_plot.get_or_create_ami_edges()
-        print(f"ami_edges {ami_edges}")
-        ami_edges = AmiEdge.get_ami_edge_start_end
+    # @unittest.skip("not needed as skimage works")
+    # def test_rdp_line_segments(self):
+    #     """rdp method may interface better than the approximate_polygon one"""
+    #     arr = np.array([1, 1, 2, 2, 3, 3, 4, 4]).reshape(4, 2)
+    #     mask = rdp(arr, algo="iter", return_mask=True)
+    #     print(f"mask {mask}")
+    #     print(f"arr {arr[mask]}")
+    #     ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+    #     islands = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)
+    #     assert len(islands) == 1, f"expected single islands {len(islands)}"
+    #     small_plot = islands[0]
+    #     node_ids = small_plot.node_ids
+    #     assert len(node_ids) == 36, f"nodes in small graph {len(node_ids)}"
+    #     assert node_ids == {258, 132, 389, 136, 24, 288, 546, 36, 40, 424, 46, 177, 569, 63, 448, 193,
+    #                         323, 590, 591, 592, 593, 594, 595, 596, 86, 605, 606, 607, 608, 609, 354,
+    #                         101, 103, 487, 114, 510}, f"found {node_ids}"
+    #     assert small_plot.nx_edges == [
+    #         (258, 323, 0), (132, 177, 0), (389, 448, 0), (136, 177, 0), (136, 193, 0), (24, 36, 0), (24, 36, 1),
+    #         (24, 40, 0),
+    #         (288, 323, 0), (288, 354, 0), (546, 569, 0), (546, 595, 0), (36, 46, 0), (40, 46, 0), (40, 63, 0),
+    #         (424, 448, 0),
+    #         (424, 487, 0), (46, 86, 0), (177, 258, 0), (569, 590, 0), (63, 86, 0), (63, 101, 0), (448, 510, 0),
+    #         (193, 258, 0),
+    #         (193, 288, 0), (323, 389, 0), (590, 591, 0), (590, 608, 0), (591, 592, 0), (591, 605, 0), (592, 593, 0),
+    #         (592, 606, 0),
+    #         (593, 594, 0), (593, 596, 0), (594, 595, 0), (594, 607, 0), (595, 609, 0), (86, 103, 0), (354, 389, 0),
+    #         (354, 424, 0),
+    #         (101, 103, 0), (101, 114, 0), (103, 132, 0), (487, 510, 0), (487, 546, 0), (114, 132, 0), (114, 136, 0),
+    #         (510, 569, 0)], \
+    #         f"found {small_plot.nx_edges}"
+    #
+    #     ami_edges = small_plot.get_or_create_ami_edges()
+    #     print(f"ami_edges {ami_edges}")
+    #     ami_edges = AmiEdge.get_ami_edge_start_end
 
     @unittest.skipUnless(interactive, "ignore plotting in routine tests")
     def test_plot_line(self):
@@ -1039,33 +1040,102 @@ plt.show()"""
             print(f"edge {edge}")
 
     def test_create_line_segments(self):
-        """tests straightness between nodes (horiz and vert)
+        """segments the edge into straight-lines (AmiLine) and finds axially aligned corners
         """
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
-        # node_ids = small_plot_island.node_ids
         ami_edges = small_plot_island.get_or_create_ami_edges()
         assert len(ami_edges) == 48, f"found {len(ami_edges)}"
-        tolerance = 1
+        tolerance = 2
+
+        single_lines = []
         for ami_edge in ami_edges:
-            single_ami_line = ami_edge.get_single_segment(tolerance)
-            if single_ami_line is not None:
-                print(f"single_ami_line hor: {single_ami_line.is_horizontal()}; vert: {single_ami_line.is_vertical()}; "
-                      f"(coords) {single_ami_line}")
-            else:
-                tol = 2  # this is lafrge enough for this example
-                ami_lines = ami_edge.get_segments(tol)
-                print(f"ami_edge {len(ami_lines)} ... {ami_edge}")
-                corners = ami_edge.get_axial_corners(tol)
-                if len(corners) > 0:
-                    print(f"corners {corners}")
-                if len(corners) == len(ami_lines) - 1:
-                    print(f"{__name__} line consists of {len(ami_lines)} axial segments")
+            single_line = ami_edge.find_single_line(tolerance)
+            if single_line is not None:
+                single_lines.append(single_line)
+        assert len(single_lines) == 34, f"all single lines {len(single_lines)}"
 
-            # axial_ami_lines = ami_edge.get_axial_ami_lines(tolerance)
-            # print(f"axial_ami_lines (coords) ", axial_ami_lines)
+    def test_filter_line_segments(self):
+        """filters segments the edge into straight-lines (AmiLine) and finds axially aligned corners
+        """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
+        ami_edges = small_plot_island.get_or_create_ami_edges()
 
-    # TODO not yet finished
+        horizontal_edges = AmiEdge.get_horizontal_edges(ami_edges, tolerance=2)
+        assert len(horizontal_edges) == 5
+        vertical_edges = AmiEdge.get_vertical_edges(ami_edges, tolerance=2)
+        assert len(vertical_edges) == 29
+        horiz_ami_lines = AmiEdge.get_single_lines(horizontal_edges)
+        assert len(horiz_ami_lines) == 5
+        vert_ami_lines = AmiEdge.get_single_lines(vertical_edges)
+        assert len(vert_ami_lines) == 29
+
+        # axial polylines
+        tolerance = 2
+        axial_polylines = AmiEdge.get_axial_polylines(ami_edges, tolerance=tolerance)
+        assert len(axial_polylines) == 2, f"found {len(axial_polylines)}"
+        assert type(axial_polylines) is list
+        assert type(axial_polylines[0]) is list
+        assert type(axial_polylines[0][0]) is AmiLine
+        assert len(axial_polylines[0]) == 3
+        assert len(axial_polylines[1]) == 2
+        # I don't like the str(...) but how to compare lists of coords? probably need a polyline class
+        assert str(axial_polylines[0][0]) == str([[295, 96], [294, 61]])
+        assert str(axial_polylines[0]) == str([[[295, 96], [294, 61]], [[294, 61], [66, 61]], [[66, 61], [66, 131]]])
+
+        for axial_polyline in axial_polylines:
+            for ami_line in axial_polyline:
+                if ami_line.is_vertical(tolerance=tolerance):
+                    vert_ami_lines.append(ami_line)
+                elif ami_line.is_horizontal(tolerance=tolerance):
+                    horiz_ami_lines.append(ami_line)
+                else:
+                    raise ValueError(f"line {ami_line} must be horizontal or vertical")
+
+        vert_dict = AmiLine.get_horiz_vert_counter(vert_ami_lines, xy_index=0)
+        assert vert_dict == Counter({66: 13, 295: 12, 65: 1, 107: 1, 149: 1, 191: 1, 232: 1, 274: 1, 294: 1}), \
+            f"found {vert_dict}"
+        horiz_dict = AmiLine.get_horiz_vert_counter(horiz_ami_lines, xy_index=1)
+        assert horiz_dict == Counter({759: 4, 758: 2, 61: 1}), f"found {horiz_dict}"
+
+    def test_edge_manager(self):
+        """
+
+        :return:
+        """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
+        ami_edges = small_plot_island.get_or_create_ami_edges()
+        assert len(ami_edges) == 48, f"found {len(ami_edges)}"
+
+        edge_manager = AmiEdgeAnalyzer(tolerance=2)
+        edge_manager.read_edges(ami_edges)
+        assert edge_manager.vert_dict == Counter({66: 13, 295: 12, 65: 1, 107: 1, 149: 1, 191: 1, 232: 1, 274: 1, 294: 1}), \
+            f"found {edge_manager.vert_dict}"
+        assert edge_manager.horiz_dict == Counter({759: 4, 758: 2, 61: 1}), f"found {edge_manager.horiz_dict}"
+
+        counts_by_xcoord, counts_by_ycoord = edge_manager.merge_neighbouring_coords()
+        assert counts_by_xcoord == [[66, 14], [295, 13], [107, 1], [149, 1], [191, 1], [232, 1], [274, 1]]
+        assert counts_by_ycoord == [[759, 6], [61, 1]]
+
+    def test_join_horiz_vert_lines(self):
+        """
+
+        :return:
+        """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
+        ami_edges = small_plot_island.get_or_create_ami_edges()
+
+        edge_manager = AmiEdgeAnalyzer(tolerance=2)
+        edge_manager.read_edges(ami_edges)
+        counts_by_xcoord, counts_by_ycoord = edge_manager.merge_neighbouring_coords()
+        assert counts_by_xcoord == [[66, 14], [295, 13], [107, 1], [149, 1], [191, 1], [232, 1], [274, 1]]
+        assert counts_by_ycoord == [[759, 6], [61, 1]]
+        new_vert_lines = edge_manager.join_lines(X)
+        print(f"new vert {new_vert_lines}")
+
 
     # =====================================
     # test helpers

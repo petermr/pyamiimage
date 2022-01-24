@@ -1077,6 +1077,59 @@ class AmiEdge:
         points2 = approximate_polygon(points, tolerance=tolerance)
         return points2
 
+    def find_single_line(self, tol=1) -> AmiLine:
+        """segments the edge into straight lines (AmiLine)
+
+        If segmentation gives a single line (of any orientation) returns it
+        else None
+        :param tol: max deviation of points from segments , def = 1
+        :return: AmiLine or None.
+        """
+        segments = self.get_segments(tol)
+        return segments[0] if len(segments) == 1 else None
+
+    @classmethod
+    def get_single_lines(cls, edges) -> list:
+        """extracts single line from any edges which have one
+        :return: list of AmiLines from edges which have exactly one"""
+        ami_lines = []
+        for ami_edge in edges:
+            ami_line = ami_edge.find_single_line()
+            if ami_line is not None:
+                ami_lines.append(ami_line)
+        return ami_lines
+
+
+    def get_axial_lines(self, tolerance=1) -> list:
+        """segments the edge into straight lines parallel to axes (AmiLine)
+
+        If All segments are aligned with axes, returns that list else None
+        :param tol: max deviation of points from segments
+        :return: list of AmiLines or None.
+        """
+        segments = self.get_segments(tolerance=tolerance)  # maybe cache this
+        if len(segments) > 1:
+            logger.debug(f"segments {len(segments)} ... {self}")
+            corners = self._get_axial_corners(segments, tolerance=tolerance)
+            if len(corners) == len(segments) - 1:
+                return segments
+
+        return None
+
+    @classmethod
+    def get_axial_polylines(cls, edges, tolerance=1) -> list:
+        """extracts axial polylines from any edges which consist of 2 or more axial lines
+        :return: list of polylines (lists of AmiLines) from edges which have 2 or more"""
+        axial_polylines = []
+        for ami_edge in edges:
+            ami_lines = ami_edge.get_axial_lines(tolerance=tolerance)
+            if ami_lines is not None and len(ami_lines) > 1:
+                axial_polylines.append(ami_lines)
+        return axial_polylines
+
+
+    # class AmiEdge:
+
     def plot_edge(self, pts, plot_region, edge_id=None, boxcolor=None):
         """
         include bbox
@@ -1122,27 +1175,27 @@ class AmiEdge:
             self.tolerance = tolerance
         return self.line_points
 
-    def get_single_segment(self, tolerance=1):
+    def get_single_segment(self, segments=None, tolerance=1):
         """get edge as a single segment
         :return: a single segment if D-P finds it within self.tolerance, else None
         """
-        segments = self.get_segments(tolerance=tolerance)
+        segments = self.get_segments(tolerance=tolerance) if segments is None else segments
         return segments[0] if len(segments) == 1 else None
 
-    def is_horizontal(self):
-        segment = self.get_single_segment()
-        return segment is not None and segment.is_horizontal()
+    def is_horizontal(self, tolerance=1):
+        segment = self.get_single_segment(tolerance=tolerance)
+        return segment is not None and segment.is_horizontal(tolerance=tolerance)
 
-    def is_vertical(self):
-        segment = self.get_single_segment()
-        return segment is not None and segment.is_vertical()
+    def is_vertical(self, tolerance=1):
+        segment = self.get_single_segment(tolerance=tolerance)
+        return segment is not None and segment.is_vertical(tolerance=tolerance)
 
-    def get_axial_corners(self, tolerance):
+    def _get_axial_corners(self, segments, tolerance):
         """
+        finds Hor-Vert and Vert-Hor corners in segments
         :param tolerance:
-        :return:
+        :return: list of corners (last_segment, next_segment)
         """
-        segments = self.get_segments(tolerance)
         last_segment = None
         corners = []
         for segment in segments:
@@ -1155,6 +1208,14 @@ class AmiEdge:
                     corners.append((last_segment, segment))
             last_segment = segment
         return corners
+
+    @classmethod
+    def get_vertical_edges(cls, ami_edges, tolerance=1):
+        return list(filter(lambda ami_edge: ami_edge.is_vertical(tolerance=tolerance), ami_edges))
+
+    @classmethod
+    def get_horizontal_edges(cls, ami_edges, tolerance=1):
+        return list(filter(lambda ami_edge: ami_edge.is_horizontal(tolerance=tolerance), ami_edges))
 
     # =========================================
 
