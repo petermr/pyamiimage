@@ -1,5 +1,6 @@
 from os import path
 import numpy as np
+import codecs
 import pytesseract
 from lxml import etree as et
 from PIL import Image
@@ -35,6 +36,7 @@ class TextBox(BBox):
         return self.text
 class AmiOCR:
     def __init__(self, path=None) -> None:
+        self.hocr_string = None
         self.hocr = self.run_ocr(path)
         self.raw_tesseract = []
         self.words = []
@@ -63,6 +65,14 @@ class AmiOCR:
             self.groups = self.find_word_groups()
         return self.phrases
 
+    @classmethod
+    def pretty_print_hocr(cls, hocr_element):
+        """Prints html string to console with proper indentation
+        input: object of lxml.etree.Element class
+        returns: None
+        """
+        print(et.tostring(hocr_element, pretty_print=True).decode("utf-8"))
+
     def hocr_from_image_path(self, path):
         """Runs tesseract hocr on the given image
         :param: Path
@@ -72,8 +82,11 @@ class AmiOCR:
         if path is not str:
             path = str(path)
 
-        hocr_string = pytesseract.image_to_pdf_or_hocr(path, extension='hocr', config='11')
-        hocr = self.parse_hocr_string(hocr_string)
+        self.hocr_string = pytesseract.image_to_pdf_or_hocr(path, extension='hocr', config='11')
+        # self.hocr_string = codecs.decode(self.hocr_string, 'UTF-8')
+        # print(self.hocr_string)
+        hocr = self.parse_hocr_string(self.hocr_string)
+        print(hocr)
         return hocr
 
     def parse_hocr_string(self, hocr_string):
@@ -252,6 +265,44 @@ class AmiOCR:
                 continue
         return image
     
+    def parse_hocr_title(self, title):
+        """
+         title="bbox 336 76 1217 111; baseline -0.006 -9; x_size 28; x_descenders 6; x_ascenders 7"
+
+        :param title:
+        :return:
+        """
+        if title is None:
+            return None
+        parts = title.split("; ")
+        title_dict = {}
+        for part in parts:
+            vals = part.split()
+            kw = vals[0]
+            if kw == self.A_BBOX:
+                val = ((vals[1], vals[3]), (vals[2], vals[4]))
+            else:
+                val = vals[1:]
+            title_dict[kw] = val
+        return title_dict
+
+    def find_baseline(self):
+        # html = et.parse(hocr_html)
+        # assert self.hocr == "hello world", f'should be {self.hocr}'
+        html = et.parse(self.hocr_string)
+        print(html)
+        line_spans = html.findall(".//{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']")
+        # line_spans = self.hocr.findall("span[@class='ocr_line']")
+        print("Hello world")
+        assert line_spans is None
+        for line_span in line_spans:
+            title = line_span.attrib['title']
+            title_dict = self.parse_hocr_title(title)
+            for item in title_dict:
+                print(item)
+            # bbox = title_dict['bbox']
+        
+
     @classmethod
     def clean(self, textboxes):
         cleaned = WordCleaner.remove_trailing_special_characters(textboxes)

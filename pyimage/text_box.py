@@ -61,10 +61,11 @@ class HocrText:
         """
 
         :param hocr_html:
+        :type: string
         :param target_svg: not yet used
         :return:
         """
-        html = etree.parse(hocr_html)
+        html = etree.parse(hocr_html) 
         word_spans = html.findall("//{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']")
         svg = Element(QName(XMLNamespaces.svg, self.E_SVG), nsmap={
             self.E_SVG: XMLNamespaces.svg,
