@@ -191,6 +191,7 @@ class AmiImage:
 
     @classmethod
     def get_image_dtype(cls, image):
+        """get numpy """
         if type(image) is not np.ndarray or image.size == 0:
             return None
         return image.dtype

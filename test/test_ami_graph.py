@@ -1119,6 +1119,7 @@ plt.show()"""
         assert counts_by_xcoord == [[66, 14], [295, 13], [107, 1], [149, 1], [191, 1], [232, 1], [274, 1]]
         assert counts_by_ycoord == [[759, 6], [61, 1]]
 
+    @unittest.skip("Not yet implemented")
     def test_join_horiz_vert_lines(self):
         """
 
@@ -1133,7 +1134,7 @@ plt.show()"""
         counts_by_xcoord, counts_by_ycoord = edge_manager.merge_neighbouring_coords()
         assert counts_by_xcoord == [[66, 14], [295, 13], [107, 1], [149, 1], [191, 1], [232, 1], [274, 1]]
         assert counts_by_ycoord == [[759, 6], [61, 1]]
-        new_vert_lines = edge_manager.join_lines(X)
+        new_vert_lines = edge_manager.join_ami_lines(X)
         print(f"new vert {new_vert_lines}")
 
 

@@ -1099,12 +1099,11 @@ class AmiEdge:
                 ami_lines.append(ami_line)
         return ami_lines
 
-
     def get_axial_lines(self, tolerance=1) -> list:
         """segments the edge into straight lines parallel to axes (AmiLine)
 
         If All segments are aligned with axes, returns that list else None
-        :param tol: max deviation of points from segments
+        :param tolerance: max deviation of points from segments
         :return: list of AmiLines or None.
         """
         segments = self.get_segments(tolerance=tolerance)  # maybe cache this
@@ -1126,7 +1125,6 @@ class AmiEdge:
             if ami_lines is not None and len(ami_lines) > 1:
                 axial_polylines.append(ami_lines)
         return axial_polylines
-
 
     # class AmiEdge:
 
