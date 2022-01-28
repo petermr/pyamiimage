@@ -54,3 +54,49 @@ class WordCleaner:
             textbox.set_text(text)
         return textboxes
         
+    @classmethod
+    def remove_leading_special_characters(cls, textboxes, bboxes):
+        cleaned_textboxes = []
+        cleaned_bboxes = []
+        for textbox, bbox in zip(textboxes, bboxes):
+            appexdix_length = 0
+            text = textbox
+            for c in text:
+                if not c.isalnum():
+                    textbox = textbox[1:]
+                    appexdix_length += 1
+            cleaned_textboxes.append(textbox)
+            cleaned_bboxes.append(bbox)
+        return cleaned_textboxes, cleaned_bboxes
+
+    @classmethod
+    def remove_numbers_only(cls, textboxes, bboxes):
+        """remove all words which are composed of numbers and special characters"""
+        cleaned_textbox = []
+        cleaned_bboxes = []
+        for textbox, bbox in zip(textboxes, bboxes):
+            word = False
+            for c in textbox:
+                if c.isalpha():
+                    word = True
+                    break
+            if word:
+                cleaned_textbox.append(textbox)
+                cleaned_bboxes.append(bbox)
+        return cleaned_textbox, cleaned_bboxes
+
+    @classmethod
+    def remove_misread_letters(cls, textboxes, bboxes):
+        """Remove whole words consisting only of frequently misread letters such as vV"""    
+        cleaned_textbox = []
+        cleaned_bboxes = []
+        for textbox, bbox in zip(textboxes, bboxes):
+            flag = False
+            for c in textbox:
+                if c not in cls.frequently_misread_letters:
+                    flag = True
+                    break
+            if flag:
+                cleaned_textbox.append(textbox)
+                cleaned_bboxes.append(bbox)
+        return cleaned_textbox, cleaned_bboxes
