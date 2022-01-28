@@ -1,4 +1,4 @@
-Erode dilate for dottec lines
+Erode dilate for dotted lines
 https://stackoverflow.com/questions/43859750/how-to-connect-broken-lines-in-a-binary-image-using-python-opencv
 
 * looks useful
