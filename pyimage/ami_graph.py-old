@@ -1,3 +1,4 @@
+"""supports/wraps nx_graphs from N etworkX"""
 import numpy as np
 import networkx as nx
 import copy
@@ -8,8 +9,8 @@ import logging
 from pathlib import PosixPath
 
 from pyimage.ami_image import AmiImage
-from pyimage.ami_util import AmiUtil
-from pyimage.ami_island import AmiIsland
+from pyimage.util import Util
+import pyimage.ami_island
 from pyimage.ami_node import AmiNode
 from pyimage.ami_skeleton import AmiSkeleton
 from pyimage.ami_edge import AmiEdge
@@ -24,27 +25,28 @@ class AmiGraph:
 
     def __init__(self, nx_graph, generate_nodes=True, nd_skeleton=None):
         """create fro nodes and edges"""
-        # self.ami_node_dict = {}
-        # self.ami_edge_dict = {}
-        # self.generate_nodes = generate_nodes
-        self.nx_graph = None
+        if nx_graph is None:
+            raise Exception(f"nx_graph cannot be None")
+        self.nx_graph = nx_graph
+        AmiGraph.debugx(self, "init")
+
         self.ami_edges = None
         self.ami_nodes = None
         self.ami_island_list = None
-        # self.node_dict = None
         self.nd_skeleton = nd_skeleton
-        # self.islands = None
-        if nx_graph is None:
-            raise Exception(f"nx_graph cannot be None")
+
         self.read_nx_graph(nx_graph)
         assert self.nx_graph is not None, f"ami_graph.nx_graph should not be None"
         return
 
-    # def read_nodes(self, nodes):
-    #     """create a list of AmiNodes """
-    #     if nodes is not None:
-    #         for node in nodes:
-    #             self.add_raw_node(node)
+    @classmethod
+    def debugx(cls, ami_graph, msg):
+        print(f"dir ami_graph {msg} {dir(ami_graph)} \n contains nx_graph {'nx_graph' in dir(ami_graph)}")
+        assert 'nx_graph' in dir(ami_graph)
+
+    def get_nx_graph(self):
+        """try to avoid circular imports or attribute not found"""
+        return self.nx_graph
 
     def add_raw_node(self, raw_node, fail_on_duplicate=False):
         """add a raw node either a string or string-indexed dict
@@ -97,7 +99,7 @@ class AmiGraph:
         nx_graph = sknw.build_sknw(nd_skeleton)
         ami_graph = AmiGraph(nx_graph, nd_skeleton=nd_skeleton)
         # ami_graph.read_nx_graph(nx_graph )
-        print(f"***ami_graph\n {ami_graph}\n")
+        print(f"***ami_graph\n {ami_graph} nx_graph: {ami_graph.nx_graph}\n")
         return ami_graph
 
     def ingest_graph_info(self):
@@ -182,27 +184,28 @@ class AmiGraph:
         self.read_nx_nodes(nx_graph)
         # this may be the critical data structure and the others are convenience
         self.nx_graph = nx_graph
-
-        self.ingest_graph_info()
+        ingest = False
+        if ingest:
+            self.ingest_graph_info()
         return
 
     def read_nx_nodes(self, nx_graph):
         self.ami_nodes = []
         node_ids = nx_graph.nodes()
         for node_id in node_ids:
-            # node_dict = node_ids[node_id]
+            node_dict = node_ids[node_id]
             assert len(str(node_id)) < 4, f"node_id is {node_id}"
             ami_node = AmiNode(ami_graph=self, node_id=node_id, nx_graph=nx_graph)
             ami_node.set_centroid_yx(nx_graph.nodes[node_id][AmiSkeleton.CENTROID])
-            # ami_node.read_nx_node(node_dict)
+            ami_node.read_nx_node(node_dict)
             self.ami_nodes.append(ami_node)
 
     def read_nx_edges(self, nx_graph):
         self.ami_edges = []
-        for (start, end) in nx_graph.nx_edges():
+        for (start, end) in nx_graph.edges():
             points_yx = nx_graph[start][end][AmiSkeleton.NODE_PTS]
             ami_edge = AmiEdge()
-            ami_edge.read_nx_edge_points_yx_into_self_points_xy(points_yx)
+            ami_edge.read_nx_edge_points_yx(points_yx)
             self.ami_edges.append(ami_edge)
 
     def get_or_create_ami_islands(self):
@@ -218,12 +221,12 @@ class AmiGraph:
     @classmethod
     def create_nx_graph_from_arbitrary_image_file(cls, path):
         assert path.exists() and not path.is_dir(), f"{path} should be existing file"
-        AmiUtil.check_type_and_existence(path, PosixPath)
+        Util.check_type_and_existence(path, PosixPath)
         image1 = io.imread(path)
-        AmiUtil.check_type_and_existence(image1, np.ndarray)
-        gray_image = AmiImage.create_grayscale_from_image(image1)
+        Util.check_type_and_existence(image1, np.ndarray)
+        gray_image = AmiImage.create_grayscale_0_1_float_from_image(image1)
         skeleton_array = AmiImage.create_white_skeleton_from_image(gray_image)
-        nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)
+        nx_graph = AmiSkeleton.create_nx_graph_from_skeleton_wraps_sknw_NX_GRAPH(skeleton_array)
         return nx_graph
 
     def get_ami_islands_from_nx_graph(self):
@@ -267,6 +270,7 @@ class AmiGraph:
 
     @classmethod
     def create_ami_island(self, node_ids, skeleton=None):
+
         """
         create from a list of node_ids (maybe from sknw)
         maybe should be instance method of ami_graph
@@ -278,11 +282,10 @@ class AmiGraph:
         assert type(node_ids) is set, "componente mus be of type set"
         assert len(node_ids) > 0 , "components cannot be empty"
 
-        ami_island = AmiIsland()
+        ami_island = pyimage.ami_island.AmiIsland()
         ami_island.node_ids = node_ids
         ami_island.ami_skeleton = skeleton
         ami_island.ami_graph = self
-        print(f"ami_island =============  {ami_island.ami_graph}")
         print("ami_island", ami_island)
         return ami_island
 

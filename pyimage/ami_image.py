@@ -1,7 +1,6 @@
 """
 Wrappers and other methods for image manipulation
 mainly classmathods, but may need some objects to preserve statementfor expensive functioms
-
 TODO authors Anuv Chakroborty and Peter Murray-Rust, 2021
 Apache2 Open Source licence
 """
@@ -59,7 +58,7 @@ class AmiImage:
 
         if gray is None and AmiImage.has_rgb_shape(image):
             gray = color.rgb2gray(image)
-        
+
         gray = skimage.img_as_ubyte(gray)
         return gray
 
@@ -77,7 +76,6 @@ class AmiImage:
         """Inverts the brightness values of the image
         uses skimage.util.invert
         not yet tested
-
         :param image: ype not yet defined
         :return: inverted image
         """
@@ -89,7 +87,6 @@ class AmiImage:
     def create_white_skeleton_from_file(cls, path):
         """
         the image may be inverted so the highlights are white
-
         :param path: path with image
         :return: AmiSkeleton
         """
@@ -111,7 +108,6 @@ class AmiImage:
     def create_white_skeleton_from_image(cls, image):
         """
         create skeleton_image based on white components of image
-
         :param image:
         :return: skeleton image
         """
@@ -143,11 +139,11 @@ class AmiImage:
         if len(image.shape) > 2:
             # convert to grayscale if not grayscale
             image = cls.create_grayscale_from_image(image)
-        
+
         # if no threshold is provided, assume default threshold: otsu
         if threshold is None:
             threshold = skimage.filters.threshold_otsu(image)
-        
+
         binary_image = np.where(image >= threshold, 255, 0)
         return binary_image
 
@@ -195,6 +191,7 @@ class AmiImage:
 
     @classmethod
     def get_image_dtype(cls, image):
+        """get numpy """
         if type(image) is not np.ndarray or image.size == 0:
             return None
         return image.dtype
@@ -236,7 +233,6 @@ class AmiImage:
         """
         matplotlib plots the gray image, optionally with erosion
         runs plt.imshow, so will need plt.show() afterwards.
-
         :param erode_rad: erosion disk radius (0 => no erode)
         :param image_file:
         :return:
@@ -252,7 +248,6 @@ class AmiImage:
     @classmethod
     def write(cls, path, image, mkdir=False, overwrite=True):
         """
-
         Will throw io errors if cannot write file
         :param image:
         :param path:
@@ -275,7 +270,6 @@ class AmiImage:
 class AmiImageDTO():
     """
     Data Transfer Object for images and downstream artefacts
-
     """
     def __init__(self):
         self.image = None

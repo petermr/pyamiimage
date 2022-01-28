@@ -1,16 +1,15 @@
-import os
+import logging
+import unittest
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pytest
-import unittest
-import logging
-from pathlib import Path
 from lxml import etree
 
-from ..pyimage.ami_graph_all import AmiGraph, AmiIsland
 from ..pyimage.ami_arrow import AmiArrow, AmiNetwork
+from ..pyimage.ami_graph_all import AmiGraph, AmiIsland
 from ..pyimage.svg import SVGSVG, SVGArrow, SVGG, SVGRect, ns_xpath, SVG_NS
 from ..pyimage.bbox import BBox
-
 from ..test.resources import Resources
 
 logger = logging.getLogger(__name__)
@@ -86,13 +85,14 @@ class TestArrow:
     def test_get_edges_and_lengths(self):
         node_id = 24
         nx_edges = self.arrows1_ami_graph.get_nx_edge_list_for_node(node_id)
-        assert [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)] == nx_edges,  \
+        assert [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)] == nx_edges, \
             "edges should be [(24, 21), (24, 22), (24, 23), (24, 25)], found {nx_edges}"
         edge_length_dict = self.arrows1_ami_graph.get_nx_edge_lengths_by_edge_list_for_node(node_id)
         edge_lengths = [v for v in edge_length_dict.values()]
         assert pytest.approx(edge_lengths, rel=0.001) == [30.00, 8.944, 9.848, 12.041]
 
     def test_get_interedge_angles(self):
+        """test get angles round node 24"""
         node_id = 24
         interactive = False
         nx_edges = self.arrows1_ami_graph.get_nx_edge_list_for_node(node_id)
@@ -101,7 +101,7 @@ class TestArrow:
             self.arrows1_ami_graph.pre_plot_nodes(plot_ids=True)
             plt.show()
 
-        assert [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)] == nx_edges,  \
+        assert [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)] == nx_edges, \
             "edges should be [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)], found {nx_edges}"
         angles = []
 
@@ -114,7 +114,7 @@ class TestArrow:
         expected = [-1.107, 1.152, 3.058, 2.259, -2.117, 1.906]
 
         assert expected == pytest.approx(angles, 0.001), \
-            f"expected {expected} found { pytest.approx(angles, 0.001)}"
+            f"expected {expected} found {pytest.approx(angles, 0.001)}"
 
     def test_whole_image_biosynth3(self):
         assert self.biosynth3_ami_graph is not None
@@ -135,6 +135,7 @@ class TestArrow:
             assert str(ami_arrow) == test_arrows[i]
 
     def test_biosynth1_arrows(self):
+        # TODO get interedge angles
         """
         extract all large islands and analyse as simple arrows
         There are several false positives
@@ -167,8 +168,9 @@ class TestArrow:
 
         ami_graph = self.biosynth1_ami_graph
 
-        TestArrow.create_and_test_arrows(ami_graph, max_dim, big_island_count=big_island_count, expected_arrows=expected_arrows,
-                                        output_temp=output_temp, total_islands=total_islands)
+        TestArrow.create_and_test_arrows(ami_graph, max_dim, big_island_count=big_island_count,
+                                         expected_arrows=expected_arrows,
+                                         output_temp=output_temp, total_islands=total_islands)
 
     def test_biosynth3_arrows(self):
         """
@@ -179,6 +181,7 @@ class TestArrow:
         TestArrow.create_and_test_arrows(self.biosynth3_ami_graph, 40, output_temp="biosynth3_arrows.svg")
 
     def test_biosynth6_compounds_arrows(self):
+        # TODO get interedge angles
         """
         extract all large islands and analyse as simple arrows
         There are several false positives
@@ -221,7 +224,8 @@ class TestArrow:
         NYI
         """
         image_dict = {}
-        image_dict["biosynth3"] = {'input': None, "ami_graph": self.biosynth3_ami_graph, "temp_output": "biosynth3_arrows.svg"}
+        image_dict["biosynth3"] = {'input': None, "ami_graph": self.biosynth3_ami_graph,
+                                   "temp_output": "biosynth3_arrows.svg"}
         print(image_dict.keys())
         for key in image_dict.keys():
             param_dict = image_dict[key]
@@ -252,12 +256,18 @@ class TestArrow:
         assert len(arrows) == 10, f"child g_arrows"
         """
         <svg:g role="arrow" orient="up">
-            <svg:rect role="bbox" position="core" x="220" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
-            <svg:rect role="bbox" position="front" x="220" width="40" y="345" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
-            <svg:rect role="bbox" position="back" x="220" width="40" y="500" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-            <svg:rect role="bbox" position="left" x="180" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-            <svg:rect role="bbox" position="right" x="260" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
-            <svg:line orient="up" x1="240" y1="500" x2="240" y2="385" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+            <svg:rect role="bbox" position="core" x="220" width="40" y="385" height="115" stroke-width="1.0"
+             stroke="red" fill="blue" opacity="0.3"/>
+            <svg:rect role="bbox" position="front" x="220" width="40" y="345" height="40" stroke-width="1.0"
+             stroke="red" fill="fuchsia" opacity="0.3"/>
+            <svg:rect role="bbox" position="back" x="220" width="40" y="500" height="40" stroke-width="1.0"
+             stroke="red" fill="turquoise" opacity="0.3"/>
+            <svg:rect role="bbox" position="left" x="180" width="40" y="385" height="115" stroke-width="1.0"
+             stroke="red" fill="lime" opacity="0.3"/>
+            <svg:rect role="bbox" position="right" x="260" width="40" y="385" height="115" stroke-width="1.0"
+             stroke="red" fill="red" opacity="0.3"/>
+            <svg:line orient="up" x1="240" y1="500" x2="240" y2="385" fill="none" stroke="black"
+             stroke-width="2.0" marker-end="url(#arrowhead)"/>
         </svg:g>        
         """
         # rects
@@ -310,7 +320,8 @@ class TestArrow:
         self.overlap_arrows_and_text(position, svgsvg)
         return
 
-        front_arrows = ns_xpath(svgsvg, f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']/{{{SVG_NS}}}rect[@position='{position}']")
+        front_arrows = ns_xpath(svgsvg,
+                                f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']/{{{SVG_NS}}}rect[@position='{position}']")
         assert len(front_arrows) == 10, f"arrows"
         for front_arrow_elem in front_arrows:
             front_arrow_bbox = self.get_bbox(front_arrow_elem)
@@ -327,7 +338,7 @@ class TestArrow:
                 if overlap.is_valid():
                     print("front arrow", front_arrow_bbox)
                     print("textbox", text_bbox, text_val)
-                    print("overlap",  overlap)
+                    print("overlap", overlap)
 
     def test_analyze_arrows_text_biosynth1(self):
         """
@@ -364,11 +375,93 @@ class TestArrow:
         ami_network = AmiNetwork()
         ami_network.write_graph(Path(Resources.TEMP_DIR, "test.gpml"))
 
+    def test_create_overlap_boxes(self):
+        """Create front/back/side overlap boxes
+        """
+        svg = SVGSVG()
+        arrows = [
+            [[400, 300], [500, 300]],  # PLUSX horiziontal right
+            [[300, 400], [300, 500]],  # PLUSY vertical down
+            [[200, 300], [100, 300]],  # MINUSX horiziontal left
+            [[300, 200], [300, 100]],  # MINUSY vertical up
+        ]
+        expected_boxes = [
+            # PLUSX right
+            [
+                [[400, 500], [285, 315]], [[410, 490], [225, 285]], [[410, 490], [315, 375]], [[500, 550], [285, 315]],
+                [[350, 400], [285, 315]]
+
+            ],
+            # PLUSY down
+            [
+                [[285, 315], [400, 500]], [[225, 285], [410, 490]], [[315, 375], [410, 490]], [[285, 315], [500, 550]],
+                [[285, 315], [350, 500]]
+
+            ],
+            # MINUSX left
+            [
+                [[100, 200], [285, 315]], [[110, 190], [225, 285]], [[110, 190], [315, 375]], [[50, 100], [285, 315]],
+                [[200, 250], [285, 315]]
+            ],
+
+            # MINUSY up
+            [
+                [[285, 315], [100, 200]], [[225, 285], [110, 190]], [[315, 375], [110, 190]], [[285, 315], [50, 100]], [[285, 315], [200, 250]]
+            ],
+        ]
+
+        """
+        <svg:svg xmlns:svg="http://www.w3.org/2000/svg" width="1400.0" height="1200.0">
+	<svg:defs>
+		<svg:marker id="arrowhead" markerWidth="10.0" markerHeight="7.0" refX="10.0" refY="3.5" orient="auto">
+			<svg:polygon points="0 0, 10 3.5, 0 7" fill="red" stroke="red" stroke-width="1"/>
+		</svg:marker>
+	</svg:defs>
+	<svg:g role="arrows">
+		<svg:g id="a0" role="arrow" orient="up">
+			<svg:rect role="bbox" position="core" x="220" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="blue" opacity="0.3"/>
+			<svg:rect role="bbox" position="front" x="220" width="40" y="345" height="40" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
+			<svg:rect role="bbox" position="back" x="220" width="40" y="500" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="180" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="260" width="40" y="385" height="115" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:line orient="up" x1="240" y1="500" x2="240" y2="385" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+			<svg:title>a0</svg:title>
+
+        """
+        for expected_box in expected_boxes:
+            gg = SVGG()
+            gg.set_attribute("role", "arrow")
+            svg.append(gg)
+            for xy_ranges in expected_box:
+                bbox = BBox(xy_ranges=xy_ranges, swap_minmax=True)
+                ranges = bbox.get_ranges()
+                g = SVGG()
+                svg_rect = SVGRect(xy_ranges = ranges)
+                svg_rect.set_attribute("fill", "none")
+                svg_rect.set_attribute("stroke", "red")
+                svg_rect.set_attribute("opacity", "0.3")
+                g.append(svg_rect)
+                gg.append(g)
+        print("svg: ", svg.tostring(pretty_print=True))
+        path = Path(Resources.TEMP_DIR, "arrow_bboxes.svg")
+        with open(path, "w") as f:
+            f.write(svg.tostring(pretty_print=True))
+
+        for arrow, exp_boxes in zip(arrows, expected_boxes):
+            print("a ", arrow)
+            ami_arrow = AmiArrow()
+            ami_arrow.svg_arrow = SVGArrow(tail_xy=arrow[0], head_xy=arrow[1])
+            box_tuple = ami_arrow.make_overlap_boxes(arrow_width=30, length=50, len_trim=10)
+            # print("BOXTUPLE", box_tuple)
+
+            for box, expect in zip(box_tuple, exp_boxes):
+                assert str(box) == str(expect), f"expected {expect}"
 
     # ------------ helpers -------------
 
     @classmethod
-    def create_and_test_arrows(cls, ami_graph, max_dim, total_islands=None, expected_arrows=None, big_island_count=None, output_temp=None):
+    def create_and_test_arrows(cls, ami_graph, max_dim, total_islands=None, expected_arrows=None, big_island_count=None,
+                               output_temp=None):
         islands = ami_graph.get_or_create_ami_islands()
         if total_islands:
             assert len(islands) == total_islands

@@ -231,7 +231,7 @@ class PmrSknw:
     def plot_edges(self):
         # plt.imshow(node_img[1:-1, 1:-1], cmap='gray')
         # draw edges by pts
-        for (s, e) in self.graph.edges():
+        for (s, e) in self.graph.nx_edges():
             ps = self.graph[s][e]['pts']
             plt.plot(ps[:, 1], ps[:, 0], 'green')
 
