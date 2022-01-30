@@ -1,10 +1,13 @@
 from os import path
+from pathlib import Path
 import numpy as np
 import codecs
 import pytesseract
 from lxml import etree as et
 from PIL import Image
 from skimage import io
+
+from pyimage.ami_image import AmiImage
 try:
     from pyimage.bbox import BBox
     from pyimage.cleaner import WordCleaner
@@ -38,9 +41,19 @@ class TextBox():
     
 
 class AmiOCR:
-    def __init__(self, path=None) -> None:
+    TESSERACT_TEMP_PATH = Path(Path(__file__).parent.parent, "temp/")
+    def __init__(self, path=None, image=None, filename="default.png") -> None:
+        """Creates an OCR object from path and images, if both path and images are given, path takes precendence"""
         self.hocr_string = None
-        self.hocr = self.run_ocr(path)
+        if path is not None:
+            self.hocr = self.run_ocr(path)
+        elif image is not None:
+            filepath = Path(AmiOCR.TESSERACT_TEMP_PATH, filename)
+            print(filepath)
+            AmiImage.write(filepath, image, mkdir=False)
+            self.hocr = self.run_ocr(filepath)
+        else:
+            self.hocr = None
         self.words = []
         self.phrases = []
         self.groups = []
@@ -166,7 +179,7 @@ class AmiOCR:
                 if not AmiOCR.y_overlap(phrase, words[j]) >= min_y_overlap:
                     break
                 # If the separation is small enough, add the word to the phrase
-                if AmiOCR.bbox_horizontal_seperation(phrase, words[j]) < word_separation:
+                if AmiOCR.textbox_horizontal_seperation(phrase, words[j]) < word_separation:
                     phrase.set_text(phrase.text + " " + words[j].text)
                     phrase.set_bbox(phrase.bbox.union(words[j].bbox))
                 else:
@@ -181,11 +194,11 @@ class AmiOCR:
             elif not phrases[-1].text.endswith(phrase.text):
                 # only add phrase if the last phrase added does not end with current phrase
                 phrases.append(phrase)
-
+        self.phrases = phrases
         return phrases
 
     @classmethod
-    def bbox_horizontal_seperation(cls, textbox_1, textbox_2):
+    def textbox_horizontal_seperation(cls, textbox_1, textbox_2):
         """we assume that textbox_1 comes before textbox_2"""
         return textbox_2.bbox.get_xrange()[0]-textbox_1.bbox.get_xrange()[1]
 
@@ -208,35 +221,51 @@ class AmiOCR:
         :param min_x_overlap: ratio of horizontal overlap between two bboxes
         :type min_x_overlap: float
         """
-        groups = []
         if phrases == None:
             phrases = self.get_phrases()
 
-        for phrase in phrases:
-            # sort each bbox into a group
-            
-            # if no group exists create a group
-            if len(groups) == 0:
-                groups.append(phrase)
+        groups = []
+        
+        for i in range(len(phrases)):
+            group = phrases[i] # group is a TextBox object 
+            for j in range(i+1, len(phrases)):
+                # check if there is significant x range overlap between the boxes
+                if AmiOCR.x_overlap(group, phrases[j]) < min_x_overlap:
+                    break
+                # If the separation is small enough, add the phrase to the group
+                if AmiOCR.textbox_vertical_seperation(group, phrases[j]) < line_seperation:
+                    group.set_text(group.text + " " + phrases[j].text)
+                    group.set_bbox(group.bbox.union(phrases[j].bbox))
+                else:
+                    break
+
+            if group.text == ' ':
+                # if group is empty do not add to the list of groups
                 continue
-            
-            group_found = False
-            for index, group in enumerate(groups):
-                if abs(group[3] - bbox[1]) < line_seperation or abs(group[1] - bbox[3]) < line_seperation:
-                    if self.x_overlap(group, bbox) > min_x_overlap:
-                        groups[index] = AmiOCR.envelope_box([group, bbox])
-                        group_found = True
-                        break
-
-            # if bbox doesn't fit a group, create a new group
-            if not group_found:
-                groups.append(bbox)
-
-        self.groups = groups
+            elif not groups:
+                # if array is empty add element
+                groups.append(group)
+            elif not groups[-1].text.endswith(group.text):
+                # only add phrase if the last phrase added does not end with current phrase
+                groups.append(group)
         return groups
 
     @classmethod
-    def y_overlap(self, textbox1, textbox2):
+    def textbox_vertical_seperation(cls, textbox1, textbox2):
+        bbox1_y = textbox1.bbox.get_yrange()
+        bbox2_y = textbox2.bbox.get_yrange()
+
+        # find which box is top and which box is bottom
+        top_bbox = bbox1_y if bbox1_y[0] < bbox2_y[0] else bbox2_y
+        bottom_bbox = bbox2_y if top_bbox == bbox1_y else bbox1_y
+
+        # if the bounding boxes intersect then we will have a negative difference but that's fine
+        return bottom_bbox[0] - top_bbox[1]
+
+
+
+    @classmethod
+    def y_overlap(cls, textbox1, textbox2):
         # find which bbox is wider
         bbox1_y = textbox1.bbox.get_yrange()
         bbox2_y = textbox2.bbox.get_yrange()
@@ -251,11 +280,12 @@ class AmiOCR:
         overlap = pixel_overlap/shorter_bbox_height
         return overlap
 
-    def x_overlap(self, textbox1, textbox2):
+    @classmethod
+    def x_overlap(cls, textbox1, textbox2):
         # find which bbox is wider
         bbox1_x = textbox1.bbox.get_xrange()
         bbox2_x = textbox2.bbox.get_xrange()
-        pixel_overlap = max(0, min(bbox1_x[2], bbox2_x[2]) - max(bbox1_x[0], bbox2_x[0]) + 1)
+        pixel_overlap = max(0, min(bbox1_x[1], bbox2_x[1]) - max(bbox1_x[0], bbox2_x[0]) + 1)
         
         if pixel_overlap == 0:
             return 0

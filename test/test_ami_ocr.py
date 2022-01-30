@@ -47,11 +47,11 @@ class TestAmiOCR:
 
     def test_phrases(self):
         phrases = self.biosynth2_ocr.get_phrases()
-        assert len(phrases) == 45, f"phrases are {len(phrases)}"
+        assert len(phrases) == 46, f"phrases are {len(phrases)}"
 
-    @unittest.skip("NYI")
     def test_groups(self):
         groups = self.biosynth2_ocr.get_groups()
+        assert len(groups) == 46, f"groups are {len(groups)}"
 
     def test_clean(self):
         pass

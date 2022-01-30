@@ -74,6 +74,8 @@ class Resources:
     assert BATTERY1BSQUARE.exists(), f"file exists {BATTERY1BSQUARE}"
     PRIMITIVES = Path(TEST_RESOURCE_DIR, "primitives.png")
     assert PRIMITIVES.exists(), f"file exists {PRIMITIVES}"
+    TESSERACT1 = Path(TEST_RESOURCE_DIR, "tesseract_test.png")
+    assert TESSERACT1.exists(), f"file exists {TESSERACT1}"
 
     def __init__(self):
         self.cached = False
