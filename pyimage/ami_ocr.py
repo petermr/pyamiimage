@@ -31,9 +31,12 @@ class TextBox():
 
     def set_text(self, text):
         self.text = text
+
+    def set_bbox(self, bbox):
+        self.bbox = bbox
+
     
-    def get_text(self):
-        return self.text
+
 class AmiOCR:
     def __init__(self, path=None) -> None:
         self.hocr_string = None
@@ -143,7 +146,7 @@ class AmiOCR:
         xy_range = [[bbox_list[0],bbox_list[2]], [bbox_list[1], bbox_list[3]]]
         return xy_range
 
-    def find_phrases(self, hocr_element, word_separation=20, y_tolerance=10):
+    def find_phrases(self, hocr_element=None, word_separation=20, min_y_overlap=0.99):
         """
         finds phrases and their bboxes from HOCR output
         adjusts the classification from Tesseract which is often fragile
@@ -153,41 +156,50 @@ class AmiOCR:
         :return: tuple (list of phrases, list of boxes)
         """
         phrases = []
-        bbboxes = []
-        bboxes, words = self.extract_bbox_from_hocr(hocr_element)
-        
-        # # TODO verify this doesn't break the system
-        # words, bboxes = TesseractOCR.remove_bad_word_bboxes(words, bboxes)
+        words = self.get_words()
         
         for i in range(len(words)):
-            phrase = [words[i]]
-            last_bbox = bboxes[i]
+            phrase = words[i] # phrase is a TextBox object like word
             for j in range(i+1, len(words)):
                 # check if words are on the same line
                 # if words on a different line, break loop
-                if abs(bboxes[j][1] - bboxes[i][1]) > y_tolerance or abs(bboxes[j][3] - bboxes[i][3]) > y_tolerance:
+                if not AmiOCR.y_overlap(phrase, words[j]) >= min_y_overlap:
                     break
                 # If the separation is small enough, add the word to the phrase
-                if (bboxes[j][0] - last_bbox[2]) < word_separation:
-                    phrase.append(words[j])
-                    last_bbox = bboxes[j]
+                if AmiOCR.bbox_horizontal_seperation(phrase, words[j]) < word_separation:
+                    phrase.set_text(phrase.text + " " + words[j].text)
+                    phrase.set_bbox(phrase.bbox.union(words[j].bbox))
                 else:
                     break
-            phrase = " ".join(phrase)
-            if phrase == ' ':
+
+            if phrase.text == ' ':
                 # if phrase is empty do not add to the list of phrases
                 continue
             elif not phrases:
                 # if array is empty add element
                 phrases.append(phrase)
-                bbboxes.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
-            elif not phrases[-1].endswith(phrase):
+            elif not phrases[-1].text.endswith(phrase.text):
                 # only add phrase if the last phrase added does not end with current phrase
                 phrases.append(phrase)
-                bbboxes.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
-        return phrases, bbboxes
 
-    def find_word_groups(self, bbox_of_phrases, line_seperation=10, min_x_overlap=0.20):
+        return phrases
+
+    @classmethod
+    def bbox_horizontal_seperation(cls, textbox_1, textbox_2):
+        """we assume that textbox_1 comes before textbox_2"""
+        return textbox_2.bbox.get_xrange()[0]-textbox_1.bbox.get_xrange()[1]
+
+    @classmethod
+    def textboxes_in_same_line(cls, textbox_1, textbox_2, y_tolerance):
+        textbox_1_yrange = textbox_1.bbox.get_yrange()
+        textbox_2_yrange = textbox_2.bbox.get_yrange()
+        if abs(textbox_1_yrange[0] - textbox_2_yrange[0]) <= y_tolerance and \
+            abs(textbox_1_yrange[1] - textbox_1_yrange[1]) <= y_tolerance:
+            return True
+        else:
+            return False
+
+    def find_word_groups(self, phrases=None, line_seperation=10, min_x_overlap=0.20):
         """
         :param bbox_of_phrases: bounding boxes of phrases in an image
         :type bbox_of_phrases: list
@@ -197,12 +209,15 @@ class AmiOCR:
         :type min_x_overlap: float
         """
         groups = []
-        for bbox in bbox_of_phrases:
+        if phrases == None:
+            phrases = self.get_phrases()
+
+        for phrase in phrases:
             # sort each bbox into a group
             
             # if no group exists create a group
             if len(groups) == 0:
-                groups.append(bbox)
+                groups.append(phrase)
                 continue
             
             group_found = False
@@ -220,16 +235,32 @@ class AmiOCR:
         self.groups = groups
         return groups
 
-    def x_overlap(self, bbox1, bbox2):
+    @classmethod
+    def y_overlap(self, textbox1, textbox2):
         # find which bbox is wider
-        pixel_overlap = max(0, min(bbox1[2], bbox2[2]) - max(bbox1[0], bbox2[0]) + 1)
+        bbox1_y = textbox1.bbox.get_yrange()
+        bbox2_y = textbox2.bbox.get_yrange()
+
+        pixel_overlap = max(0, min(bbox1_y[1], bbox2_y[1]) - max(bbox1_y[0], bbox2_y[0]) + 1)
         
         if pixel_overlap == 0:
             return 0
+
+        shorter_bbox_height = min(textbox1.bbox.get_height(), textbox2.bbox.get_height())
         
-        bbox1_width = bbox1[2] - bbox1[0]
-        bbox2_width = bbox2[2] - bbox2[0]
-        narrower_bbox_width = min(bbox1_width, bbox2_width)
+        overlap = pixel_overlap/shorter_bbox_height
+        return overlap
+
+    def x_overlap(self, textbox1, textbox2):
+        # find which bbox is wider
+        bbox1_x = textbox1.bbox.get_xrange()
+        bbox2_x = textbox2.bbox.get_xrange()
+        pixel_overlap = max(0, min(bbox1_x[2], bbox2_x[2]) - max(bbox1_x[0], bbox2_x[0]) + 1)
+        
+        if pixel_overlap == 0:
+            return 0
+
+        narrower_bbox_width = min(textbox1.bbox.get_width(), textbox2.bbox.get_width())
         
         overlap = pixel_overlap/narrower_bbox_width
         return overlap
@@ -259,7 +290,7 @@ class AmiOCR:
         """
         for textbox in textboxes:
             try:
-                image = BBox.plot_bbox_on(image, textbox)
+                image = BBox.plot_bbox_on(image, textbox.bbox)
             except IndexError as e:
                 continue
         return image

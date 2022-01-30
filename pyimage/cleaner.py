@@ -13,14 +13,14 @@ class WordCleaner:
         :param: textboxes is a list of TextBox objects
         :returns: list of TextBox objects 
         """
-        return [item for item in textboxes if item.get_text() not in cls.special_char] 
+        return [item for item in textboxes if item.text not in cls.special_char] 
 
     @classmethod
     def remove_all_single_characters(cls, textboxes):
         """
         Removes all single characters in a list of textboxes
         """
-        return [item for item in textboxes if len(item.get_text()) > 1 ]
+        return [item for item in textboxes if len(item.text) > 1 ]
 
     @classmethod
     def remove_all_sequences_of_special_characters(cls, textboxes):
@@ -30,7 +30,7 @@ class WordCleaner:
         textboxes_cleaned = []
         for textbox in textboxes:
             special_character = True
-            for letter in textbox.get_text():
+            for letter in textbox.text:
                 if letter.isalnum():
                     special_character = False
                     break
@@ -44,7 +44,7 @@ class WordCleaner:
         """removes all the special characters at the end of the word"""
         for textbox in textboxes:
             appexdix_length = 0
-            text = textbox.get_text()
+            text = textbox.text
             for c in reversed(text):
                 if not c.isalnum():
                     text = text[:-1]
@@ -58,7 +58,7 @@ class WordCleaner:
         cleaned_textboxes = []
         for textbox in textboxes:
             appexdix_length = 0
-            text = textbox.get_text()
+            text = textbox.text
             for c in text:
                 if not c.isalnum():
                     text = text[1:]
@@ -72,7 +72,7 @@ class WordCleaner:
         cleaned_textbox = []
         for textbox in textboxes:
             word = False
-            text = textbox.get_text()
+            text = textbox.text
             for c in text:
                 if c.isalpha():
                     word = True
@@ -87,7 +87,7 @@ class WordCleaner:
         cleaned_textbox = []
         for textbox in textboxes:
             flag = False
-            text = textbox.get_text()
+            text = textbox.text
             for c in text:
                 if c not in cls.frequently_misread_letters:
                     flag = True

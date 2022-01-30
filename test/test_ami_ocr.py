@@ -45,10 +45,9 @@ class TestAmiOCR:
                              TextBox("Bethea", [[178, 329], [122, 200]]),
                              TextBox("Acetyl-Co", [[606, 798], [149, 187]])], f"words and bounds are {words[:5]}"
 
-    @unittest.skip("NYI")
     def test_phrases(self):
         phrases = self.biosynth2_ocr.get_phrases()
-        assert phrases is None
+        assert len(phrases) == 45, f"phrases are {len(phrases)}"
 
     @unittest.skip("NYI")
     def test_groups(self):
