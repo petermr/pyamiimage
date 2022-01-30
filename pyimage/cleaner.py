@@ -1,13 +1,10 @@
 
-from audioop import reverse
-
-
 class WordCleaner:
     
     special_char = ['|', '>', '<', '-', '_', ',', '.', '`',
                      ';', ':', '\'', '=', '€', '~', '*', '!',
                      '$', '%', '^', '&', '(', ')', '/', '\\']    
-    frequently_misread_letters = ['Y']
+    frequently_misread_letters = ['Y', 'v', 'V']
 
     @classmethod
     def remove_single_special_characters(cls, textboxes):
@@ -44,6 +41,7 @@ class WordCleaner:
 
     @classmethod
     def remove_trailing_special_characters(cls, textboxes):
+        """removes all the special characters at the end of the word"""
         for textbox in textboxes:
             appexdix_length = 0
             text = textbox.get_text()
@@ -55,48 +53,52 @@ class WordCleaner:
         return textboxes
         
     @classmethod
-    def remove_leading_special_characters(cls, textboxes, bboxes):
+    def remove_leading_special_characters(cls, textboxes):
+        """removes all the special characters in front of a word"""
         cleaned_textboxes = []
-        cleaned_bboxes = []
-        for textbox, bbox in zip(textboxes, bboxes):
+        for textbox in textboxes:
             appexdix_length = 0
-            text = textbox
+            text = textbox.get_text()
             for c in text:
                 if not c.isalnum():
-                    textbox = textbox[1:]
+                    text = text[1:]
                     appexdix_length += 1
             cleaned_textboxes.append(textbox)
-            cleaned_bboxes.append(bbox)
-        return cleaned_textboxes, cleaned_bboxes
+        return cleaned_textboxes
 
     @classmethod
-    def remove_numbers_only(cls, textboxes, bboxes):
+    def remove_numbers_only(cls, textboxes):
         """remove all words which are composed of numbers and special characters"""
         cleaned_textbox = []
-        cleaned_bboxes = []
-        for textbox, bbox in zip(textboxes, bboxes):
+        for textbox in textboxes:
             word = False
-            for c in textbox:
+            text = textbox.get_text()
+            for c in text:
                 if c.isalpha():
                     word = True
                     break
             if word:
                 cleaned_textbox.append(textbox)
-                cleaned_bboxes.append(bbox)
-        return cleaned_textbox, cleaned_bboxes
+        return cleaned_textbox
 
     @classmethod
-    def remove_misread_letters(cls, textboxes, bboxes):
+    def remove_misread_letters(cls, textboxes):
         """Remove whole words consisting only of frequently misread letters such as vV"""    
         cleaned_textbox = []
-        cleaned_bboxes = []
-        for textbox, bbox in zip(textboxes, bboxes):
+        for textbox in textboxes:
             flag = False
-            for c in textbox:
+            text = textbox.get_text()
+            for c in text:
                 if c not in cls.frequently_misread_letters:
                     flag = True
                     break
             if flag:
                 cleaned_textbox.append(textbox)
-                cleaned_bboxes.append(bbox)
-        return cleaned_textbox, cleaned_bboxes
+        return cleaned_textbox
+
+    @classmethod
+    def remove_leading_and_trailing_special_characters(cls, textboxes):
+        """Convenience method for trimming special characters from words"""
+        removed_leading = cls.remove_leading_special_characters(textboxes)
+        removed_both = cls.remove_trailing_special_characters(removed_leading)
+        return removed_both

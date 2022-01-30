@@ -12,22 +12,22 @@ except:
     from ..pyimage.bbox import BBox
     from ..pyimage.cleaner import WordCleaner
 
-class TextBox(BBox):
+class TextBox():
     # TextBox inherits BBox
     def __init__(self, text, xy_ranges) -> None:
         self.text = text
-        BBox.__init__(self, xy_ranges)
+        self.bbox = BBox(xy_ranges)
     
     def __repr__(self): 
-        return f"Textbox({self.text}, {self.xy_ranges})"
+        return f"Textbox({self.text}, {self.bbox.xy_ranges})"
 
     def __str__(self): 
-        return f"text: {self.text} bbox: {self.xy_ranges}"
+        return f"text: {self.text} bbox: {self.bbox.xy_ranges}"
 
     def __eq__(self, other):
         if type(other) is not TextBox:
             return False
-        return self.text == other.text and self.xy_ranges == other.xy_ranges
+        return self.text == other.text and self.bbox.xy_ranges == other.bbox.xy_ranges
 
     def set_text(self, text):
         self.text = text
@@ -38,7 +38,6 @@ class AmiOCR:
     def __init__(self, path=None) -> None:
         self.hocr_string = None
         self.hocr = self.run_ocr(path)
-        self.raw_tesseract = []
         self.words = []
         self.phrases = []
         self.groups = []
@@ -125,7 +124,7 @@ class AmiOCR:
                 xy_range = self.create_xy_range_from_bbox_string(bbox_string)
                 textbox = TextBox(child.text, xy_range)
                 words.append(textbox)
-        self.words = AmiOCR.clean(words)
+        self.words = AmiOCR.clean_all(words)
         return self.words
     
     def find_words_from_image_path(self, image_path):
@@ -304,8 +303,10 @@ class AmiOCR:
         
 
     @classmethod
-    def clean(self, textboxes):
-        cleaned = WordCleaner.remove_trailing_special_characters(textboxes)
+    def clean_all(self, textboxes):
+        cleaned = WordCleaner.remove_leading_and_trailing_special_characters(textboxes)
         cleaned = WordCleaner.remove_all_single_characters(cleaned)
         cleaned = WordCleaner.remove_all_sequences_of_special_characters(cleaned)
+        cleaned = WordCleaner.remove_misread_letters(cleaned)
+        cleaned = WordCleaner.remove_numbers_only(cleaned)
         return cleaned
