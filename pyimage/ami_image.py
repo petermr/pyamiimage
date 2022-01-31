@@ -5,6 +5,7 @@ mainly classmathods, but may need some objects to preserve statementfor expensiv
 TODO authors Anuv Chakroborty and Peter Murray-Rust, 2021
 Apache2 Open Source licence
 """
+from distutils import extension
 import numpy as np
 from skimage import io, color, morphology
 import skimage
@@ -271,6 +272,14 @@ class AmiImage:
             os.remove(path)
         io.imsave(path, image)
 
+    @classmethod
+    def write_image_group(cls, dir, images, filename="default", mkdir=True, overwrite=True):
+        """write multiple(n) images with the same filename numbered from 1-n"""
+        file_extension = ".png"
+        for index, image in enumerate(images):
+            path = Path(dir, filename + str(index) + file_extension)
+            print(path)
+            AmiImage.write(path, image, mkdir, overwrite)
 
 class AmiImageDTO():
     """

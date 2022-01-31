@@ -1,5 +1,6 @@
 from os import path
 from pathlib import Path
+from tkinter import BASELINE
 import numpy as np
 import codecs
 import pytesseract
@@ -17,9 +18,10 @@ except:
 
 class TextBox():
     # TextBox inherits BBox
-    def __init__(self, text, xy_ranges) -> None:
+    def __init__(self, text, xy_ranges, baseline=0) -> None:
         self.text = text
         self.bbox = BBox(xy_ranges)
+        self.baseline = baseline
     
     def __repr__(self): 
         return f"Textbox({self.text}, {self.bbox.xy_ranges})"
@@ -41,7 +43,7 @@ class TextBox():
     
 
 class AmiOCR:
-    TESSERACT_TEMP_PATH = Path(Path(__file__).parent.parent, "temp/")
+    TESSERACT_TEMP_PATH = Path(Path(__file__).parent.parent, "temp/tesseract/")
     def __init__(self, path=None, image=None, filename="default.png") -> None:
         """Creates an OCR object from path and images, if both path and images are given, path takes precendence"""
         self.hocr_string = None
@@ -346,22 +348,45 @@ class AmiOCR:
             title_dict[kw] = val
         return title_dict
 
-    def find_baseline(self):
-        # html = et.parse(hocr_html)
-        # assert self.hocr == "hello world", f'should be {self.hocr}'
-        html = et.parse(self.hocr_string)
-        print(html)
-        line_spans = html.findall(".//{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']")
-        # line_spans = self.hocr.findall("span[@class='ocr_line']")
-        print("Hello world")
-        assert line_spans is None
-        for line_span in line_spans:
-            title = line_span.attrib['title']
-            title_dict = self.parse_hocr_title(title)
-            for item in title_dict:
-                print(item)
-            # bbox = title_dict['bbox']
+    def find_baseline(self, hocr_element):
+        if hocr_element is None:
+            hocr_element = self.hocr
+        words = []
+
+        # Each of the bbox coordinates are in span
+        # iterdescendants('span') iterates over all the span elements in the tree
+        for child in hocr_element.iterdescendants('span'):
+            # the class of span for bounding box around each word is 'ocrx_word'
+            if child.attrib['class'] == 'ocr_line':
+                # coordinates for bbox has the following format: 'bbox 333 74 471 102; x_wconf 76'
+                # we are only interested in the coordinates, so we split at ; and append the first part
+                print("pause here")
+                baseline = child.attrib['title'].split(';')[1]
+                bbox_string = child.attrib['title'].split(';')[0]
+                xy_range = self.create_xy_range_from_bbox_string(bbox_string)
+                textbox = TextBox(child.text, xy_range, baseline)
+                words.append(textbox)
+        self.words = AmiOCR.clean_all(words)
+        return self.words
         
+
+    @classmethod
+    def bounding_box_patches(cls, image, textboxes):
+        """given an image and textboxes, it will extract all the bounding boxes
+        and return a list of numpy arrays"""
+        patches = []
+        for textbox in textboxes:
+            xy_range = textbox.bbox.xy_ranges
+            min_y = xy_range[1][0]
+            max_y = xy_range[1][1]
+            min_x = xy_range[0][0]
+            max_x = xy_range[0][1]
+            print(f"min_y: {min_y}", f"max_y: {max_y}", f"min_x: {min_x}", f"max_x: {max_x}")
+            patch = image[min_y:max_y, min_x:max_x]
+            print(patch.shape)
+            patches.append(patch)
+        
+        return patches
 
     @classmethod
     def clean_all(self, textboxes):
