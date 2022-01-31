@@ -6,8 +6,9 @@ from pyamiimage.pyimage.ami_ocr import AmiOCR
 from pyamiimage.pyimage.ami_image import AmiImage
 from matplotlib import pyplot as plt
 from skimage import io
-tess = Resources.TESSERACT1
+# tess = Resources.TESSERACT1
 # tess = Resources.TESSERACT_BENG
+tess = Resources.BIOSYNTH2
 # tess = Resources.TESSERACT_GER2
 # tess = Resources.TESSERACT_ITA
 tess_ocr = AmiOCR(tess)
@@ -61,7 +62,7 @@ signal = patches_pixel_stats(patches, signal_val=255, axis=1)
 row = [np.arange(0, item.shape[0]) for item in signal]
 import matplotlib.pyplot as plt
 
-for idx in range(0, 10):
+for idx in range(36, 48):
     im = plt.imread(Path(TESSERACT_TEMP_PATH, f"black_on_white{idx}.png"))
     # implot = plt.imshow(im)
     import scipy.ndimage as ndimage
