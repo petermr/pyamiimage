@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<svg:svg xmlns:svg="http://www.w3.org/2000/svg" width="1400.0" height="1200.0">
+	<svg:defs>
+		<svg:marker id="arrowhead" markerWidth="10.0" markerHeight="7.0" refX="10.0" refY="3.5" orient="auto">
+			<svg:polygon points="0 0, 10 3.5, 0 7" fill="red" stroke="red" stroke-width="1"/>
+		</svg:marker>
+	</svg:defs>
+	<svg:g role="arrows">
+		<svg:g role="arrow">
+			<svg:line x1="240" y1="500" x2="240" y2="385" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+		</svg:g>
+		<svg:g role="arrow">
+			<svg:line x1="682" y1="435" x2="803" y2="440" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+		</svg:g>
+		<svg:g role="arrow">
+			<svg:line x1="557" y1="493" x2="558" y2="627" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+		</svg:g>
+		<svg:g role="arrow">
+			<svg:line x1="241" y1="634" x2="240" y2="569" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+		</svg:g>
+		<svg:g role="arrow">
+			<svg:line x1="716" y1="641" x2="805" y2="641" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+		</svg:g>
+		<svg:g role="arrow">
+			<svg:line x1="446" y1="647" x2="336" y2="648" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+		</svg:g>
+		<svg:g role="arrow">
+			<svg:line x1="241" y1="669" x2="243" y2="757" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+		</svg:g>
+		<svg:g role="arrow">
+			<svg:line x1="559" y1="701" x2="563" y2="860" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+		</svg:g>
+		<svg:g role="arrow">
+			<svg:line x1="765" y1="916" x2="878" y2="915" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+		</svg:g>
+		<svg:g role="arrow">
+			<svg:line x1="565" y1="973" x2="566" y2="1108" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
+		</svg:g>
+	</svg:g>
+</svg:svg>

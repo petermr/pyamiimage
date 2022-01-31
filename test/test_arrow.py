@@ -1,18 +1,20 @@
 import os
 import matplotlib.pyplot as plt
 import pytest
+import unittest
 import logging
 from pathlib import Path
 from lxml import etree
 
 from ..pyimage.ami_graph_all import AmiGraph, AmiIsland
-from ..pyimage.ami_arrow import AmiArrow
+from ..pyimage.ami_arrow import AmiArrow, AmiNetwork
 from ..pyimage.svg import SVGSVG, SVGArrow, SVGG, SVGRect, ns_xpath, SVG_NS
 from ..pyimage.bbox import BBox
 
 from ..test.resources import Resources
 
 logger = logging.getLogger(__name__)
+
 
 class TestArrow:
 
@@ -122,11 +124,11 @@ class TestArrow:
         assert len(big_islands) == 5
 
         test_arrows = [
-            "tail 293 - head 384 > point 384 barbs [378, 379]",
-            "tail 476 - head 592 > point 592 barbs [572, 573]",
+            "tail 293 - head 384 > point 384 barbs [378, 379] tail: 188,205 head: 243,205",
+            "tail 476 - head 592 > point 592 barbs [572, 573] tail: 298,205 head: 354,205",
             str(None),
-            "tail 628 - head 728 > point 728 barbs [719, 720]",
-            "tail 1083 - head 1192 > point 1192 barbs [1178, 1179]",
+            "tail 628 - head 728 > point 728 barbs [719, 720] tail: 410,205 head: 466,205",
+            "tail 1083 - head 1192 > point 1192 barbs [1178, 1179] tail: 849,207 head: 905,207",
         ]
         for i, island in enumerate(big_islands):
             ami_arrow = AmiArrow.create_simple_arrow(island)
@@ -146,20 +148,20 @@ class TestArrow:
             str(None),
             str(None),
             str(None),
-            "tail 428 - head 434 > point 456 barbs [429, 430]",
+            "tail 428 - head 434 > point 456 barbs [429, 430] tail: 258,1003 head: 300,1004",
             str(None),
             str(None),
-            "tail 706 - head 718 > point 722 barbs [702, 757]",
-            "tail 792 - head 952 > point 958 barbs [950, 951]",
-            "tail 968 - head 932 > point 925 barbs [939, 940]",
-            "tail 1014 - head 997 > point 1015 barbs [967, 1066]",
-            "tail 1037 - head 1031 > point 1039 barbs [976, 1085]",
-            "tail 1115 - head 1312 > point 1340 barbs [1304, 1308]",
-            "tail 1205 - head 1381 > point 1382 barbs [1379, 1380]",
+            "tail 706 - head 718 > point 722 barbs [702, 757] tail: 435,682 head: 440,803",
+            "tail 792 - head 952 > point 958 barbs [950, 951] tail: 493,557 head: 627,558",
+            "tail 968 - head 932 > point 925 barbs [939, 940] tail: 634,241 head: 569,240",
+            "tail 1014 - head 997 > point 1015 barbs [967, 1066] tail: 641,716 head: 641,805",
+            "tail 1037 - head 1031 > point 1039 barbs [976, 1085] tail: 647,446 head: 648,336",
+            "tail 1115 - head 1312 > point 1340 barbs [1304, 1308] tail: 669,241 head: 757,243",
+            "tail 1205 - head 1381 > point 1382 barbs [1379, 1380] tail: 701,559 head: 860,563",
             str(None),
-            "tail 1412 - head 1396 > point 1404 barbs [1383, 1445]",
+            "tail 1412 - head 1396 > point 1404 barbs [1383, 1445] tail: 916,765 head: 915,878",
             str(None),
-            "tail 1594 - head 1702 > point 1703 barbs [1700, 1701]",
+            "tail 1594 - head 1702 > point 1703 barbs [1700, 1701] tail: 973,565 head: 1108,566",
         ]
         output_temp = "biosynth1_arrows.svg"
 
@@ -238,16 +240,15 @@ class TestArrow:
         :return:
         """
         element = etree.parse(str(self.resources.BIOSYNTH1_ARROWS_TEXT_SVG))
+        print("FILE", self.resources.BIOSYNTH1_ARROWS_TEXT_SVG)
         assert element is not None, f"{self.resources.BIOSYNTH1_ARROWS_TEXT_SVG}"
         gs = ns_xpath(element, f"{{{SVG_NS}}}g")
-        assert len(gs) == 2, f"2 svg:g children expected"
-        assert len(
-            ns_xpath(element, f"{{{SVG_NS}}}g[@role='arrows']")) == 1, f"expected 1 g[@role='arrows']"
+        assert len(gs) == 2, f"2 svg:g children (a and t)  expected"
 
         # validate arrows input
         g_arrows = ns_xpath(element, f"{{{SVG_NS}}}g[@role='arrows']")
-        assert type(g_arrows) is list and len(g_arrows) == 1, f"expected 1-element list"
-        arrows = ns_xpath(g_arrows[0], f"{{{SVG_NS}}}g[@role='arrow']")
+        assert type(g_arrows) is etree._Element, f"expected Element"
+        arrows = ns_xpath(g_arrows, f"{{{SVG_NS}}}g[@role='arrow']")
         assert len(arrows) == 10, f"child g_arrows"
         """
         <svg:g role="arrow" orient="up">
@@ -262,13 +263,13 @@ class TestArrow:
         # rects
         assert arrows[0].get("role") == 'arrow', "role should be arrow"
         assert arrows[0].get("orient") == 'up', "orient should be up"
-        rects = ns_xpath(arrows[0], f"./{{{SVG_NS}}}rect[@position='core']")
-        assert len(rects) == 1, f"only one core expected"
-        assert rects[0].get("x") == "220", f"x coord of core"
+        rect = ns_xpath(arrows[0], f"./{{{SVG_NS}}}rect[@position='core']")
+        assert rect is not None, f"only one core expected"
+        assert rect.get("x") == "220", f"x coord of core"
         # lines
-        lines = ns_xpath(arrows[0], f"./{{{SVG_NS}}}line")
-        assert len(lines) == 1, f"only one line expected"
-        assert lines[0].get("x1") == "240", f"x1 coord of line"
+        line = ns_xpath(arrows[0], f"./{{{SVG_NS}}}line")
+        assert line is not None, f"only one line expected"
+        assert line.get("x1") == "240", f"x1 coord of line"
 
         # validate texts input
         """
@@ -278,34 +279,38 @@ class TestArrow:
         </svg:g>
         """
         g_text_container = ns_xpath(element, f"{{{SVG_NS}}}g[@role='texts']")
-        assert len(g_text_container) == 1, f"expected 1 g[@role='texts']"
-        texts = ns_xpath(g_text_container[0], f"{{{SVG_NS}}}g[@role='text']")
-        assert len(texts) == 28, f"child g_texts"
+        assert type(g_text_container) is etree._Element, f"expected 1 g[@role='texts']"
+        assert g_text_container.get("role") == "texts", f"text container"
+        assert g_text_container.get("id") == "t", f"text container"
+        texts = ns_xpath(g_text_container, f"{{{SVG_NS}}}g[@role='text']")
+        assert type(texts) is list, f"expecting <g>"
+
+        assert len(texts) == 15, f"child g_texts"
 
         text0 = texts[0]
         # rect
-        text0_rect0 = ns_xpath(text0, f"{{{SVG_NS}}}rect")
-        assert type(text0_rect0) is list, "rect0 is list"
-        assert len(text0_rect0) == 1, "rect0 has length 1"
-        rect_ = text0_rect0[0]
-        assert type(rect_) is etree._Element, f"element {rect_}"
-        assert rect_.get("role") == "bbox", f"role"
-        assert rect_.get("x") == "195", f"x"
+        t_rect0 = ns_xpath(text0, f"{{{SVG_NS}}}rect")
+        assert t_rect0 is not None, "rect0"
+        assert type(t_rect0) is etree._Element, f"element {t_rect0}"
+        assert t_rect0.get("role") == "bbox", f"role"
+        assert t_rect0.get("x") == "195", f"x"
         # text
         text0_text0 = ns_xpath(text0, f"{{{SVG_NS}}}text")
-        assert type(text0_text0) is list, "text0 is list"
-        assert len(text0_text0) == 1, "text0 has length 1"
-        text_ = text0_text0[0]
-        assert type(text_) is etree._Element, f"element {text_}"
-        assert text_.get("y") == "385", f"y"
+        assert type(text0_text0) is etree._Element, f"element {text0_text0}"
+        assert text0_text0.get("y") == "385", f"y"
 
-    def test_analyze_arrows_text_biosynth1(self):
+    @unittest.skip("obsolete")
+    def test_analyze_front_arrows_text_biosynth1(self):
         """
-        analyze prepared pathway with up/down/right/left arrows and multiple texts
+        analyze prepared pathway with points of up/down/right/left arrows and multiple texts
         :return:
         """
         svgsvg = etree.parse(str(self.resources.BIOSYNTH1_ARROWS_TEXT_SVG))
-        front_arrows = ns_xpath(svgsvg, f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']/{{{SVG_NS}}}rect[@position='front']")
+        position = "front"
+        self.overlap_arrows_and_text(position, svgsvg)
+        return
+
+        front_arrows = ns_xpath(svgsvg, f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']/{{{SVG_NS}}}rect[@position='{position}']")
         assert len(front_arrows) == 10, f"arrows"
         for front_arrow_elem in front_arrows:
             front_arrow_bbox = self.get_bbox(front_arrow_elem)
@@ -324,16 +329,43 @@ class TestArrow:
                     print("textbox", text_bbox, text_val)
                     print("overlap",  overlap)
 
+    def test_analyze_arrows_text_biosynth1(self):
+        """
+        analyze prepared pathway with tails of up/down/right/left arrows and multiple texts
+        :return:
+        """
+        svgsvg = etree.parse(str(self.resources.BIOSYNTH1_ARROWS_TEXT_SVG))
+        ami_network = AmiNetwork.create_from_svgsvg(svgsvg)
+        ami_network.overlap_arrows_and_text()
+        ami_network.write_graph(Path(Resources.TEMP_DIR, "biosynth1_network.gpml"))
+
+    # @unittest.skip("under development")
+    # def test_raw_arrows_to_bboxes(self):
+    #     """
+    #     raw arrows in SVG resulting from pixel analysis
+    #     processed to add bounding boxes
+    #     :return:
+    #     """
+    #     element = etree.parse(str(self.resources.BIOSYNTH1_RAW_ARROWS_SVG))
+    #     assert element is not None, f"{self.resources.BIOSYNTH1_RAW_ARROWS_SVG}"
+    #     arrows = ns_xpath(element, f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']")
+    #     assert len(arrows) == 10, f"expected arrow count"
+    #     for arrow_svg in arrows:
+    #         svg_arrow = SVGArrow.create_from_svgg(arrow_svg)
+    #         ami_arrow = AmiArrow.create_from_svg_arrow(svg_arrow)
+    #         if ami_arrow is not None:
+    #             print("ami arrow str:", str(ami_arrow))
+    #         else:
+    #             print("cannot create AmiArrow")
+    #         print(ami_arrow.ge)
+
+    @unittest.skip("Obsolete?")
+    def test_write_gpml(self):
+        ami_network = AmiNetwork()
+        ami_network.write_graph(Path(Resources.TEMP_DIR, "test.gpml"))
+
+
     # ------------ helpers -------------
-
-    def get_bbox(self, bbox_elem):
-        return BBox.create_from_xy_w_h(
-            [float(bbox_elem.get(BBox.X)), float(bbox_elem.get(BBox.Y))],
-            float(bbox_elem.get(BBox.WIDTH)),
-            float(bbox_elem.get(BBox.HEIGHT))
-        )
-
-
 
     @classmethod
     def create_and_test_arrows(cls, ami_graph, max_dim, total_islands=None, expected_arrows=None, big_island_count=None, output_temp=None):

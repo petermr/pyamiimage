@@ -13,6 +13,8 @@ class BBox:
     def __init__(self, xy_ranges=None):
         """
         Must have a valid bbox
+        Still haven'tb worked out logic of default boxes (must include None's)
+        as [0.0],[0.0] is valid
         :param xy_ranges: [[x1, x2], [y1, y2]] will be set to integers
         """
         self.xy_ranges = [[], []]
@@ -29,10 +31,10 @@ class BBox:
         :param height:
         :return:
         """
-        assert type(xy[0]) is float
-        assert type(xy[1]) is float
-        assert type(width) is float
-        assert type(height) is float
+        assert type(xy[0]) is float or type(xy[0]) is int, f"found {type(xy[0])}"
+        assert type(xy[1]) is float or type(xy[1]) is int, f"found {type(xy[1])}"
+        assert type(width) is float or type(width) is int, f"found {type(width)}"
+        assert type(height) is float or type(height) is int, f"found {type(height)}"
 
         try:
             xy_ranges = [[float(xy[0]), float(xy[0]) + float(width)], [float(xy[1]), float(xy[1]) + float(height)]]
@@ -40,15 +42,17 @@ class BBox:
             raise ValueError(f"cannot create bbox from {xy},{width},{height}")
         return BBox(xy_ranges=xy_ranges)
 
-
-
     def set_ranges(self, xy_ranges):
         if xy_ranges is None:
             raise ValueError("no lists given")
         if len(xy_ranges) != 2:
             raise ValueError("must be 2 lists of lists")
+        if xy_ranges[0] is not None and len(xy_ranges[0]) == 0:
+            xy_ranges[0] = None
         if xy_ranges[0] is not None and len(xy_ranges[0]) != 2:
             raise ValueError(f"range {xy_ranges[0]} must be None or 2-tuple")
+        if xy_ranges[1] is not None and len(xy_ranges[1]) == 0:
+            xy_ranges[1] = None
         if xy_ranges[1] is not None and len(xy_ranges[1]) != 2:
             raise ValueError(f"range {xy_ranges[1]} must be None or 2-tuple")
         self.set_xrange(xy_ranges[0])
@@ -64,7 +68,12 @@ class BBox:
         return self.xy_ranges[0]
 
     def get_width(self):
-        assert len(self.get_xrange()) == 2, "xrange"
+        """get width
+        :return: width or None if x range invalid or not set"""
+        if self.get_xrange() is None or len(self.get_xrange()) == 0:
+            return None;
+        assert self.get_xrange() is not None
+        assert len(self.get_xrange()) == 2, f"xrange, got {len(self.get_xrange())}"
         return self.get_xrange()[1] - self.get_xrange()[0]
 
     def set_yrange(self, rrange):
@@ -74,6 +83,8 @@ class BBox:
         return self.xy_ranges[1]
 
     def get_height(self):
+        if self.get_yrange() is None or len(self.get_yrange()) == 0:
+            return None
         return self.get_yrange()[1] - self.get_yrange()[0] if len(self.get_yrange()) == 2 else None
 
     def set_range(self, index, rrange):
@@ -136,7 +147,7 @@ class BBox:
         if len(range0) == 2 and len(range1) == 2:
             maxmin = max(range0[0], range1[0])
             minmax = min(range0[1], range1[1])
-            rrange = [maxmin, minmax] if minmax >= maxmin  else None
+            rrange = [maxmin, minmax] if minmax >= maxmin else None
         return rrange
 
     @classmethod
@@ -181,7 +192,7 @@ class BBox:
             raise ValueError("xy must be an array of 2 values")
         if width < 0 or height < 0:
             raise ValueError("width and height must be non negative")
-        xrange =([xy(0), xy[0] + width])
+        xrange = ([xy(0), xy[0] + width])
         yrange = [xy(1), xy[1] + int(height)]
         bbox = BBox.create_from_ranges(xrange, yrange)
         return bbox
@@ -359,6 +370,16 @@ class BBox:
         point_pair[1] = (bbox_row, bbox_col)
         return point_pair
 
+    @classmethod
+    def create_from_corners(cls, xy1, xy2):
+        if xy1 is None or xy2 is None:
+            return None
+        if len(xy1) != 2 or len(xy2) != 2:
+            return None
+        xrange = [xy1[0], xy2[0]] if xy2[0] > xy1[0] else [xy2[0], xy1[0]]
+        yrange = [xy1[1], xy2[1]] if xy2[1] > xy1[1] else [xy2[1], xy1[1]]
+        bbox = BBox(xy_ranges=[xrange, yrange])
+        return bbox
 
 
 """If you looking for the overlap between two real-valued bounded intervals, then this is quite nice:

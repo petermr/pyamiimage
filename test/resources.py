@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 class Resources:
     TEST_RESOURCE_DIR = Path(Path(__file__).parent, "resources")
     assert TEST_RESOURCE_DIR.exists(), f"dir exists {TEST_RESOURCE_DIR}"
+    # biosynth1 is the most analysed image. In places it is cropped to provide a subset
     BIOSYNTH1 = Path(TEST_RESOURCE_DIR, "biosynth_path_1.png")
     assert BIOSYNTH1.exists(), f"file exists {BIOSYNTH1}"
     BIOSYNTH1_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_1.hocr")
@@ -30,8 +31,11 @@ class Resources:
     assert BIOSYNTH1_TEXT.exists(), f"file exists {BIOSYNTH1_TEXT}"
     BIOSYNTH1_ARROWS = Path(TEST_RESOURCE_DIR, "biosynth_path_1_cropped_text_removed.png")
     assert BIOSYNTH1_ARROWS.exists(), f"file exists {BIOSYNTH1_ARROWS}"
-    # BIOSYNTH1_ARROWS_TEXT_SVG = Path(TEST_RESOURCE_DIR, "biosynth1_arrows_text.svg")
-    # assert BIOSYNTH1_ARROWS_TEXT_SVG.exists(), f"file exists {BIOSYNTH1_ARROWS_TEXT_SVG}"
+    BIOSYNTH1_ARROWS_TEXT_SVG = Path(TEST_RESOURCE_DIR, "biosynth1_arrows_text.svg")
+    assert BIOSYNTH1_ARROWS_TEXT_SVG.exists(), f"file exists {BIOSYNTH1_ARROWS_TEXT_SVG}"
+    BIOSYNTH1_RAW_ARROWS_SVG = Path(TEST_RESOURCE_DIR, "biosynth1_raw_arrows.svg")
+    assert BIOSYNTH1_RAW_ARROWS_SVG.exists(), f"file exists {BIOSYNTH1_RAW_ARROWS_SVG}"
+
     BIOSYNTH2 = Path(TEST_RESOURCE_DIR, "biosynth_path_2.jpg")
     assert BIOSYNTH2.exists(), f"file exists {BIOSYNTH2}"
     BIOSYNTH3 = Path(TEST_RESOURCE_DIR, "biosynth_path_3.png")
@@ -85,6 +89,9 @@ class Resources:
     TESSERACT_ITA = Path(TEST_RESOURCE_DIR, "tesseract_ita.png")
     assert TESSERACT_ITA.exists(), f"file doesn't exist {TESSERACT_ITA}"
     
+
+    TEMP_DIR = Path(TEST_RESOURCE_DIR.parent.parent, "temp")
+    assert TEMP_DIR.is_dir(), f"file exists {TEMP_DIR}"
 
     def __init__(self):
         self.cached = False

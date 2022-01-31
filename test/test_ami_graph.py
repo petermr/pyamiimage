@@ -405,7 +405,7 @@ plt.show()"""
         split edges into segments (Douglas-Paucker) - Python tutorial
         :return:
         """
-        interactive = True
+        interactive = False
         ignore_hand = True
         fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
 

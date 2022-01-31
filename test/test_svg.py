@@ -85,7 +85,7 @@ class TestSVG():
     def test_arrowhead(self):
         svg = SVGSVG()
         SVGArrow.create_arrowhead(svg)
-        arrow = SVGArrow(head=[50,75], tail=[150,200])
+        arrow = SVGArrow(head_xy=[50, 75], tail_xy=[150, 200])
         svg.append(arrow)
         # print("SVGXX\n", ET.tostring(svg.element, pretty_print=True).decode())
 
@@ -99,3 +99,17 @@ class TestSVG():
  # 'marker-end="url(#arrowhead)"/></svg:g></svg:svg>'
  #  """ == ET.tostring(svg.element).decode()
 
+    def test_svg_arrow_str(self):
+        """
+        must not return None as this cannot be stringified later (??)
+        :return:
+        """
+        head_xy = [20, 30]
+        tail_xy = [40, 50]
+        svg_arrow = SVGArrow(head_xy=head_xy, tail_xy=tail_xy)
+        ss = str(svg_arrow)
+        assert ss == "tail: 40,50 head: 20,30"
+
+        svg_arrow = SVGArrow()
+        ss = str(svg_arrow)
+        assert ss == "None"

@@ -17,6 +17,9 @@ elements. We may add functionality to the actual lxml elements
 This is only the common object classes ... at the moment
 
 """
+"""
+https://lxml.de/api/lxml.builder.ElementMaker-class.html
+"""
 
 FILL = "fill"
 NONE = "none"
@@ -27,6 +30,7 @@ STROKE_WIDTH = "stroke-width"
 SVG_NS = "http://www.w3.org/2000/svg"
 SVG_NS_PREF = 'svg'
 
+GPML_NS = "http://pathvisio.org/GPML/2013a"
 
 class AbsSVG(ABC):
     lxml.etree.register_namespace(SVG_NS_PREF, SVG_NS)
@@ -43,7 +47,7 @@ class AbsSVG(ABC):
         self.stroke = None
         self.stroke_width = None
 
-        ns_tag = f"{{{SVG_NS}}}{tag}"
+        # ns_tag = f"{{{SVG_NS}}}{tag}"
 
         ns_tag = "{" + SVG_NS + "}" + tag
         self.element = Element(ns_tag)
@@ -71,6 +75,30 @@ class AbsSVG(ABC):
 
     def set_float_attribute(self, name, val):
         self.set_attribute(name, str(float(val)))
+
+    @classmethod
+    def get_float_attribute(cls, elem, attname):
+        """
+        gets attribute value from elem@attname as float
+        if elem is list of length 1 takes that
+        if it cannot, raises ValueError
+        :param elem:
+        :param attname:
+        :return:
+        """
+        # att_float = None
+        if type(elem) is list and len(elem) == 1:
+            elem = elem[0]
+
+        try:
+            attval = elem.get(attname)
+            att_float = float(attval)
+        except Exception as e:
+            print("raises", e)
+            print(f"type elem = {type(elem)}")
+            logger.warning(f"{lxml.etree.tostring(elem)}")
+            raise ValueError(f"cannot get float from @{attname}")
+        return att_float
 
     # @abstractmethod
     def calculate_bbox(self):
@@ -146,9 +174,9 @@ class SVGSVG(AbsSVG):
         ensure a single <defs> in <svg>
         :return: the lxml Element (not SVGDefs)
         """
-        svg_defs_element = None
+        # svg_defs_element = None
 
-        local_name_xpath = f"*[local-name()='{SVGDefs.TAG}' and namespace-uri()='{SVG_NS}']"
+        # local_name_xpath = f"*[local-name()='{SVGDefs.TAG}' and namespace-uri()='{SVG_NS}']"
         clark_xpath = f"{{{SVG_NS}}}{SVGDefs.TAG}"
         assert clark_xpath == "{http://www.w3.org/2000/svg}defs"
 
@@ -201,8 +229,6 @@ class SVGRect(AbsSVG):
             self.set_xy([bbox.get_xrange()[0], bbox.get_yrange()[0]])
             self.set_height(bbox.get_height())
             self.set_width(bbox.get_width())
-
-
 
     def set_height(self, h):
         """
@@ -503,8 +529,14 @@ class SVGPolygon(AbsSVG):
 
 
 class SVGArrow(SVGG):
+    X1 = "x1"
+    X2 = "x2"
+    Y1 = "y1"
+    Y2 = "y2"
 
-    def __init__(self, head=None, tail=None):
+    MIN_WIDTH = 20
+
+    def __init__(self, head_xy=None, tail_xy=None):
         """
         SVGArrow requires the <svg> element to have a <defs> elememt
 
@@ -517,24 +549,74 @@ class SVGArrow(SVGG):
             ami_arrow = AmiArrow.create_simple_arrow(island)
             g.append(ami_arrow.get_svg())
 
-        :param head:
-        :param tail:
+        :param head_xy:
+        :param tail_xy:
         """
         super().__init__()
-        self.tail = tail
-        self.head = head
+        self.tail_xy = tail_xy
+        self.head_xy = head_xy
         self.line = None
-        if self.head and self.tail:
-            self.line = SVGLine(xy1=tail, xy2=head)
+        if self.head_xy and self.tail_xy:
+            self.line = SVGLine(xy1=tail_xy, xy2=head_xy)
             self.line.set_attribute(SVGMarker.MARKER_END, "url(#arrowhead)")
             self.append(self.line)
+
+    def __str__(self):
+        if self.tail_xy is None or self.head_xy is None:
+            return "None"
+        s0 = "tail: " + str(self.tail_xy[0]) + "," + str(self.tail_xy[1])  \
+            if self.tail_xy[0] is not None and self.tail_xy[1] is not None else "None"
+        s1 = " head: " + str(self.head_xy[0]) + "," + str(self.head_xy[1]) \
+            if self.head_xy[0] is not None and self.head_xy[1] is not None else "None"
+        return s0 + s1
+
+    def set_head_xy(self, xy):
+        self.head_xy = xy
+
+    def set_tail_xy(self, xy):
+        self.tail_xy = xy
 
     @classmethod
     def create_arrowhead(cls, svgsvg):
         svgsvg.add_arrowhead()
 
     def calculate_bbox(self):
-        raise NotImplemented("no BBOX for {self}")
+        """
+        assume that width has a minimum value if aligned with axes
+        :return:
+        """
+        bbox = BBox.create_from_corners(self.tail_xy, self.head_xy)
+
+
+    @classmethod
+    def create_from_svgg(cls, svgg):
+        """
+        expects an <svg:g role="arrow"><svg:line x1,y1 x2,y2></svg:g> object
+        x1,y1 is the tail and x2,y2 is the head
+        svg:marker is not required
+        Example:
+        <svg:g role="arrow">
+            <svg:line x1="241" y1="669" x2="243" y2="757" ... />
+        </svg:g>
+        maybe mainly for testing
+        :param svgg:
+        :return: SVGArraw object or None if svgg is None or Errors
+        """
+        if svgg is None:
+            return None
+        assert type(svgg) is lxml.etree._Element, "svgg must be namespaced element"
+        assert svgg.get("role") == "arrow", "must have role='arrow'"
+        xpath = f"{{{SVG_NS}}}line"
+        svg_line = ns_xpath(svgg, xpath=xpath)
+        svg_arrow = SVGArrow()
+        x1 = cls.get_float_attribute(svg_line, cls.X1)
+        x2 = cls.get_float_attribute(svg_line, cls.X2)
+        y1 = cls.get_float_attribute(svg_line, cls.Y1)
+        y2 = cls.get_float_attribute(svg_line, cls.Y2)
+        svg_arrow.tail_xy = [x1, y1]
+        svg_arrow.head_xy = [x2, y2]
+
+        return svg_arrow
 
 
 def set_default_styles(svg_element):
@@ -549,7 +631,8 @@ def set_default_styles(svg_element):
     svg_element.set_stroke(RED)
     svg_element.set_stroke_width("1")
 
-def ns_xpath(element, xpath, xpath_type="Clark"):
+
+def ns_xpath(element, xpath, xpath_type="Clark", unpack_1_elem_lists=True):
     """
     searches an element with possibly namespaced Xpath
     here we use SVG namespace as an f-string substitution
@@ -562,27 +645,35 @@ def ns_xpath(element, xpath, xpath_type="Clark"):
     :param element: element to search
     :param xpath: xpath expression
     :param xpath_type: "Clark" or "local"
+    :param unpack_1_elem_lists: convert returned list [Foo] to Foo (default True)
     :return: result of xpath (bool or number or string, or list)
     """
     assert element is not None
     assert xpath is not None
     assert xpath_type is not None
 
-    svg_defs_elements = None
+    return_val = None
     if xpath_type is None:
         raise ValueError("xpath_type cannot be None")
     elif xpath_type.lower() == "local":
-        svg_defs_elements = element.xpath(xpath)
+        try:
+            return_val = element.xpath(xpath)
+        except XPathSyntaxError as e:
+            logger.error(f"XPATH error {e} in {xpath}")
+            raise e
     elif xpath_type.lower() == "clark":
         try:
-            svg_defs_elements = lxml.etree.ETXPath(xpath)(element)
+            return_val = lxml.etree.ETXPath(xpath)(element)
         except XPathSyntaxError as e:
             logger.error(f"XPATH error {e} in {xpath}")
             raise e
     else:
         logger.error(f"xpath_type must be Clark or local")
 
-    return svg_defs_elements
+    # unpack 1-element lists?
+    if unpack_1_elem_lists and type(return_val) is list and len(return_val) == 1:
+        return_val = return_val[0]
+    return return_val
 
 
 class XMLNamespaces:

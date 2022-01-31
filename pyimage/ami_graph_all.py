@@ -486,14 +486,8 @@ class AmiGraph:
         # lengths = [self.get_direct_length(nx_edge)
         for nx_edge in nx_edges:
             length = self.get_direct_length(nx_edge)
-            print(f"length ==> {length}")
             length_by_nx_edge[nx_edge] = length
         return length_by_nx_edge
-
-    # @classmethod
-    # def calculate_angles_to_edges(cls, nx_graph, edges):
-    #     for edge in edges:
-    #         angle = AmiEdge.get_angle_to_x(nx_graph, edge)
 
     def get_interedge_tuple_angle(self, nx_edge0, nx_edge1):
         """
@@ -627,7 +621,7 @@ class AmiEdge:
                 edge = edges[self.branch_id]
                 points = edge[self.PTS]
             except KeyError as e:
-                print(f"{__name__} key error {self.branch_id} {e}")
+                logger.error(f"{__name__} key error {self.branch_id} {e}")
                 raise e
         else:
             points = edges[self.PTS]

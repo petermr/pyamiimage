@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Pathway xmlns="http://pathvisio.org/GPML/2013a" Name="Foo" Version="0123456" Organism="Lantana">
+  <Graphics BoardWidth="484.0" BoardHeight="234.25" />
+  <DataNode TextLabel="Bar" GraphId="bf9b8" Type="Metabolite">
+    <Graphics CenterX="348.5" CenterY="184.25" Width="93.0" Height="35.5" FontSize="12" Valign="Middle" Color="0000ff" />
+  </DataNode>
+  <DataNode TextLabel="HDL" GraphId="eb089" Type="Metabolite">
+    <Graphics CenterX="102.875" CenterY="182.625" Width="96.25" Height="33.25" FontSize="12" Valign="Middle" Color="0000ff" />
+    <Xref Database="ChEBI" ID="CHEBI:39025" />
+  </DataNode>
+  <Interaction>
+    <Graphics LineThickness="1.0">
+      <Point X="151.0" Y="182.625" GraphRef="eb089" RelX="1.0" RelY="0.0" />
+      <Point X="302.0" Y="184.25" GraphRef="bf9b8" RelX="-1.0" RelY="0.0" ArrowHead="mim-conversion" />
+    </Graphics>
+  </Interaction>
+</Pathway>

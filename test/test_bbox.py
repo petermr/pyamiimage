@@ -25,7 +25,8 @@ class TestBBox():
         width = 150
         height = 27
         bbox = BBox.create_from_xy_w_h(xy, width, height)
-        assert str(bbox) == str([[100, 250], [200, 227]])
+        assert bbox.xy_ranges[0] == [100, 250]
+        assert bbox.xy_ranges[1] == [200, 227]
 
     def test_update_bbox(self):
         bbox = BBox([[100, 200], [300, 400]])
