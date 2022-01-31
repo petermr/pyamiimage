@@ -76,6 +76,15 @@ class Resources:
     assert PRIMITIVES.exists(), f"file exists {PRIMITIVES}"
     TESSERACT1 = Path(TEST_RESOURCE_DIR, "tesseract_test.png")
     assert TESSERACT1.exists(), f"file exists {TESSERACT1}"
+    TESSERACT_BENG = Path(TEST_RESOURCE_DIR, "tesseract_beng.jpg")
+    assert TESSERACT_BENG.exists(), f"file doesn't exist {TESSERACT_BENG}"
+    TESSERACT_GER = Path(TEST_RESOURCE_DIR, "tesseract_ger.jpg")
+    assert TESSERACT_GER.exists(), f"file doesn't exist {TESSERACT_GER}"
+    TESSERACT_GER2 = Path(TEST_RESOURCE_DIR, "tesseract_ger2.png")
+    assert TESSERACT_GER2.exists(), f"file doesn't exist {TESSERACT_GER2}"
+    TESSERACT_ITA = Path(TEST_RESOURCE_DIR, "tesseract_ita.png")
+    assert TESSERACT_ITA.exists(), f"file doesn't exist {TESSERACT_ITA}"
+    
 
     def __init__(self):
         self.cached = False
