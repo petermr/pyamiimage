@@ -19,7 +19,7 @@ from skimage.measure import approximate_polygon, subdivide_polygon
 from skimage.morphology import skeletonize
 
 # local
-from ..pyimage.ami_edge_manager import AmiEdgeAnalyzer, X, Y
+# from ..pyimage.ami_edge_manager import AmiEdgeAnalyzer, X, Y
 from ..pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
 from ..pyimage.ami_image import AmiImage
 from ..pyimage.ami_plot import AmiEdgeTool, AmiLine
@@ -286,7 +286,7 @@ plt.show()"""
                                    [89, 856],
                                    [91, 857]])
         assert type(expected_numpy[0]) is np.ndarray
-        assert type(expected_numpy[0][0]) is np.int64
+        assert type(expected_numpy[0][0]) is np.int32
         assert np.array_equal(points0_2, expected_numpy), f"found {points0_2}"
 
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
@@ -615,6 +615,7 @@ plt.show()"""
         nx_graph = self.nx_graph_battery1
         TestAmiGraph.display_erode_dilate(self.battery1_image, nx_graph)
 
+    @unittest.skip("Moved to AmiOCR, NYI")
     def test_find_bboxes_with_text(self):
         """find text boxes and remove those with more than one character
         so the remaining lines can be analyses
@@ -1099,6 +1100,8 @@ plt.show()"""
         horiz_dict = AmiLine.get_horiz_vert_counter(horiz_ami_lines, xy_index=1)
         assert horiz_dict == Counter({759: 4, 758: 2, 61: 1}), f"found {horiz_dict}"
 
+    #TODO upload ami_edge_analyzer
+    @unittest.skip("AmiEdgeAnalyzer not uploaded yet")
     def test_edge_manager(self):
         """
 

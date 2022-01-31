@@ -11,15 +11,14 @@ class TestTextBox:
         self.textbox = None
 
     def test_get_text(self):
-        text = self.textbox.get_text()
-        assert text == 'hello world'
+        assert self.textbox.text == 'hello world'
 
     def test_set_text(self):
         self.textbox.set_text("hello peter")
-        assert self.textbox.get_text() == "hello peter" 
+        assert self.textbox.text == "hello peter" 
 
-    def test_get_w_h(self):
-        assert self.textbox.get_ranges() == [[10, 50], [40, 50]]
+    def test_get_ranges(self):
+        assert self.textbox.bbox.get_ranges() == [[10, 50], [40, 50]]
 
     def plot_bbox():
         pass

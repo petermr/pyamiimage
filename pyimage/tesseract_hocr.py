@@ -5,10 +5,7 @@ import numpy as np
 from lxml.etree import Element, QName
 from lxml import etree
 
-try:
-    from ..pyimage.svg import XMLNamespaces
-except:
-    from pyimage.svg import XMLNamespaces
+from ..pyimage.svg import XMLNamespaces
 
 try:
     from pyami.py4ami import wikimedia
@@ -148,7 +145,6 @@ class TesseractOCR:
 
         # and return a numpy array from the generated list
         bboxes = np.array(bboxes)
-
         return bboxes, words
 
     @classmethod
@@ -164,10 +160,6 @@ class TesseractOCR:
         phrases = []
         bbboxes = []
         bboxes, words = cls.extract_bbox_from_hocr(hocr_element)
-        
-        # TODO verify this doesn't break the system
-        # words, bboxes = TesseractOCR.remove_bad_word_bboxes(words, bboxes)
-        
         for i in range(len(words)):
             phrase = [words[i]]
             last_bbox = bboxes[i]
@@ -189,128 +181,12 @@ class TesseractOCR:
             elif not phrases:
                 # if array is empty add element
                 phrases.append(phrase)
-                bbboxes.append(last_bbox)
-                # bbboxes.append(cls.envelope_box([bbboxes[i], last_bbox]))
-                # bbboxes.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
+                bbboxes.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
             elif not phrases[-1].endswith(phrase):
                 # only add phrase if the last phrase added does not end with current phrase
                 phrases.append(phrase)
-                bbboxes.append(cls.envelope_box([bbboxes[i], last_bbox]))
-                #bbboxes.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
+                bbboxes.append([bboxes[i][0], bboxes[i][1], last_bbox[2], last_bbox[3]])
         return phrases, bbboxes
-
-    @classmethod
-    def find_word_groups(cls, bbox_of_phrases, line_seperation=10, min_x_overlap=0.20):
-        """
-        :param bbox_of_phrases: bounding boxes of phrases in an image
-        :type bbox_of_phrases: list
-        :param line_seperation: allowable distance between two lines
-        :type line_seperation: int
-        :param min_x_overlap: ratio of horizontal overlap between two bboxes
-        :type min_x_overlap: float
-        """
-        groups = []
-        for bbox in bbox_of_phrases:
-            # sort each bbox into a group
-            
-            # if no group exists create a group
-            if len(groups) == 0:
-                groups.append(bbox)
-                continue
-            
-            group_found = False
-            for index, group in enumerate(groups):
-                if abs(group[3] - bbox[1]) < line_seperation or abs(group[1] - bbox[3]) < line_seperation:
-                    if cls.x_overlap(group, bbox) > min_x_overlap:
-                        groups[index] = TesseractOCR.envelope_box([group, bbox])
-                        group_found = True
-                        break
-
-            # if bbox doesn't fit a group, create a new group
-            if not group_found:
-                groups.append(bbox)
-
-        return groups
-
-    @classmethod 
-    def x_overlap(cls, bbox1, bbox2):
-        # find which bbox is wider
-        pixel_overlap = max(0, min(bbox1[2], bbox2[2]) - max(bbox1[0], bbox2[0]) + 1)
-        
-        if pixel_overlap == 0:
-            return 0
-        
-        bbox1_width = bbox1[2] - bbox1[0]
-        bbox2_width = bbox2[2] - bbox2[0]
-        narrower_bbox_width = min(bbox1_width, bbox2_width)
-        
-        overlap = pixel_overlap/narrower_bbox_width
-        return overlap
-
-
-    @classmethod
-    def split_image_into_snippets(cls, image):
-        """Given an image, returns a list of snippets and their bounding boxes
-        :param image: input image
-        :type image: numpy array
-        :return snippets: list of snippets
-        :type snippets: list of numpy arrays"""
-        split_horizontal = 2
-        split_vertical = 2
-        image_shape = image.shape
-        height, width = image_shape[0], image_shape[1]
-        M = image.shape[0]//split_vertical
-        N = image.shape[1]//split_horizontal
-        tiles = [image[x:x+M,y:y+N] for x in range(0,image.shape[0],M) for y in range(0,image.shape[1],N)]
-        coordinates = [[x, x+M, y, y+N] for x in range(0,image.shape[0],M) for y in range(0,image.shape[1],N)]
-        return tiles, coordinates
-
-
-
-    @classmethod
-    def envelope_box(cls, bboxes):
-        # given list of bboxes gives the whole box enveloping all the bboxes
-        min_x, min_y, max_x, max_y = bboxes[0][0], bboxes[0][1], bboxes[0][2], bboxes[0][3] 
-        for bbox in bboxes:
-            if bbox[0] < min_x:
-                min_x = bbox[0]
-            if bbox[1] < min_y:
-                min_y = bbox[1]
-            if bbox[2] > max_x:
-                max_x = bbox[2]
-            if bbox[3] > max_y:
-                max_y = bbox[3]
-        return [min_x, min_y, max_x, max_y]
-
-    @classmethod
-    def remove_bad_word_bboxes(cls, words, bboxes, min_char_width=5, min_char_height=10):
-        # remove if recognised word is only some special characters. 
-        good_bboxes = []
-        good_words = []
-        for word, bbox in zip(words, bboxes):
-            # if word is empty, empty strings are false
-            if not word:
-                continue
-            # if "-" in word or ">" in word or "<" in word or "|" in word or "v" in word:
-            #     continue
-            # # if the word is not alphanumeric (only special character) then its probably a mistake
-            # if not word.isalnum():
-            #     continue
-            # if bbox is too thin in either dimension
-            if bbox[2] - bbox[0] < min_char_width or bbox[3] - bbox[1] < min_char_height:
-                continue
-            # if the bbox appears in portrait orientation reject
-            if bbox[3] - bbox[1] > bbox[2] - bbox[0]:
-                continue
-
-            good_bboxes.append(bbox)
-            good_words.append(word) 
-
-        return good_words, good_bboxes
-
-    def onion_scan():
-        #TODO Recursive scans of smaller and smaller area until we recognize text
-        pass
 
     @classmethod
     def wikidata_lookup(cls, phrases):

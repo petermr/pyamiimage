@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from skimage import io
 import logging
 # local
-from ..pyimage.ami_image import AmiImage
+from pyamiimage.pyimage.ami_image import AmiImage
 from ..pyimage.ami_util import AmiUtil
 
 from ..pyimage.bbox import BBox

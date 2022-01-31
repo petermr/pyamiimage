@@ -9,10 +9,10 @@ from pathlib import PosixPath
 
 from pyimage.ami_image import AmiImage
 from pyimage.ami_util import AmiUtil
-from pyimage.ami_island import AmiIsland
-from pyimage.ami_node import AmiNode
+# from pyimage.ami_island import AmiIsland
+# from pyimage.ami_node import AmiNode
 from pyimage.ami_skeleton import AmiSkeleton
-from pyimage.ami_edge import AmiEdge
+# from pyimage.ami_edge import AmiEdge
 
 
 class AmiGraph:

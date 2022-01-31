@@ -15,26 +15,11 @@ from skimage import io
 from skimage.measure import approximate_polygon
 
 # local
-<<<<<<< HEAD
-try:
-    from ..pyimage.ami_image import AmiImage
-    from ..pyimage.ami_util import AmiUtil
-    from ..pyimage.svg import BBox
-    from ..pyimage.text_box import TextBox
-    from ..pyimage.flood_fill import FloodFill
-except:
-    from pyimage.ami_image import AmiImage
-    from pyimage.ami_util import AmiUtil
-    from pyimage.svg import BBox
-    from pyimage.text_box import TextBox
-    from pyimage.flood_fill import FloodFill
-=======
 from ..pyimage.ami_image import AmiImage
 from ..pyimage.ami_plot import AmiLine
 from ..pyimage.ami_util import AmiUtil
 from ..pyimage.svg import BBox
 from ..pyimage.text_box import TextBox
->>>>>>> main
 
 logger = logging.getLogger(__name__)
 
@@ -43,8 +28,6 @@ logger = logging.getLogger(__name__)
 ==============================GRAPH=======================================
 ==========================================================================
 """
-
-
 class AmiGraph:
     """holds AmiNodes and AmiEdges
     may also hold subgraphs

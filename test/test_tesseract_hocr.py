@@ -141,6 +141,7 @@ class TestTesseractHOCR:
         io.imshow(phrases_tess)
         io.show()
 
+    @unittest.skip("TesseractOCR is deprecated")
     def test_find_text_group(self):
         biosynth1_img = io.imread(self.biosynth1)
         
@@ -212,10 +213,10 @@ class TestTesseractHOCR:
         assert svg_str == '<svg:rect xmlns:svg="http://www.w3.org/2000/svg" x="10" width="10" ' \
                           'y="30" height="20" stroke-width="1.0" stroke="red" fill="none"/>'
 
-
+    @unittest.skip("TesseractOCR is deprecated")
     def test_envelope(self):
         phrases, bboxes = TesseractOCR.find_phrases(self.biosynth1_elem)
-        full_box = TesseractOCR.envelope_box(bboxes)
+        full_box = TesseractOCR.envelop(bboxes)
         biosynth1_img = io.imread(self.biosynth1)
         boxed = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=[full_box])
         io.imshow(boxed)
