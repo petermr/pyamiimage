@@ -2,6 +2,7 @@
 from lxml.etree import ElementTree, Element, XPathSyntaxError
 import lxml.etree
 from abc import ABC
+from pathlib import Path
 import logging
 # local
 try:
@@ -218,17 +219,27 @@ class SVGRect(AbsSVG):
     X = "x"
     Y = "y"
 
-    def __init__(self, bbox=None):
+    def __init__(self, bbox=None, xy_ranges=None):
         super().__init__(self.TAG)
         self.xy = None
         self.width = None
         self.height = None
         # BBox is formally independent of the xy,w,h i.e. could be set directly
         self.bbox = bbox
+
         if self.bbox is not None:
             self.set_xy([bbox.get_xrange()[0], bbox.get_yrange()[0]])
             self.set_height(bbox.get_height())
             self.set_width(bbox.get_width())
+        elif xy_ranges is not None:
+            try:
+                self.set_xy([xy_ranges[0][0], xy_ranges[1][0]])
+                self.set_height(xy_ranges[1][1] - xy_ranges[1][0])
+                self.set_width(xy_ranges[0][1] - xy_ranges[0][0])
+            except Exception as e:
+                logger.error(f"Bad xyranges {xy_ranges} should be two pairs of numbers")
+                raise ValueError(e)
+
 
     def set_height(self, h):
         """
@@ -356,6 +367,12 @@ class SVGLine(AbsSVG):
         self.set_xy1(xy1)
         self.set_xy2(xy2)
         set_default_styles(self)
+
+    def __repr__(self):
+        """[x1, y1], [x2, y2]"""
+        s = f"[{self.get_float_attribute(self, self.X1)}, {self.get_float_attribute(self, self.Y1)}], " \
+            f"[{self.get_float_attribute(self, self.Y1)}, {self.get_float_attribute(self, self.Y2)}]"
+        return s
 
     def set_xy1(self, xy):
         if xy is not None:
@@ -617,6 +634,14 @@ class SVGArrow(SVGG):
         svg_arrow.head_xy = [x2, y2]
 
         return svg_arrow
+
+class SVGUtil:
+    """mainly classmethods"""
+    @classmethod
+    def write_to_path(cls, svg_object, path, pretty_print=True):
+        """write to path"""
+        with open(str(Path(path)), "w") as f:
+            f.write(svg_object.tostring(pretty_print=pretty_print))
 
 
 def set_default_styles(svg_element):

@@ -1,5 +1,6 @@
 """bounding box"""
 from skimage import draw
+# from ..pyimage.svg import SVGG, SVGRect
 
 class BBox:
     """bounding box 2array of 2arrays, based on integers
@@ -10,7 +11,7 @@ class BBox:
     WIDTH = "width"
     HEIGHT = "height"
 
-    def __init__(self, xy_ranges=None):
+    def __init__(self, xy_ranges=None, swap_minmax=False):
         """
         Must have a valid bbox
         Still haven'tb worked out logic of default boxes (must include None's)
@@ -18,6 +19,7 @@ class BBox:
         :param xy_ranges: [[x1, x2], [y1, y2]] will be set to integers
         """
         self.xy_ranges = [[], []]
+        self.swap_minmax = swap_minmax
         if xy_ranges is not None:
             self.set_ranges(xy_ranges)
 
@@ -59,6 +61,7 @@ class BBox:
         self.set_yrange(xy_ranges[1])
 
     def get_ranges(self):
+        """gets ranges as [xrange, yrange]"""
         return self.xy_ranges
 
     def set_xrange(self, rrange):
@@ -96,7 +99,10 @@ class BBox:
         val0 = int(rrange[0])
         val1 = int(rrange[1])
         if val1 < val0:
-            raise ValueError(f"ranges must be increasing {val0} !<= {val1}")
+            if self.swap_minmax:
+                val1, val0 = val0, val1
+            else:
+                raise ValueError(f"ranges must be increasing {val0} !<= {val1}")
         self.xy_ranges[index] = [val0, val1]
 
     def __str__(self):
@@ -369,6 +375,17 @@ class BBox:
             bbox_col = max_col - 2
         point_pair[1] = (bbox_row, bbox_col)
         return point_pair
+
+    # RECURSIVE imports...
+    # def create_svg(self):
+    #     """creates SVG (a <g> with a <rect>
+    #     :return: <g role="bbox"><rect .../></g>
+    #     """
+    #     g = SVGG()
+    #     g.set_attribute("role", "bbox")
+    #     svg_rect = SVGRect(self)
+    #     g.append(svg_rect)
+    #     return g
 
     @classmethod
     def create_from_corners(cls, xy1, xy2):

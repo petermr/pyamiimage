@@ -90,6 +90,11 @@ class Resources:
     assert TESSERACT_ITA.exists(), f"file doesn't exist {TESSERACT_ITA}"
     
 
+    YW5003_5 = Path(TEST_RESOURCE_DIR, "iucr_yw5003_fig5.png")
+    assert YW5003_5.exists(), f"file exists {YW5003_5}"
+
+# =====================
+
     TEMP_DIR = Path(TEST_RESOURCE_DIR.parent.parent, "temp")
     assert TEMP_DIR.is_dir(), f"file exists {TEMP_DIR}"
 

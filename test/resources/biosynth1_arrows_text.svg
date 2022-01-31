@@ -64,8 +64,8 @@
 			<svg:rect role="bbox" position="core" x="220" width="40" y="669" height="88" stroke-width="1.0" stroke="red" fill="yellow" opacity="0.3"/>
 			<svg:rect role="bbox" position="front" x="220" width="40" y="757" height="60" stroke-width="1.0" stroke="red" fill="fuchsia" opacity="0.3"/>
 			<svg:rect role="bbox" position="back" x="220" width="40" y="629" height="40" stroke-width="1.0" stroke="red" fill="turquoise" opacity="0.3"/>
-			<svg:rect role="bbox" position="left" x="180" width="40" y="679" height="68" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
-			<svg:rect role="bbox" position="right" x="260" width="40" y="679" height="68" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
+			<svg:rect role="bbox" position="left" x="260" width="40" y="679" height="68" stroke-width="1.0" stroke="red" fill="lime" opacity="0.3"/>
+			<svg:rect role="bbox" position="right" x="180" width="40" y="679" height="68" stroke-width="1.0" stroke="red" fill="red" opacity="0.3"/>
 			<svg:line orient="down" x1="241" y1="669" x2="243" y2="757" fill="none" stroke="black" stroke-width="2.0" marker-end="url(#arrowhead)"/>
 			<svg:title>a6</svg:title>
 		</svg:g>
