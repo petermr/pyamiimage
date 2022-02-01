@@ -39,7 +39,12 @@ words = tess_ocr.get_words()
 words_with_baseline  = tess_ocr.find_baseline(tess_ocr.hocr)
 for word in words:
     re_read_word = AmiOCR.read_textbox(tess_img_gray, word)
-    print(f"word: {word}; re_read word: {re_read_word}")
+    print(f"word: {word}")
+
+# for word in words:
+#     re_read_word = AmiOCR.read_textbox(tess_img_gray, word)
+#     print(f"word: {word}; re_read word: {re_read_word}")
+
 words_with_bounding_boxes = AmiOCR.plot_bboxes_on_image(tess_img_gray, words)
 io.imshow(words_with_bounding_boxes)
 io.show()

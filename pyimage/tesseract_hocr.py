@@ -142,8 +142,8 @@ class TesseractOCR:
             if child.attrib['class'] == 'ocrx_word':
                 # coordinates for bbox has the following format: 'bbox 333 74 471 102; x_wconf 76'
                 # we are only interested in the coordinates, so we split at ; and append the first part
-                bboxes.append(child.attrib['title'].split(';')[0])
-                words.append(child.text)
+                    bboxes.append(child.attrib['title'].split(';')[0])
+                    words.append(child.text)
 
         # now we have a list with string elenments like 'bbox 333 74 471 102'
         # first we convert each string into a list, and then remove 'bbox', leaving just the coordinate

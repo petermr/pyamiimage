@@ -64,7 +64,6 @@ class AmiOCR:
         """
         filepath = Path(AmiOCR.TESSERACT_TEMP_PATH, filename)
         AmiImage.write(filepath, image, mkdir=False)
-        print(filepath)
         hocr = AmiOCR.hocr_from_image_path(filepath)
         return hocr
     
@@ -376,7 +375,6 @@ class AmiOCR:
             if child.attrib['class'] == 'ocr_line':
                 # coordinates for bbox has the following format: 'bbox 333 74 471 102; x_wconf 76'
                 # we are only interested in the coordinates, so we split at ; and append the first part
-                print("pause here")
                 baseline = child.attrib['title'].split(';')[1]
                 bbox_string = child.attrib['title'].split(';')[0]
                 xy_range = self.create_xy_range_from_bbox_string(bbox_string)
