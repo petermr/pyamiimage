@@ -44,27 +44,44 @@ class TextBox():
 
 class AmiOCR:
     TESSERACT_TEMP_PATH = Path(Path(__file__).parent.parent, "temp/tesseract/")
-    def __init__(self, path=None, image=None, filename="default.png") -> None:
+    def __init__(self, path=None, image=None) -> None:
         """Creates an OCR object from path and images, if both path and images are given, path takes precendence"""
-        self.hocr_string = None
         if path is not None:
-            self.hocr = self.run_ocr(path)
+            self.hocr = AmiOCR.run_ocr(path)
         elif image is not None:
-            filepath = Path(AmiOCR.TESSERACT_TEMP_PATH, filename)
-            print(filepath)
-            AmiImage.write(filepath, image, mkdir=False)
-            self.hocr = self.run_ocr(filepath)
+            self.hocr = AmiOCR.run_ocr_on_image(image)
         else:
             self.hocr = None
         self.words = []
         self.phrases = []
         self.groups = []
 
-    def run_ocr(self, path=None):
+    @classmethod
+    def run_ocr_on_image(cls, image, filename="default.png"):
+        """
+        saves image as a temp file then ocr the file
+        image is a 2D numpy arr
+        """
+        filepath = Path(AmiOCR.TESSERACT_TEMP_PATH, filename)
+        AmiImage.write(filepath, image, mkdir=False)
+        print(filepath)
+        hocr = AmiOCR.hocr_from_image_path(filepath)
+        return hocr
+    
+    @classmethod
+    def create_temp_file(cls, image, filename):
+        """creates a temporary file given path and image"""
+        filepath = Path(AmiOCR.TESSERACT_TEMP_PATH, filename)
+        AmiImage.write(filepath, image, mkdir=False)
+
+
+    @classmethod
+    def run_ocr(cls, path=None):
         if path is None:
             return None
         else:
-            return self.hocr_from_image_path(path)
+            hocr = AmiOCR.hocr_from_image_path(path)
+            return hocr
 
 
     def get_words(self):
@@ -90,7 +107,8 @@ class AmiOCR:
         """
         print(et.tostring(hocr_element, pretty_print=True).decode("utf-8"))
 
-    def hocr_from_image_path(self, path):
+    @classmethod
+    def hocr_from_image_path(cls, path):
         """Runs tesseract hocr on the given image
         :param: Path
         :returns: hocr
@@ -99,14 +117,12 @@ class AmiOCR:
         if path is not str:
             path = str(path)
 
-        self.hocr_string = pytesseract.image_to_pdf_or_hocr(path, extension='hocr', config='11')
-        # self.hocr_string = codecs.decode(self.hocr_string, 'UTF-8')
-        # print(self.hocr_string)
-        hocr = self.parse_hocr_string(self.hocr_string)
-        print(hocr)
+        hocr_string = pytesseract.image_to_pdf_or_hocr(path, extension='hocr', config='11')
+        hocr = AmiOCR.parse_hocr_string(hocr_string)
         return hocr
 
-    def parse_hocr_string(self, hocr_string):
+    @classmethod
+    def parse_hocr_string(cls, hocr_string):
         """Parses hocr output in string format as a tree using lxml
         :input: hocr html as string
         :returns: root of hocr as an object of lxml.etree.Element class
@@ -376,17 +392,28 @@ class AmiOCR:
         and return a list of numpy arrays"""
         patches = []
         for textbox in textboxes:
-            xy_range = textbox.bbox.xy_ranges
-            min_y = xy_range[1][0]
-            max_y = xy_range[1][1]
-            min_x = xy_range[0][0]
-            max_x = xy_range[0][1]
-            print(f"min_y: {min_y}", f"max_y: {max_y}", f"min_x: {min_x}", f"max_x: {max_x}")
-            patch = image[min_y:max_y, min_x:max_x]
-            print(patch.shape)
-            patches.append(patch)
-        
+            patch = AmiOCR.copy_textbox_values(image, textbox)
+            patches.append(patch)   
         return patches
+
+    @classmethod
+    def copy_textbox_values(cls, image, textbox, padding=0):
+        """given image and textbox, will return the numpy array of the size of the textbox from the image"""
+        xy_range = textbox.bbox.xy_ranges
+        min_y = xy_range[1][0]
+        max_y = xy_range[1][1]
+        min_x = xy_range[0][0]
+        max_x = xy_range[0][1]
+        # print(f"min_y: {min_y}", f"max_y: {max_y}", f"min_x: {min_x}", f"max_x: {max_x}")
+        patch = image[min_y:max_y, min_x:max_x]
+        return patch
+
+    @classmethod
+    def read_textbox(cls, image, textbox):
+        """rereads the textboxes with some added padding"""
+        patch = AmiOCR.copy_textbox_values(image, textbox)
+        patch_ocr = AmiOCR(image=patch)
+        return patch_ocr
 
     @classmethod
     def clean_all(self, textboxes):

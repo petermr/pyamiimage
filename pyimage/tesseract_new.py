@@ -9,6 +9,7 @@ from skimage import io
 # tess = Resources.TESSERACT1
 # tess = Resources.TESSERACT_BENG
 tess = Resources.BIOSYNTH2
+tess = Resources.YW5003_5
 # tess = Resources.TESSERACT_GER2
 # tess = Resources.TESSERACT_ITA
 tess_ocr = AmiOCR(tess)
@@ -16,9 +17,7 @@ tess_img = io.imread(tess)
 
 
 
-# words_with_bounding_boxes = tess_ocr.plot_bboxes_on_image(tess_img, words)
-# io.imshow(words_with_bounding_boxes)
-# io.show()
+
 
 # phrases = tess_ocr.get_phrases()
 # phrases_with_bounding_boxes = tess_ocr.plot_bboxes_on_image(tess_img, phrases)
@@ -32,50 +31,55 @@ tess_img = io.imread(tess)
 
 tess_img_gray = AmiImage.create_grayscale_from_image(tess_img)
 tess_img_bin = AmiImage.create_white_binary_from_image(tess_img_gray)
-tess_ocr = AmiOCR(image=tess_img_bin)
+tess_ocr = AmiOCR(image=tess_img_gray)
 # io.imshow(tess_img_bin)
 # io.show()
 
 words = tess_ocr.get_words()
 words_with_baseline  = tess_ocr.find_baseline(tess_ocr.hocr)
 for word in words:
-    print(word)
-
+    re_read_word = AmiOCR.read_textbox(tess_img_gray, word)
+    print(f"word: {word}; re_read word: {re_read_word}")
+words_with_bounding_boxes = AmiOCR.plot_bboxes_on_image(tess_img_gray, words)
+io.imshow(words_with_bounding_boxes)
+io.show()
 # box_bin = AmiOCR.plot_bboxes_on_image(tess_img_bin, words)
 # io.imshow(box_bin)
 # io.show()
 
-patches = AmiOCR.bounding_box_patches(tess_img_bin, words)
-TESSERACT_TEMP_PATH = Path(Path(__file__).parent.parent, "temp/tesseract/")
-AmiImage.write_image_group(TESSERACT_TEMP_PATH, patches, filename="black_on_white", mkdir=False)
+# # # patches = AmiOCR.bounding_box_patches(tess_img_bin, words)
+# # # TESSERACT_TEMP_PATH = Path(Path(__file__).parent.parent, "temp/tesseract/")
+# # # AmiImage.write_image_group(TESSERACT_TEMP_PATH, patches, filename="black_on_white", mkdir=False)
 
-def patches_pixel_stats(patches, signal_val, axis=1):
-    """sum of signal values along a axis in an array"""
-    signal = []
-    for patch in patches:
-        signal.append(np.count_nonzero(patch==signal_val, axis=axis))
-    signal = [np.array(item) for item in signal]
-    return signal
+# # # def patches_pixel_stats(patches, signal_val, axis=1):
+# # #     """sum of signal values along a axis in an array"""
+# # #     signal = []
+# # #     for patch in patches:
+# # #         signal.append(np.count_nonzero(patch==signal_val, axis=axis))
+# # #     signal = [np.array(item) for item in signal]
+# # #     return signal
 
-signal = patches_pixel_stats(patches, signal_val=255, axis=1)
+# # # signal = patches_pixel_stats(patches, signal_val=255, axis=1)
 
-row = [np.arange(0, item.shape[0]) for item in signal]
-import matplotlib.pyplot as plt
+# # # row = [np.arange(0, item.shape[0]) for item in signal]
+# # # import matplotlib.pyplot as plt
 
-for idx in range(36, 48):
-    im = plt.imread(Path(TESSERACT_TEMP_PATH, f"black_on_white{idx}.png"))
-    # implot = plt.imshow(im)
-    import scipy.ndimage as ndimage
+# # # for idx in range(10, 11):
+# # #     im = plt.imread(Path(TESSERACT_TEMP_PATH, f"black_on_white{idx}.png"))
+# # #     # implot = plt.imshow(im)
+# # #     import scipy.ndimage as ndimage
 
-    angle = 90 # in degrees
+# # #     angle = 90 # in degrees
 
-    new_data = ndimage.rotate(im, angle, reshape=True)
+# # #     new_data = ndimage.rotate(im, angle, reshape=True)
 
-    plt.imshow(new_data)
+# # #     plt.imshow(new_data)
 
-    plt.plot(row[idx], signal[idx], color='red')
+# # #     plt.plot(row[idx], signal[idx], color='red')
 
-    plt.show()
+# # #     plt.show()
+
+    
 # for x, y in zip(row, signal):
 #     plt.plot(x, y)
 #     plt.show()

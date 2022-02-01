@@ -39,6 +39,15 @@ TEXT_BOX_STROKE = "blue"
 TEXT_BOX_FONT = "sans-serif"
 
 
+
+class AmiHOCR:
+    """parses HOCR to create accessible datastructure"""
+    def __init__(self) -> None:
+        pass
+
+    
+
+
 class TesseractOCR:
     """Wrapper for pytesseract + addtional methods for phrase detection"""
     def __init__(self) -> None:
