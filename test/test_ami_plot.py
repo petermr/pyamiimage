@@ -8,14 +8,15 @@ class TestAmiLineTool:
 
     def test_empty_polyline(self):
         line_tool = AmiLineTool()
-        assert line_tool.points == [], f"found {line_tool.points}"
+        assert line_tool.polylines == []
+        assert line_tool.polygons == []
+        assert line_tool.mode == POLYLINE
 
-    def test_single_points(self):
-        line_tool = AmiLineTool()
-        line_tool.add_point([1, 2])
-        assert line_tool.points == [[1, 2]], f"found {line_tool}"
+    # def test_single_points(self):
+    #     line_tool = AmiLineTool()
+    #     line_tool.add_point([1, 2])
+    #     assert line_tool.points == [[1, 2]], f"found {line_tool}"
 
-    # @unittest.skip("Not implemented")
     def test_single_segment(self):
         # creates fresh polyline
         line_tool = AmiLineTool()
@@ -38,21 +39,21 @@ class TestAmiLineTool:
         line_tool.add_segments([[[5, 8], [5, 7]], [[1, 2], [2, 3]]])
         assert line_tool.polylines == [[[5, 8], [5, 7]], [[1, 2], [2, 3]]]
 
-    @unittest.skip("Cannot add single points")
-    def test_add_right_point(self):
-        line_tool = AmiLineTool(xy_flag=X)
-        line_tool.add_segments([[[1, 2], [2, 3]], [[2, 3], [5, 7]]])
-        line_tool.add_point([9, 5])
-        assert line_tool.points == [[1, 2], [2, 3], [5, 7], [9, 5]]
+    # @unittest.skip("Cannot add single points")
+    # def test_add_right_point(self):
+    #     line_tool = AmiLineTool(xy_flag=X)
+    #     line_tool.add_segments([[[1, 2], [2, 3]], [[2, 3], [5, 7]]])
+    #     line_tool.add_point([9, 5])
+    #     assert line_tool.points == [[1, 2], [2, 3], [5, 7], [9, 5]]
 
-    @unittest.skip("cannot add single points")
-    def test_add_left_point(self):
-        
-        line_tool = AmiLineTool(xy_flag=X)
-        line_tool.add_segments([[[1, 2], [2, 3]], [[2, 3], [5, 7]]])
-        assert line_tool.points == [[1, 2], [2, 3], [5, 7]]
-        line_tool.insert_point(0, [12, 3])
-        assert line_tool.points == [[12, 3], [1, 2], [2, 3], [5, 7]]
+    # @unittest.skip("cannot add single points")
+    # def test_add_left_point(self):
+    #
+    #     line_tool = AmiLineTool(xy_flag=X)
+    #     line_tool.add_segments([[[1, 2], [2, 3]], [[2, 3], [5, 7]]])
+    #     assert line_tool.points == [[1, 2], [2, 3], [5, 7]]
+    #     line_tool.insert_point(0, [12, 3])
+    #     assert line_tool.points == [[12, 3], [1, 2], [2, 3], [5, 7]]
 
     def test_add_right_segment(self):
         line_tool = AmiLineTool(xy_flag=X)
@@ -70,27 +71,27 @@ class TestAmiLineTool:
         except ValueError:
             pass
 
-    @unittest.skip("insert not defined")
-    def test_add_left_segment(self):
-        line_tool = AmiLineTool(xy_flag=X)
-        line_tool.add_segments([[[1, 2], [2, 3]], [[2, 3], [5, 7]]])
-        assert line_tool.polylines == [[[1, 2], [2, 3], [5, 7]]]
-        line_tool.insert_segment(0, [[25, 37], [1, 2]])
-        assert line_tool.polylines == [[[25, 37], [1, 2], [2, 3], [5, 7]]]
-
-    @unittest.skip("add points not well defined")
-    def test_add_points_to_empty(self):
-        line_tool = AmiLineTool(xy_flag=X)
-        line_tool.add_points([[1, 2], [2, 3], [5, 7]])
-        assert line_tool.polylines == [[[1, 2], [2, 3], [5, 7]]]
-
-    @unittest.skip("add points not well defined")
-    def test_add_points_to_existing(self):
-        line_tool = AmiLineTool(xy_flag=X)
-        line_tool.add_segments([[[1, 2], [2, 3]], [[2, 3], [5, 7]]])
-        assert line_tool.points == [[1, 2], [2, 3], [5, 7]]
-        line_tool.add_points([[12, 3], [7, 2]])
-        assert line_tool.points == [[1, 2], [2, 3], [5, 7], [12, 3], [7, 2]]
+    # @unittest.skip("insert not defined")
+    # def test_add_left_segment(self):
+    #     line_tool = AmiLineTool(xy_flag=X)
+    #     line_tool.add_segments([[[1, 2], [2, 3]], [[2, 3], [5, 7]]])
+    #     assert line_tool.polylines == [[[1, 2], [2, 3], [5, 7]]]
+    #     line_tool.insert_segment(0, [[25, 37], [1, 2]])
+    #     assert line_tool.polylines == [[[25, 37], [1, 2], [2, 3], [5, 7]]]
+    #
+    # @unittest.skip("add points not well defined")
+    # def test_add_points_to_empty(self):
+    #     line_tool = AmiLineTool(xy_flag=X)
+    #     line_tool.add_points([[1, 2], [2, 3], [5, 7]])
+    #     assert line_tool.polylines == [[[1, 2], [2, 3], [5, 7]]]
+    #
+    # @unittest.skip("add points not well defined")
+    # def test_add_points_to_existing(self):
+    #     line_tool = AmiLineTool(xy_flag=X)
+    #     line_tool.add_segments([[[1, 2], [2, 3]], [[2, 3], [5, 7]]])
+    #     assert line_tool.points == [[1, 2], [2, 3], [5, 7]]
+    #     line_tool.add_points([[12, 3], [7, 2]])
+    #     assert line_tool.points == [[1, 2], [2, 3], [5, 7], [12, 3], [7, 2]]
 
     def test_make_unclosed_box_and_close(self):
         line_tool = AmiLineTool(xy_flag=X, mode=POLYGON)

@@ -431,11 +431,29 @@ plt.show()"""
         ami_graph = AmiGraph(nx_graph=nx_graph)
         return ami_graph
 
-    @unittest.skip("NYI")
     def test_get_angles_of_edges_node(self):
         ami_graph = self.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-        edges = ami_graph.get_nx_edge_list_for_node(24)
-        angles = AmiNode.calculate_angles_to_edges(edges)
+        edge_ids = ami_graph.get_nx_edge_list_for_node(24)
+        assert edge_ids == [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)]
+        angles = []
+        for i, edgei_id in enumerate(edge_ids):
+            edgei = ami_graph.get_ami_edge_from_nx_id(edgei_id)
+            for j, edgej_id in enumerate(edge_ids):
+                if j > i:
+                    edgej = ami_graph.get_ami_edge_from_nx_id(edgej_id)
+                    common_node_id = AmiEdge.get_common_node_id(edgei_id, edgej_id)
+                    if common_node_id is not None:
+                        print(f"{edgei_id} {edgej_id} common_node {common_node_id}")
+                        angle_i_j =  ami_graph.get_angle_between_nodes(
+                            edgei.remote_node_id(common_node_id), common_node_id, edgej.remote_node_id(common_node_id))
+                        angleicj = (i,common_node_id, j,round(angle_i_j, 3))
+                        angles.append(angleicj)
+        assert angles == [(0, 24, 1, -1.107),
+                          (0, 24, 2, 1.153),
+                          (0, 24, 3, 3.058),
+                          (1, 24, 2, 2.26),
+                          (1, 24, 3, -2.118),
+                          (2, 24, 3, 1.906)]
 
     def test_bboxes(self):
         """
@@ -1119,10 +1137,10 @@ plt.show()"""
         assert counts_by_xcoord == [[66, 14], [295, 13], [107, 1], [149, 1], [191, 1], [232, 1], [274, 1]]
         assert counts_by_ycoord == [[759, 6], [61, 1]]
 
-    @unittest.skip("Not yet implemented")
-    def test_join_horiz_vert_lines(self):
+    # WORKS 2022-02-01
+    def test_join_horiz_vert_lines_yw5003_5_left(self):
         """
-
+finds horizontal and vertical lines and joins into polylines
         :return:
         """
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
@@ -1134,9 +1152,141 @@ plt.show()"""
         counts_by_xcoord, counts_by_ycoord = edge_manager.merge_neighbouring_coords()
         assert counts_by_xcoord == [[66, 14], [295, 13], [107, 1], [149, 1], [191, 1], [232, 1], [274, 1]]
         assert counts_by_ycoord == [[759, 6], [61, 1]]
-        new_vert_lines = edge_manager.join_ami_lines(X)
-        print(f"new vert {new_vert_lines}")
+        y_line_tool = edge_manager.join_ami_lines(X)
+        assert y_line_tool.polylines == [
+[[66, 61], [66, 131], [66, 185], [66, 241], [66, 300], [66, 355], [66, 408], [66, 462], [66, 520], [66, 577], [66, 632], [66, 692], [66, 752], [66, 758], [65, 770]],
+[[294, 61], [295, 96], [295, 151], [295, 206], [295, 267], [295, 324], [295, 372], [295, 427], [295, 483], [295, 542], [295, 598], [295, 655], [295, 715], [295, 757]],
+[[107, 759], [107, 764]],
+[[149, 759], [149, 764]],
+[[191, 759], [191, 762]],
+[[232, 759], [232, 764]],
+[[274, 759], [274, 770]]
+]
+        x_line_tool = edge_manager.join_ami_lines(Y)
+        assert x_line_tool.polylines == [
+[[66, 758], [107, 759], [149, 759], [191, 759], [232, 759], [274, 759], [295, 757]],
+[[294, 61], [66, 61]]
+]
 
+    def test_join_horiz_vert_lines_yw5003_5_right(self):
+        """
+finds horizontal and vertical lines and joins into polylines
+        :return:
+        """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        big_plot_island = ami_graph.get_or_create_ami_islands(mindim=300)[0]
+        ami_edges = big_plot_island.get_or_create_ami_edges()
+
+        edge_manager = AmiEdgeAnalyzer(tolerance=2)
+        edge_manager.read_edges(ami_edges)
+        counts_by_xcoord, counts_by_ycoord = edge_manager.merge_neighbouring_coords()
+        assert counts_by_xcoord == [[341, 14], [663, 14], [573, 2], [594, 2], [631, 2], [555, 2], [645, 1], [624, 2], [566, 1], [364, 1], [387, 1], [410, 1], [433, 1], [456, 1], [479, 1], [502, 1], [549, 1], [618, 1], [641, 1], [526, 1], [648, 3], [658, 1], [655, 1], [585, 1], [634, 1], [627, 1]]
+        assert counts_by_ycoord == [[752, 14], [540, 1], [553, 1], [641, 1], [49, 1]]
+        y_line_tool = edge_manager.join_ami_lines(X)
+        assert y_line_tool.polylines == [
+[[342, 49], [341, 93], [341, 151], [341, 200], [341, 259], [341, 332], [341, 384], [341, 432], [341, 486], [341, 547], [341, 593], [341, 645], [341, 703], [341, 752], [341, 762]],
+[[663, 49], [663, 113], [663, 141], [663, 193], [663, 264], [663, 348], [663, 383], [664, 426], [664, 482], [663, 540], [664, 588], [663, 641], [664, 696], [664, 752], [664, 763]],
+
+[[574, 64], [573, 68]],
+[[572, 752], [572, 762]],
+[[595, 73], [594, 77]],
+[[595, 752], [595, 755]],
+[[632, 74], [631, 78]],
+[[629, 245], [630, 248]],
+[[555, 77], [555, 82]],
+[[553, 227], [553, 230]],
+
+[[645, 113], [646, 119]],
+[[624, 115], [624, 118]],
+[[567, 118], [566, 124]],
+
+[[364, 752], [364, 757]],
+[[387, 752], [387, 762]],
+[[410, 752], [410, 755]],
+[[433, 752], [433, 763]],
+[[456, 752], [456, 757]],
+[[479, 752], [479, 763]],
+[[502, 752], [502, 756]],
+[[549, 752], [549, 755]],
+[[618, 752], [618, 762]],
+[[641, 752], [641, 755]],
+[[526, 752], [526, 762]],
+
+[[648, 210], [648, 214]],
+[[650, 239], [650, 242]],
+[[649, 537], [649, 540]],
+[[658, 533], [658, 537]],
+[[655, 541], [655, 546]],
+[[585, 545], [585, 548]],
+[[635, 547], [633, 554]],
+[[628, 548], [627, 552], [626, 555]]
+]
+
+        x_line_tool = edge_manager.join_ami_lines(Y)
+        assert x_line_tool.polylines == [
+[[341, 752], [364, 752], [387, 752], [410, 752], [433, 752], [456, 752], [479, 752], [502, 752], [526, 752], [549, 752], [572, 752], [595, 752], [618, 752], [641, 752], [664, 752]],
+[[649, 540], [655, 541]],
+[[627, 552], [633, 554]],
+[[658, 641], [663, 641]],
+[[342, 49], [663, 49]]
+]
+
+
+    def test_join_horiz_vert_lines_prisma(self):
+        """
+finds horizontal and vertical lines and joins into polylines
+        this contains boxes
+
+        :return:
+        """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.PRISMA)
+        big_plot_island = ami_graph.get_or_create_ami_islands(mindim=100)[0]
+        ami_edges = big_plot_island.get_or_create_ami_edges()
+
+        edge_manager = AmiEdgeAnalyzer(tolerance=2)
+        edge_manager.read_edges(ami_edges)
+        counts_by_xcoord, counts_by_ycoord = edge_manager.merge_neighbouring_coords()
+        assert counts_by_xcoord == [[485, 5], [579, 4], [294, 6], [139, 3]]
+        assert counts_by_ycoord == [
+[410, 2],
+[195, 2],
+[501, 2],
+[350, 2],
+[650, 2],
+[460, 2],
+[514, 2],
+[363, 2],
+[81, 1],
+[308, 2],
+[610, 2]
+]
+        y_line_tool = edge_manager.join_ami_lines(X)
+        assert y_line_tool.polylines == [
+[[485, 309], [486, 195], [485, 81]],
+[[485, 363], [486, 410], [485, 460]],
+[[486, 515], [485, 611]],
+[[578, 189], [580, 195], [578, 200]],
+[[578, 404], [580, 410], [578, 415]],
+[[294, 309], [294, 351], [294, 363]],
+[[294, 460], [294, 502], [294, 514]],
+[[296, 611], [296, 651], [296, 662]],
+[[140, 81], [139, 308]],
+[[139, 364], [140, 460]],
+[[140, 514], [139, 610]]]
+        x_line_tool = edge_manager.join_ami_lines(Y)
+        assert x_line_tool.polylines == [
+        [[486, 410], [580, 410], [591, 410]],
+[[486, 195], [580, 195], [591, 195]],
+[[289, 500], [294, 502], [299, 500]],
+[[289, 349], [294, 351], [299, 349]],
+[[291, 649], [296, 651], [301, 649]],
+[[140, 460], [294, 460], [485, 460]],
+[[486, 515], [294, 514], [140, 514]],
+[[485, 363], [294, 363], [139, 364]],
+[[485, 81], [140, 81]],
+[[139, 308], [294, 309], [485, 309]],
+[[139, 610], [296, 611], [485, 611]]
+]
 
     # =====================================
     # test helpers

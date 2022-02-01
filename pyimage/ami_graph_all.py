@@ -133,7 +133,7 @@ class AmiGraph:
 
     # AmiGraph
 
-    def get_or_create_ami_edge_from_nx_edge(self, nx_edge):
+    def get_ami_edge_from_nx_id(self, nx_edge):
         """Wrapper for get_or_create_ami_edge_from_ids() to create ami_edge
         :param nx_edge: 
         :return: ami_edge (or None)
@@ -1293,6 +1293,26 @@ class AmiEdge:
     def get_coords(self):
         return self.points_xy
 
+    @classmethod
+    def get_common_node_id(cls, id0, id1):
+        """find node common to two edges
+        (ignores multiple edges at present)
+        (1,2,0 and (2,3,0) have 2 in common
+        (1,2,0) and (3,4,0) have None in common
+        (1,2,0) and (1,2,1)  will return 1 or 2 at random
+        :param id0: first edge (could be duple or triple)
+        :param id1: as for first edge
+        :return: common node id or None
+        """
+        if len(id0) < 2 or len(id1) < 2:
+            raise ValueError("bad ids {id0} {id1}")
+        if id0[0] == id1[0] or id0[0] == id1[1]:
+            return id0[0]
+        if id0[1] == id1[0] or id0[1] == id1[1]:
+            return id0[1]
+        return None
+
+
     # def douglas_peucker2(self):
     #     """https://towardsdatascience.com/simplify-polylines-with-the-douglas-peucker-algorithm-ac8ed487a4a1
     #     Experimental - may not keep
@@ -1687,7 +1707,7 @@ class AmiIsland:
         self.create_nx_edges()
         self.ami_edges = []
         for edge in self.nx_edges:
-            ami_edge = self.ami_graph.get_or_create_ami_edge_from_nx_edge(edge)
+            ami_edge = self.ami_graph.get_ami_edge_from_nx_id(edge)
             self.ami_edges.append(ami_edge)
         return self.ami_edges
 

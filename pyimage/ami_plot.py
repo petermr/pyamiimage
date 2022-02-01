@@ -158,22 +158,18 @@ class AmiLineTool:
         if type(segment) is AmiLine:
             segment = [segment.xy1, segment.xy2]
         self._validate_segment(segment)
-        new_mode = True
         if self.mode == POLYLINE or self.mode == POLYGON:
-            if new_mode:
-                polyline = [segment[0], segment[1]]
-                self.add_merge_polyline_to_poly_list(polyline)
-            else:
-                # obsolete
-                self.add_segment_to_poly_list(segment)
+            polyline = [segment[0], segment[1]]
+            self.add_merge_polyline_to_poly_list(polyline)
         else:
-            if len(self.points) == 0:
-                self.add_point(segment[0])
-                self.add_point(segment[1])
-            elif self._are_coincident_points(self.points[-1], segment[0]):
-                self.add_point(segment[1])
-            else:
-                raise ValueError("Cannot add segment {segment} (no overlap)")
+            # if len(self.points) == 0:
+            #     self.add_point(segment[0])
+            #     self.add_point(segment[1])
+            # elif self._are_coincident_points(self.points[-1], segment[0]):
+            #     self.add_point(segment[1])
+            # else:
+            #     raise ValueError("Cannot add segment {segment} (no overlap)")
+            pass
 
     def add_segments(self, segments):
         """
@@ -264,128 +260,152 @@ class AmiLineTool:
             self.polylines.append(polylinex)
         else:
             added_polyline = None
-            ## have to consider directions of lines
+            # have to consider directions of lines
             for polyline in self.polylines:
-                if self._are_coincident_points(polyline_to_add[-1], polyline[0]):
-                    # tail-head
-                    logger.debug(f"add truncated {polyline_to_add} to {polyline}")
-                    self.copy_prepend(polyline_to_add[:-1][::-1], polyline)
-                    added_polyline = polyline
-                    break
-                elif self._are_coincident_points(polyline[0], polyline_to_add[0]):
-                    # tail-tail
-                    logger.debug(f"tail-tail {polyline_to_add} to {polyline}")
-                    logger.debug(f"{polyline_to_add} => {polyline_to_add[1:]} to {polyline}")
-                    self.copy_prepend(polyline_to_add[1:], polyline)
-                    added_polyline = polyline
+                added_polyline = self.join_heads_and_tails(polyline, polyline_to_add)
+                if added_polyline is not None:
                     break
 
-                elif self._are_coincident_points(polyline_to_add[0], polyline[-1]):
-                    # head-tail
-                    self.copy_append(polyline_to_add[1:], polyline)
-                    added_polyline = polyline
-                    break
-                elif self._are_coincident_points(polyline_to_add[-1], polyline[-1]):
-                    # head-head
-                    add_ = polyline_to_add[::-1][1:]
-                    logger.debug(f" adding {polyline_to_add} => {add_} to {polyline}")
-                    self.copy_append(add_, polyline)
-                    added_polyline = polyline
-                    break
-                else:
-                    logger.debug(f" polyline_to_add {polyline_to_add} does not overlap {polyline}")
-                    # self.copy_to_polylines(polyline_to_add)
             if added_polyline is not None:
-                if self._are_coincident_points(added_polyline[0], added_polyline[-1]):
-                    logger.debug(f"CYCLIC {added_polyline}")
-                    if self.mode == POLYGON:
-                        self.polylines.remove(polyline)
-                        point0 = polyline[0]
-                        polyline.remove(point0)
-                        self.polygons.append(polyline)
+                self.find_cycles(added_polyline, polyline)
             else:
                 self.copy_and_append(polyline_to_add)
 
-    def add_segment_to_poly_list(self, segment):
-        """add segment, assuming current list is sorted
-        polyline            polyline
-        lo-----hi           lo----------hi
-                   lo---hi
-                   segment
+    def find_cycles(self, added_polyline, polyline):
+        """is the new polyline cyclic
+        if so, remove polyline and convert to polygon
         """
-        # seg_low = segment.get_min(self.xy_flag)
-        # seg_hi = segment.get_max(self.xy_flag)
-        if self.polylines == []:
-            polyline = segment
-            self.polylines.append(polyline)
-            return
-        last_polyline = None
-        if self.xy_flag is None:
-            raise ValueError("must set xy_flag for adding segments")
-        xyf = self.xy_flag
-        inserted = False
-        for i, polyline in enumerate(self.polylines):
-            # does it overlap the next exactly?
-            assert len(segment) == 2
-            assert len(segment[0]) == 2
-            assert type(polyline) is list  # list of points
-            # assert type(polyline[0]) is list , f"list of lists?"
-            AmiLineTool._validate_point(polyline[0],
-                                        message=f"expected point for {polyline[0]} in {polyline}")  # point as list
-            if self._are_coincident_points(segment[1], polyline[0]):
-                if last_polyline is None:
-                    # end of first polyline
-                    self.prepend_segment_to_polyline(segment, polyline)
-                    inserted = True
-                elif self._are_coincident_points(segment[0], last_polyline[-1]):
-                    # join in the middle of last_polyline and polyline
-                    # join to predecessor
-                    self.prepend_segment_to_polyline(segment, polyline)
-                    # and then add last
-                    self.append_polyline_to_polyline_and_remove(last_polyline, polyline)
-                    # and clear the last
-                    self.polylines.remove(last_polyline)
-                    inserted = True
+        if self._are_coincident_points(added_polyline[0], added_polyline[-1]):
+            logger.debug(f"CYCLIC {added_polyline}")
+            if self.mode == POLYGON:
+                self.polylines.remove(polyline)
+                point0 = polyline[0]
+                polyline.remove(point0)
+                self.polygons.append(polyline)
 
-            elif segment[1][xyf] < polyline[0][xyf]:
-                # falls behind preceding and leads last if any
-                if last_polyline is None or segment[0][xyf] > (last_polyline[-1][xyf] + self.tolerance):
-                    self.polylines.insert(i, segment)
-                    inserted = True
-                else:
-                    raise ValueError(f"too big {segment} cannot insert")
+    def join_heads_and_tails(self, polyline, polyline_to_add):
+        """join two polylines with
+         :param polyline: existing loyline in self.polylines
+         :param polyline_to_add: polyline being added
 
-            if inserted:
-                break
+         Each line has a tail (0) and head (-1) There are 4 possible
+         joinings HH, HT, TH, TT (or none).
 
-            last_polyline = polyline
+         """
+        added_polyline = None
+        if self._are_coincident_points(polyline_to_add[-1], polyline[0]):
+            # tail-head
+            logger.debug(f"add truncated {polyline_to_add} to {polyline}")
+            self.copy_prepend(polyline_to_add[:-1][::-1], polyline)
+            added_polyline = polyline
 
-        if not inserted:
-            if self._are_coincident_points(last_polyline[1], segment[0]):
-                self.append_segment_to_polyline(segment, last_polyline)
-                # self.polylines.append(last_polyline)
-            elif segment[0][xyf] < last_polyline[1][xyf]:
-                raise f"cannot add segment at head {segment}"
-            else:
-                self.polylines.append(segment)
+        elif self._are_coincident_points(polyline[0], polyline_to_add[0]):
+            # tail-tail
+            logger.debug(f"tail-tail {polyline_to_add} to {polyline}")
+            logger.debug(f"{polyline_to_add} => {polyline_to_add[1:]} to {polyline}")
+            self.copy_prepend(polyline_to_add[1:], polyline)
+            added_polyline = polyline
 
-    def prepend_segment_to_polyline(self, segment, polyline):
-        polyline.insert(0, segment[0])
+        elif self._are_coincident_points(polyline_to_add[0], polyline[-1]):
+            # head-tail
+            self.copy_append(polyline_to_add[1:], polyline)
+            added_polyline = polyline
 
-    def append_segment_to_polyline(self, segment, polyline):
-        polyline.append(segment[1])
+        elif self._are_coincident_points(polyline_to_add[-1], polyline[-1]):
+            # head-head
+            add_ = polyline_to_add[::-1][1:]
+            logger.debug(f" adding {polyline_to_add} => {add_} to {polyline}")
+            self.copy_append(add_, polyline)
+            added_polyline = polyline
 
-    def append_polyline_to_polyline_and_remove(self, last_polyline, polyline):
-        last_polyline.add(polyline)
-        self.polylines.remove(polyline)
+        else:
+            logger.debug(f" polyline_to_add {polyline_to_add} does not overlap {polyline}")
 
-    def copy_append(self, polyline_to_add, polyline):
+        return added_polyline
+
+    # def add_segment_to_poly_list(self, segment):
+    #     """add segment, assuming current list is sorted
+    #     polyline            polyline
+    #     lo-----hi           lo----------hi
+    #                lo---hi
+    #                segment
+    #     """
+    #     # seg_low = segment.get_min(self.xy_flag)
+    #     # seg_hi = segment.get_max(self.xy_flag)
+    #     if self.polylines == []:
+    #         polyline = segment
+    #         self.polylines.append(polyline)
+    #         return
+    #     last_polyline = None
+    #     if self.xy_flag is None:
+    #         raise ValueError("must set xy_flag for adding segments")
+    #     xyf = self.xy_flag
+    #     inserted = False
+    #     for i, polyline in enumerate(self.polylines):
+    #         # does it overlap the next exactly?
+    #         assert len(segment) == 2
+    #         assert len(segment[0]) == 2
+    #         assert type(polyline) is list  # list of points
+    #         # assert type(polyline[0]) is list , f"list of lists?"
+    #         AmiLineTool._validate_point(polyline[0],
+    #                                     message=f"expected point for {polyline[0]} in {polyline}")  # point as list
+    #         if self._are_coincident_points(segment[1], polyline[0]):
+    #             if last_polyline is None:
+    #                 # end of first polyline
+    #                 self.prepend_segment_to_polyline(segment, polyline)
+    #                 inserted = True
+    #             elif self._are_coincident_points(segment[0], last_polyline[-1]):
+    #                 # join in the middle of last_polyline and polyline
+    #                 # join to predecessor
+    #                 self.prepend_segment_to_polyline(segment, polyline)
+    #                 # and then add last
+    #                 self.append_polyline_to_polyline_and_remove(last_polyline, polyline)
+    #                 # and clear the last
+    #                 self.polylines.remove(last_polyline)
+    #                 inserted = True
+    #
+    #         elif segment[1][xyf] < polyline[0][xyf]:
+    #             # falls behind preceding and leads last if any
+    #             if last_polyline is None or segment[0][xyf] > (last_polyline[-1][xyf] + self.tolerance):
+    #                 self.polylines.insert(i, segment)
+    #                 inserted = True
+    #             else:
+    #                 raise ValueError(f"too big {segment} cannot insert")
+    #
+    #         if inserted:
+    #             break
+    #
+    #         last_polyline = polyline
+    #
+    #     if not inserted:
+    #         if self._are_coincident_points(last_polyline[1], segment[0]):
+    #             self.append_segment_to_polyline(segment, last_polyline)
+    #             # self.polylines.append(last_polyline)
+    #         elif segment[0][xyf] < last_polyline[1][xyf]:
+    #             raise f"cannot add segment at head {segment}"
+    #         else:
+    #             self.polylines.append(segment)
+
+    # def prepend_segment_to_polyline(self, segment, polyline):
+    #     polyline.insert(0, segment[0])
+
+    # def append_segment_to_polyline(self, segment, polyline):
+    #     polyline.append(segment[1])
+    #
+
+    # def append_polyline_to_polyline_and_remove(self, last_polyline, polyline):
+    #     last_polyline.add(polyline)
+    #     self.polylines.remove(polyline)
+
+    @classmethod
+    def copy_append(cls, polyline_to_add, polyline):
         logger.debug(f"adding {polyline_to_add} to {polyline}")
         for point in polyline_to_add:
             point1 = [point[0], point[1]]
             polyline.append(point1)
 
-    def copy_prepend(self, polyline_to_add, polyline):
+    @classmethod
+    def copy_prepend(cls, polyline_to_add, polyline):
         """prepends polyline_to_add to front of list
         uses insert(0, ...) which is SLOW unless lines are deques
         """
