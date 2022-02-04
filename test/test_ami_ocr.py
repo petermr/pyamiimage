@@ -1,4 +1,5 @@
 import unittest
+from pyamiimage.pyimage.bbox import BBox
 from skimage import io
 from ..pyimage.ami_ocr import TextBox, AmiOCR
 from ..test.resources import Resources # Asserting all images take time
@@ -28,6 +29,9 @@ class TestAmiOCR:
         self.biosynth2 = Resources.BIOSYNTH2
         self.biosynth2_img = io.imread(self.biosynth2)
         self.biosynth2_ocr = AmiOCR(self.biosynth2)
+
+        self.med_xrd = Resources.MED_XRD_FIG_A
+        self.med_xrd_img = io.imread(self.med_xrd)
 
     def teardown_method(self, method):
         self.biosynth2 = None
@@ -59,5 +63,12 @@ class TestAmiOCR:
         words = self.biosynth2_ocr.get_words()
         biosynth2_img_bboxes = AmiOCR.plot_bboxes_on_image(self.biosynth2_img, words)
         io.imshow(biosynth2_img_bboxes)
+        io.show()
+    
+    def test_bbox_fill(self):
+        """tests filling background in a given bbox in an image"""
+        box = BBox([[26, 389], [80, 386]])
+        test_img = AmiOCR.set_bbox_to_bg(self.med_xrd_img, box)
+        io.imshow(test_img)
         io.show()
 

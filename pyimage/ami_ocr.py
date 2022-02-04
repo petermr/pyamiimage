@@ -419,5 +419,15 @@ class AmiOCR:
         cleaned = WordCleaner.remove_all_single_characters(cleaned)
         cleaned = WordCleaner.remove_all_sequences_of_special_characters(cleaned)
         cleaned = WordCleaner.remove_misread_letters(cleaned)
-        cleaned = WordCleaner.remove_numbers_only(cleaned)
+        #cleaned = WordCleaner.remove_numbers_only(cleaned)
         return cleaned
+
+    @classmethod
+    def set_bbox_to_bg(self, image, bbox):
+        """given a bounding box set the value in the bounding box in the image to bg color"""
+        bg = 255
+        # bg = AmiOCR.find_bg() #TBI
+        y_range = bbox.get_yrange()
+        x_range = bbox.get_xrange()
+        image[x_range[0]: x_range[1]+1, y_range[0] : y_range[1]+1] = bg
+        return image

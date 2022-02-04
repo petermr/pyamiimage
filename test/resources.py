@@ -88,6 +88,12 @@ class Resources:
     assert TESSERACT_GER2.exists(), f"file doesn't exist {TESSERACT_GER2}"
     TESSERACT_ITA = Path(TEST_RESOURCE_DIR, "tesseract_ita.png")
     assert TESSERACT_ITA.exists(), f"file doesn't exist {TESSERACT_ITA}"
+    MED_XRD = Path(TEST_RESOURCE_DIR, "MED_34909142_3.jpeg")
+    assert MED_XRD.exists(), f"file doesn't exist {MED_XRD}"
+    MED_XRD_FIG_A = Path(TEST_RESOURCE_DIR, "MED_34909142_3_figA.jpeg")
+    assert MED_XRD_FIG_A.exists(), f"file doesn't exist {MED_XRD_FIG_A}"
+    MED_XRD_FIG_A_LABELS = Path(TEST_RESOURCE_DIR, "MED_34909142_3_figA_labels.jpg")
+    assert MED_XRD_FIG_A_LABELS.exists(), f"file doesn't exist {MED_XRD_FIG_A_LABELS}"
     
 
     YW5003_5 = Path(TEST_RESOURCE_DIR, "iucr_yw5003_fig5.png")
