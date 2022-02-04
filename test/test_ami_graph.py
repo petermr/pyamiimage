@@ -1,7 +1,7 @@
 """
 tests AmiGraph, AmiNode, AmiEdge, AmiIsland
 """
-
+from skimage import io
 import logging
 import unittest
 from collections import Counter
@@ -533,41 +533,6 @@ plt.show()"""
         if interactive:
             plt.show()
 
-    # @unittest.skip("not needed as skimage works")
-    # def test_rdp_line_segments(self):
-    #     """rdp method may interface better than the approximate_polygon one"""
-    #     arr = np.array([1, 1, 2, 2, 3, 3, 4, 4]).reshape(4, 2)
-    #     mask = rdp(arr, algo="iter", return_mask=True)
-    #     print(f"mask {mask}")
-    #     print(f"arr {arr[mask]}")
-    #     ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
-    #     islands = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)
-    #     assert len(islands) == 1, f"expected single islands {len(islands)}"
-    #     small_plot = islands[0]
-    #     node_ids = small_plot.node_ids
-    #     assert len(node_ids) == 36, f"nodes in small graph {len(node_ids)}"
-    #     assert node_ids == {258, 132, 389, 136, 24, 288, 546, 36, 40, 424, 46, 177, 569, 63, 448, 193,
-    #                         323, 590, 591, 592, 593, 594, 595, 596, 86, 605, 606, 607, 608, 609, 354,
-    #                         101, 103, 487, 114, 510}, f"found {node_ids}"
-    #     assert small_plot.nx_edges == [
-    #         (258, 323, 0), (132, 177, 0), (389, 448, 0), (136, 177, 0), (136, 193, 0), (24, 36, 0), (24, 36, 1),
-    #         (24, 40, 0),
-    #         (288, 323, 0), (288, 354, 0), (546, 569, 0), (546, 595, 0), (36, 46, 0), (40, 46, 0), (40, 63, 0),
-    #         (424, 448, 0),
-    #         (424, 487, 0), (46, 86, 0), (177, 258, 0), (569, 590, 0), (63, 86, 0), (63, 101, 0), (448, 510, 0),
-    #         (193, 258, 0),
-    #         (193, 288, 0), (323, 389, 0), (590, 591, 0), (590, 608, 0), (591, 592, 0), (591, 605, 0), (592, 593, 0),
-    #         (592, 606, 0),
-    #         (593, 594, 0), (593, 596, 0), (594, 595, 0), (594, 607, 0), (595, 609, 0), (86, 103, 0), (354, 389, 0),
-    #         (354, 424, 0),
-    #         (101, 103, 0), (101, 114, 0), (103, 132, 0), (487, 510, 0), (487, 546, 0), (114, 132, 0), (114, 136, 0),
-    #         (510, 569, 0)], \
-    #         f"found {small_plot.nx_edges}"
-    #
-    #     ami_edges = small_plot.get_or_create_ami_edges()
-    #     print(f"ami_edges {ami_edges}")
-    #     ami_edges = AmiEdge.get_ami_edge_start_end
-
     @unittest.skipUnless(interactive, "ignore plotting in routine tests")
     def test_plot_line(self):
         """straightens lines by Douglas Peucker and plots"""
@@ -610,13 +575,6 @@ plt.show()"""
             if bbox.get_height() > 40:
                 big_islands.append(island)
         assert len(big_islands) == 6
-
-    # def test_extract_raw_image(self):
-    #     """extract the raw pixels (not the skeletonm) underlying the extracted lines
-    #     plot boxes
-    #     erode and dilate
-    #     """
-    #     TestAmiGraph.display_erode_dilate(self.arrows1, self.nx_graph_arrows1)
 
     def test_extract_raw_image(self):
         """extract the raw pixels (not the skeletonm) underlying the extracted lines
@@ -1231,6 +1189,203 @@ finds horizontal and vertical lines and joins into polylines
 [[342, 49], [663, 49]]
 ]
 
+    def test_MED_34909142_3(self):
+        """4 XRD diagrams"""
+        expected_horiz_lines = [
+            [  # 0
+                [[90, 380],
+                  [117, 380],
+                  [144, 381],
+                  [170, 380],
+                  [197, 381],
+                  [224, 380],
+                  [250, 380],
+                  [277, 380],
+                  [304, 381],
+                  [330, 380],
+                  [357, 381],
+                  [384, 380]],
+                 [[82, 30], [90, 30], [383, 30]],
+                 [[86, 64], [90, 64]],
+                 [[82, 98], [90, 98]],
+                 [[86, 133], [90, 133]],
+                 [[82, 166], [90, 167]],
+                 [[87, 201], [90, 201]],
+                 [[82, 235], [90, 236]],
+                 [[87, 269], [90, 270]],
+                 [[82, 304], [90, 304]],
+                 [[86, 339], [90, 339]],
+                 [[186, 346], [190, 348]],
+                 [[82, 372], [90, 373]],
+                 [[239, 168], [235, 170]],
+                 [[237, 318], [241, 320]]
+            ],
+            [  # 1
+                [[615, 380],
+              [633, 381],
+              [651, 380],
+              [670, 380],
+              [689, 380],
+              [708, 381],
+              [727, 380],
+              [745, 381],
+              [764, 380]],
+             [[616, 30], [763, 30]]
+             ],
+            [  # hor 2
+            [[427, 380],
+              [446, 381],
+              [465, 380],
+              [484, 381],
+              [502, 380],
+              [520, 380],
+              [539, 380],
+              [558, 381],
+              [577, 380]],
+             [[532, 200], [543, 200]],
+             [[577, 31], [428, 30]]
+             ],
+            [  # hor 3
+              [[90, 792],
+              [158, 793],
+              [225, 792],
+              [293, 793],
+              [359, 792],
+              [427, 793],
+              [495, 792],
+              [562, 793],
+              [629, 792],
+              [696, 793],
+              [764, 792]],
+             [[82, 754], [90, 754]],
+             [[89, 515], [83, 516]],
+             [[82, 545], [90, 545]],
+             [[82, 784], [90, 784]],
+             [[82, 664], [90, 665]],
+             [[82, 575], [90, 575]],
+             [[82, 605], [90, 605]],
+             [[82, 694], [90, 695]],
+             [[81, 724], [89, 724]],
+             [[82, 635], [90, 635]],
+             [[82, 485], [90, 486], [763, 486]]
+             ],
+        ]
+        expected_vert_lines = [
+            [  # 0
+              [[90, 30],
+              [90, 64],
+              [90, 98],
+              [90, 133],
+              [90, 167],
+              [90, 190],
+              [90, 201],
+              [90, 236],
+              [90, 270],
+              [90, 304],
+              [90, 339],
+              [90, 360],
+              [90, 373],
+              [90, 380],
+              [90, 383]],
+             [[383, 30], [383, 177], [383, 354], [384, 380], [384, 386]],
+             [[240, 132], [240, 154], [239, 168]],
+             [[241, 320], [240, 327]],
+             [[214, 75], [214, 131]],
+             [[213, 217], [214, 304]],
+             [[316, 158], [317, 171]],
+             [[234, 167], [235, 170]],
+             [[364, 167], [363, 174]],
+             [[149, 175], [148, 179]],
+             [[186, 264], [186, 346]],
+             [[313, 281], [314, 338]],
+             [[106, 302], [106, 326]],
+             [[360, 319], [360, 344]],
+             [[378, 343], [378, 348]],
+             [[190, 348], [190, 351]],
+             [[117, 380], [117, 386]],
+             [[170, 380], [170, 386]],
+             [[224, 380], [224, 386]],
+             [[250, 380], [250, 383]],
+             [[277, 380], [277, 386]],
+             [[330, 380], [330, 386]],
+             [[237, 215], [237, 318]]
+                ],
+            [
+             [[616, 30], [615, 177], [615, 354], [615, 380], [615, 386]],
+             [[763, 30], [763, 180], [764, 357], [764, 380], [764, 386]],
+             [[692, 87], [692, 90]],
+             [[707, 123], [707, 126]],
+             [[677, 244], [677, 256]],
+             [[651, 380], [651, 386]],
+             [[670, 380], [670, 383]],
+             [[689, 380], [689, 386]],
+             [[727, 380], [727, 386]]
+             ],
+            [  # vert 2
+             [[428, 30], [427, 220], [427, 351], [427, 380], [427, 386]],
+             [[577, 31], [576, 199], [576, 342], [577, 380], [577, 386]],
+             [[467, 148], [467, 151]],
+             [[465, 380], [465, 386]],
+             [[502, 380], [502, 386]],
+             [[498, 126], [497, 130]],
+             [[539, 380], [539, 386]],
+             [[520, 380], [520, 383]]
+             ],
+            [  # vert 3
+              [[90, 486],
+              [89, 515],
+              [90, 545],
+              [90, 575],
+              [90, 605],
+              [90, 635],
+              [90, 665],
+              [90, 695],
+              [89, 724],
+              [90, 754],
+              [90, 784],
+              [90, 792],
+              [90, 800]],
+             [[763, 486], [763, 602], [763, 776], [764, 792], [764, 799]],
+             [[603, 652], [603, 656]],
+             [[751, 774], [750, 777]],
+             [[735, 779], [734, 782]],
+             [[708, 777], [707, 780]],
+             [[359, 792], [360, 800]],
+             [[495, 792], [495, 799]],
+             [[629, 792], [630, 799]],
+             [[225, 792], [225, 799]],
+             [[698, 598], [697, 601]],
+             [[724, 599], [724, 602]],
+             [[655, 600], [655, 604]],
+             [[621, 698], [622, 701]]
+             ],
+        ]
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.MED_34909142_3)
+
+        islands = ami_graph.get_or_create_ami_islands(mindim=100)
+        for i, island in enumerate(islands):
+            # print(island.get_or_create_bbox())
+            edge_manager = AmiEdgeAnalyzer(tolerance=2)
+            horiz_line_tool, vert_line_tool = edge_manager.create_line_tools(island)
+            horiz_lines = horiz_line_tool.polylines
+            assert horiz_lines == expected_horiz_lines[i], f"hor {i}"
+            vert_lines = vert_line_tool.polylines
+            assert vert_lines == expected_vert_lines[i], f"vert {i}"
+
+    def test_MED_34909142_3_polylines(self):
+        """converts raw nested lists into AmiPolylines"""
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.MED_34909142_3)
+
+        islands = ami_graph.get_or_create_ami_islands(mindim=100)
+        for i, island in enumerate(islands):
+            # print(island.get_or_create_bbox())
+            edge_manager = AmiEdgeAnalyzer(tolerance=2)
+            horiz_line_tool, vert_line_tool = edge_manager.create_line_tools(island)
+            horiz_lines = horiz_line_tool.polylines
+            for horiz_line in horiz_line_tool:
+                ami_polyline = AmiPolyline(horiz_line)
+            vert_lines = vert_line_tool.polylines
+
 
     def test_join_horiz_vert_lines_prisma(self):
         """
@@ -1239,9 +1394,14 @@ finds horizontal and vertical lines and joins into polylines
 
         :return:
         """
+        image = io.imread(Resources.PRISMA)
+        assert image.shape == (667, 977, 4)
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.PRISMA)
-        big_plot_island = ami_graph.get_or_create_ami_islands(mindim=100)[0]
-        ami_edges = big_plot_island.get_or_create_ami_edges()
+
+        islands = ami_graph.get_or_create_ami_islands(mindim=50)
+        island = islands[0]  # boxes with arrows protruding
+        assert island.get_or_create_bbox().xy_ranges == [[139, 591], [81, 662]]
+        ami_edges = island.get_or_create_ami_edges()
 
         edge_manager = AmiEdgeAnalyzer(tolerance=2)
         edge_manager.read_edges(ami_edges)
@@ -1287,8 +1447,47 @@ finds horizontal and vertical lines and joins into polylines
 [[139, 308], [294, 309], [485, 309]],
 [[139, 610], [296, 611], [485, 611]]
 ]
+        ranges = [
+            [[594, 941], [81, 309]],
+            [[596, 943], [363, 460]],
+            [[596, 943], [518, 615]],
+        ]
+        x_polylines = [
+[
+[[595, 81], [940, 81]],
+[[941, 308], [595, 309]]
+],
+[
+[[597, 363], [942, 363]],
+[[943, 459], [597, 460]]
+],
+[
+[[597, 518], [942, 518]],
+[[943, 614], [597, 615]]
+],
+        ]
+        y_polylines = [
+        [[[940, 81], [941, 308]],
+         [[595, 309], [595, 81]]],
+        [[[942, 363], [943, 459]],
+         [[597, 460], [597, 363]]],
+        [[[942, 518], [943, 614]],
+         [[597, 615], [597, 518]]],
+        ]
 
-    # =====================================
+        for i, island in enumerate(islands[1:4]):
+            assert island.get_or_create_bbox().xy_ranges == ranges[i]
+            ami_edges = island.get_or_create_ami_edges()
+
+            edge_manager = AmiEdgeAnalyzer(tolerance=2)
+            edge_manager.read_edges(ami_edges)
+            counts_by_xcoord, counts_by_ycoord = edge_manager.merge_neighbouring_coords()
+            y_line_tool = edge_manager.join_ami_lines(X)
+            assert y_line_tool.polylines == y_polylines[i]
+            x_line_tool = edge_manager.join_ami_lines(Y)
+            assert x_line_tool.polylines == x_polylines[i]
+
+            # =====================================
     # test helpers
     # =====================================
 

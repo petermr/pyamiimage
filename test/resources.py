@@ -67,6 +67,10 @@ class Resources:
     PRISMA = Path(TEST_RESOURCE_DIR, "prisma.png")
     assert PRISMA.exists(), f"file exists {PRISMA}"
 
+    # https://europepmc.org/article/MED/34909142#figures-and-tables
+    MED_34909142_3 = Path(TEST_RESOURCE_DIR, "MED_34909142_3.jpeg")
+    assert MED_34909142_3.exists(), f"file exists {MED_34909142_3}"
+
     BATTERY1 = Path(TEST_RESOURCE_DIR, "green.png")
     assert BATTERY1.exists(), f"file exists {BATTERY1}"
     BATTERY1BSQUARE = Path(TEST_RESOURCE_DIR, "battery1bsquare.png")

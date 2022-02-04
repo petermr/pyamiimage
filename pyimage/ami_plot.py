@@ -96,6 +96,77 @@ class AmiLine:
     def get_max(self, xy_flag):
         return None if xy_flag is None else max(self.xy1[xy_flag], self.xy2[xy_flag])
 
+class AmiPolyline:
+    """polyline. can represent solid or dashed (NYI) lines. contains attachment points
+    """
+
+    def __init__(self, points_list=None, ami_edge=None):
+        """xy12 of form [[x1, y1], [x2, y2]]
+        direction is xy1 -> xy2 if significant"""
+        self.ami_edge = ami_edge
+        self.point_list = []
+        if points_list:
+            for point in points_list:
+                self.point_list
+
+    def __repr__(self):
+        return str(self.point_list)
+
+    def __str__(self):
+        return str(self.point_list)
+
+    @property
+    def vector(self):
+        """vector between end points
+        :return: xy2 - xy1
+        """
+        pl = self.point_list
+        return [pl[0][X] - pl[-1][X], pl[1][Y] - pl[1][Y]]
+
+    @property
+    def xy_mid(self):
+        """get midpoint of line
+        :return: 2-array [x, y] of None if coords not set"""
+
+        if self.point_list and len(self.point_list) > 1:
+            pl = self.point_list
+            return [(pl[0][X] - pl[-1][X]) // 2, (pl[1][Y] - pl[1][Y]) // 2]
+        return None
+
+    def is_horizontal(self, tolerance=1) -> int:
+        return abs(self.vector[Y]) <= tolerance < abs(self.vector[X])
+
+    def is_vertical(self, tolerance=1) -> int:
+        return abs(self.vector[X]) <= tolerance < abs(self.vector[Y])
+
+    @classmethod
+    def get_horiz_vert_counter(cls, ami_lines, xy_index) -> Counter:
+        """
+        NYI
+        counts midpoint coordinates of lines (normally ints)
+
+        :param ami_lines: horiz or vert ami_lines
+        :param xy_index: 0 (x) 0r 1 (y) (normally 0 for vert lines, 1 for horiz)
+        :return: Counter
+        """
+        hv_dict = Counter()
+        for ami_line in ami_lines:
+            xy_mid = ami_line.xy_mid[xy_index]
+            if xy_mid is not None:
+                hv_dict[int(xy_mid)] += 1
+        return hv_dict
+
+    def get_min_end(self, xy_flag):
+        return None if xy_flag is None else min(self.xy1[xy_flag], self.xy2[xy_flag])
+
+    def get_max_end(self, xy_flag):
+        return None if xy_flag is None else max(self.xy1[xy_flag], self.xy2[xy_flag])
+
+    def get_attachment_points(self):
+        if self.point_list and len(self.point_list) >= 2:
+            return self.point_list[1:-2]
+        return None
+
 
 class AmiLineTool:
     """joins points or straight line segments
@@ -125,8 +196,9 @@ class AmiLineTool:
         if points is not None:
             for point in points:
                 self.add_point(point)
-        self.polylines = []
-        self.polygons = []
+        ami_polylines = []  # NYI
+        self.polylines = []  # obsolete?
+        self.polygons = []  # obsolete?
 
     def __repr__(self):
         return str(self.points)
