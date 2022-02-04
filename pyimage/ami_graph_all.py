@@ -15,11 +15,18 @@ from skimage import io
 from skimage.measure import approximate_polygon
 
 # local
-from ..pyimage.ami_image import AmiImage
-from ..pyimage.ami_plot import AmiLine
-from ..pyimage.ami_util import AmiUtil
-from ..pyimage.svg import BBox
-from ..pyimage.text_box import TextBox
+try:
+    from ..pyimage.ami_image import AmiImage
+    from ..pyimage.ami_plot import AmiLine
+    from ..pyimage.ami_util import AmiUtil
+    from ..pyimage.svg import BBox
+    from ..pyimage.text_box import TextBox
+except:
+    from pyamiimage.pyimage.ami_image import AmiImage
+    from pyamiimage.pyimage.ami_plot import AmiLine
+    from pyamiimage.pyimage.ami_util import AmiUtil
+    from pyamiimage.pyimage.svg import BBox
+    from pyamiimage.pyimage.text_box import TextBox
 
 logger = logging.getLogger(__name__)
 

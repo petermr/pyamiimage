@@ -5,7 +5,10 @@ import numpy as np
 from lxml.etree import Element, QName
 from lxml import etree
 
-from ..pyimage.svg import XMLNamespaces
+try:
+    from ..pyimage.svg import XMLNamespaces
+except:
+    from pyamiimage.pyimage.svg import XMLNamespaces
 
 try:
     from pyami.py4ami import wikimedia
