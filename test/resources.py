@@ -94,6 +94,10 @@ class Resources:
     assert MED_XRD_FIG_A.exists(), f"file doesn't exist {MED_XRD_FIG_A}"
     MED_XRD_FIG_A_LABELS = Path(TEST_RESOURCE_DIR, "MED_34909142_3_figA_labels.jpg")
     assert MED_XRD_FIG_A_LABELS.exists(), f"file doesn't exist {MED_XRD_FIG_A_LABELS}"
+    MED_XRD_FIG_A_YTICKS = Path(TEST_RESOURCE_DIR, "MED_34909142_3_figA_vert_label_num.png")
+    assert MED_XRD_FIG_A_YTICKS.exists(), f"file doesn't exist {MED_XRD_FIG_A_YTICKS}"
+    SHAPES_1 = Path(TEST_RESOURCE_DIR, "test_img_shapes.png")
+    assert SHAPES_1.exists(), f"file doesn't exist {SHAPES_1}"
     
 
     YW5003_5 = Path(TEST_RESOURCE_DIR, "iucr_yw5003_fig5.png")

@@ -85,6 +85,9 @@ y_label = med_xrd_img[0:y_range[1], 0: x_range[0]]
 angle = 270 # in degrees
 y_label_rot90 = ndimage.rotate(y_label, angle, reshape=True)
 
+print("this is it")
+AmiOCR.plot_image_pixel_stats(med_xrd_img, 255, axis=1)
+
 # io.imshow(x_label)
 # io.show()
 io.imshow(y_label_rot90)
@@ -100,13 +103,17 @@ words = y_label_ocr.get_words()
 for word in words:
     print(word)
 
+y_plot_bbox = AmiOCR.plot_bboxes_on_image(y_label_rot90, words)
+io.imshow(y_plot_bbox)
+io.show()
+
 def image_pixel_stats(image, signal_val, axis=1):
     """sum of signal values along a axis in an array"""
     signal = np.count_nonzero(image==signal_val, axis=axis)
     signal = np.array(signal)
     return signal
 
-vertical_signal = image_pixel_stats(med_xrd_bin, 255)
+vertical_signal = image_pixel_stats(med_xrd_bin, 255, axis=1)
 
 
 angle = 90 # in degrees

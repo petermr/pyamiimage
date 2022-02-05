@@ -1,6 +1,8 @@
 import unittest
 from pyamiimage.pyimage.bbox import BBox
 from skimage import io
+
+from pyimage.ami_image import AmiImage
 from ..pyimage.ami_ocr import TextBox, AmiOCR
 from ..test.resources import Resources # Asserting all images take time
 
@@ -67,8 +69,44 @@ class TestAmiOCR:
     
     def test_bbox_fill(self):
         """tests filling background in a given bbox in an image"""
-        box = BBox([[26, 389], [80, 386]])
+        box = BBox([[82, 389], [28, 386]])
         test_img = AmiOCR.set_bbox_to_bg(self.med_xrd_img, box)
         io.imshow(test_img)
         io.show()
 
+    def test_extract_labels_from_plot(self):
+        """test that labels are correctly OCRd in a plot"""
+        box = BBox([[82, 389], [28, 386]])
+        AmiOCR.extract_labels_from_plot(self.med_xrd_img, box)
+
+    def test_plot_pixel_stats(self):
+        """tests that plots the pixel stats in an image"""
+        AmiOCR.plot_image_pixel_stats(self.med_xrd_img, 255, axis=1)
+
+    def test_img_rotation(self):
+        """tests if an image can be rotated"""
+        med_xrd_img_45 = AmiOCR.image_rotate(self.med_xrd_img, 45)
+        io.imshow(med_xrd_img_45)
+        io.show()
+
+    def test_rotated_image_pixel_stats(self):
+        """test to check if pixel statistics work on rotated image"""
+        med_xrd_img_45 = AmiOCR.image_rotate(self.med_xrd_img, 45)
+        AmiOCR.plot_image_pixel_stats(med_xrd_img_45, 255, axis=1)
+
+    def test_shapes_pixel_stats(self):
+        """pixel statistics of common shapes"""
+        shapes1 = Resources.SHAPES_1
+        shapes1_img = io.imread(shapes1)
+        shapes1_img_bin = AmiImage.create_white_binary_from_image(shapes1_img)
+        io.imshow(shapes1_img)
+        io.show()
+        signal = AmiOCR.image_pixel_stats(shapes1_img_bin, 255, axis=1)
+        from matplotlib import pyplot as plt
+        import numpy as np
+        row = np.arange(0, len(signal))
+        plt.imshow(shapes1_img)
+        plt.plot(row, signal, color='red')
+        plt.show()
+
+    
