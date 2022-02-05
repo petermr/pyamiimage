@@ -1,5 +1,6 @@
 """bounding box"""
 # from ..pyimage.svg import SVGG, SVGRect
+from ..pyimage.ami_util import AmiUtil
 
 class BBox:
     """bounding box 2array of 2arrays, based on integers
@@ -227,8 +228,8 @@ class BBox:
         if index != 0 and index != 1:
             raise ValueError(f"Bad index for range {index}")
         rr = self.xy_ranges[index]
-        rr[0] -= margin[index]
-        rr[1] += margin[index]
+        rr[0] -= margin
+        rr[1] += margin
         # range cannot be <= 0
         if rr[0] >= rr[1]:
             mid = (rr[0] + rr[1]) / 2
@@ -312,18 +313,6 @@ class BBox:
         """
         return max(self.get_width(), self.get_height())
 
-
-    # RECURSIVE imports...
-    # def create_svg(self):
-    #     """creates SVG (a <g> with a <rect>
-    #     :return: <g role="bbox"><rect .../></g>
-    #     """
-    #     g = SVGG()
-    #     g.set_attribute("role", "bbox")
-    #     svg_rect = SVGRect(self)
-    #     g.append(svg_rect)
-    #     return g
-
     @classmethod
     def create_from_corners(cls, xy1, xy2):
         if xy1 is None or xy2 is None:
@@ -335,7 +324,24 @@ class BBox:
         bbox = BBox(xy_ranges=[xrange, yrange])
         return bbox
 
+    def contains_point(self, point):
+        """does point lie within xy_ranges inclusive
+        :param point: 2D numeric array [x, y]
+        :return: False if point is None or self is invalid or point lies outside
+        """
+        if not BBox.validate_point(point) or not self.is_valid():
+            return False
+        if point[0] < self.xy_ranges[0][0] or point[0] > self.xy_ranges[0][1]:
+            return False
+        if point[1] < self.xy_ranges[1][0] or point[1] > self.xy_ranges[1][1]:
+            return False
+        return True
 
+    @classmethod
+    def validate_point(cls, point):
+        if point is None or len(point) != 2:
+            return False
+        return AmiUtil.is_number(point[0]) and AmiUtil.is_number(point[1])
 """If you looking for the overlap between two real-valued bounded intervals, then this is quite nice:
 
 def overlap(start1, end1, start2, end2):

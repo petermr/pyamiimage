@@ -22,7 +22,7 @@ from skimage.morphology import skeletonize
 from ..pyimage.ami_edge_manager import AmiEdgeAnalyzer, X, Y
 from ..pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
 from ..pyimage.ami_image import AmiImage
-from ..pyimage.ami_plot import AmiEdgeTool, AmiLine
+from ..pyimage.ami_plot import AmiEdgeTool, AmiLine, AmiPolyline
 from ..pyimage.ami_util import AmiUtil
 from ..pyimage.bbox import BBox
 from ..pyimage.text_box import TextBox, TextUtil
@@ -1111,7 +1111,7 @@ finds horizontal and vertical lines and joins into polylines
         assert counts_by_xcoord == [[66, 14], [295, 13], [107, 1], [149, 1], [191, 1], [232, 1], [274, 1]]
         assert counts_by_ycoord == [[759, 6], [61, 1]]
         y_line_tool = edge_manager.join_ami_lines(X)
-        assert y_line_tool.polylines == [
+        assert y_line_tool.line_points_list == [
 [[66, 61], [66, 131], [66, 185], [66, 241], [66, 300], [66, 355], [66, 408], [66, 462], [66, 520], [66, 577], [66, 632], [66, 692], [66, 752], [66, 758], [65, 770]],
 [[294, 61], [295, 96], [295, 151], [295, 206], [295, 267], [295, 324], [295, 372], [295, 427], [295, 483], [295, 542], [295, 598], [295, 655], [295, 715], [295, 757]],
 [[107, 759], [107, 764]],
@@ -1121,7 +1121,7 @@ finds horizontal and vertical lines and joins into polylines
 [[274, 759], [274, 770]]
 ]
         x_line_tool = edge_manager.join_ami_lines(Y)
-        assert x_line_tool.polylines == [
+        assert x_line_tool.line_points_list == [
 [[66, 758], [107, 759], [149, 759], [191, 759], [232, 759], [274, 759], [295, 757]],
 [[294, 61], [66, 61]]
 ]
@@ -1141,7 +1141,7 @@ finds horizontal and vertical lines and joins into polylines
         assert counts_by_xcoord == [[341, 14], [663, 14], [573, 2], [594, 2], [631, 2], [555, 2], [645, 1], [624, 2], [566, 1], [364, 1], [387, 1], [410, 1], [433, 1], [456, 1], [479, 1], [502, 1], [549, 1], [618, 1], [641, 1], [526, 1], [648, 3], [658, 1], [655, 1], [585, 1], [634, 1], [627, 1]]
         assert counts_by_ycoord == [[752, 14], [540, 1], [553, 1], [641, 1], [49, 1]]
         y_line_tool = edge_manager.join_ami_lines(X)
-        assert y_line_tool.polylines == [
+        assert y_line_tool.line_points_list == [
 [[342, 49], [341, 93], [341, 151], [341, 200], [341, 259], [341, 332], [341, 384], [341, 432], [341, 486], [341, 547], [341, 593], [341, 645], [341, 703], [341, 752], [341, 762]],
 [[663, 49], [663, 113], [663, 141], [663, 193], [663, 264], [663, 348], [663, 383], [664, 426], [664, 482], [663, 540], [664, 588], [663, 641], [664, 696], [664, 752], [664, 763]],
 
@@ -1181,7 +1181,7 @@ finds horizontal and vertical lines and joins into polylines
 ]
 
         x_line_tool = edge_manager.join_ami_lines(Y)
-        assert x_line_tool.polylines == [
+        assert x_line_tool.line_points_list == [
 [[341, 752], [364, 752], [387, 752], [410, 752], [433, 752], [456, 752], [479, 752], [502, 752], [526, 752], [549, 752], [572, 752], [595, 752], [618, 752], [641, 752], [664, 752]],
 [[649, 540], [655, 541]],
 [[627, 552], [633, 554]],
@@ -1367,25 +1367,66 @@ finds horizontal and vertical lines and joins into polylines
             # print(island.get_or_create_bbox())
             edge_manager = AmiEdgeAnalyzer(tolerance=2)
             horiz_line_tool, vert_line_tool = edge_manager.create_line_tools(island)
-            horiz_lines = horiz_line_tool.polylines
+            horiz_lines = horiz_line_tool.line_points_list
             assert horiz_lines == expected_horiz_lines[i], f"hor {i}"
-            vert_lines = vert_line_tool.polylines
+            vert_lines = vert_line_tool.line_points_list
             assert vert_lines == expected_vert_lines[i], f"vert {i}"
 
     def test_MED_34909142_3_polylines(self):
         """converts raw nested lists into AmiPolylines"""
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.MED_34909142_3)
-
+        tolerance = 2
+        bbox_factor = 0.9  # filter for long lines
         islands = ami_graph.get_or_create_ami_islands(mindim=100)
         for i, island in enumerate(islands):
-            # print(island.get_or_create_bbox())
-            edge_manager = AmiEdgeAnalyzer(tolerance=2)
+            bbox = island.get_or_create_bbox()
+            edge_manager = AmiEdgeAnalyzer(tolerance=tolerance)
             horiz_line_tool, vert_line_tool = edge_manager.create_line_tools(island)
-            horiz_lines = horiz_line_tool.polylines
-            for horiz_line in horiz_line_tool:
-                ami_polyline = AmiPolyline(horiz_line)
-            vert_lines = vert_line_tool.polylines
+            print(f"===========HOR==========")
+            horiz_ami_polylines = []
+            for horiz_line in horiz_line_tool.line_points_list:
+                ami_polyline = AmiPolyline(points_list=horiz_line)
+                if ami_polyline.get_length() > bbox_factor * bbox.get_width():
+                    horiz_ami_polylines.append(ami_polyline)
+                    print(f"polyline Horiz ends {ami_polyline.points_list[0]} -> {ami_polyline.points_list[-1]}")
+            print(f"===========VERT==========")
+            vert_ami_polylines = []
+            for vert_line in vert_line_tool.line_points_list:
+                ami_polyline = AmiPolyline(points_list=vert_line)
+                if ami_polyline.get_length() > bbox_factor * bbox.get_height():
+                    vert_ami_polylines.append(ami_polyline)
+                    print(f"polyline Vert ends {ami_polyline.points_list[0]} -> {ami_polyline.points_list[-1]}")
+            self.find_crossing_horiz_vert_polylines(horiz_ami_polylines, vert_ami_polylines)
 
+    def find_crossing_horiz_vert_polylines(self, horiz_ami_polylines, vert_ami_polylines):
+        print("==========================")
+        for h_ami_polyline in horiz_ami_polylines:
+            h_box = h_ami_polyline.get_bounding_box()
+            for v_ami_polyline in vert_ami_polylines:
+                v_box = v_ami_polyline.get_bounding_box()
+                intersect_box = h_box.intersect(v_box)
+                if intersect_box and intersect_box.is_valid():
+                    # print(f"isect {intersect_box}")
+                    # print(f"h_poly {h_ami_polyline}")
+                    h_points = h_ami_polyline.find_points_in_box(intersect_box)
+                    # print(f"v_poly {v_ami_polyline}")
+                    v_points = v_ami_polyline.find_points_in_box(intersect_box)
+                    print(f"intersect H {h_points} V {v_points}")
+
+
+    # def find_crossing_horiz_vert(self, horiz_line_tool, vert_line_tool, tolerance=2, minlen=None):
+    #     """look for where H and V cross"""
+    #     # horiz_line_tool.line_points_list, vert_line_tool.line_points_list
+    #     for horiz_points in horiz_line_tool.line_points_list:
+    #         h_ami_polyline = AmiPolyline(points_list=horiz_points, tolerance=tolerance)
+    #         h_box = h_ami_polyline.get_bounding_box()
+    #         for vert_points in vert_line_tool.line_points_list:
+    #             v_ami_polyline = AmiPolyline(points_list=vert_points, tolerance=tolerance)
+    #             v_box = v_ami_polyline.get_bounding_box()
+    #             isect = h_box.intersect(v_box)
+    #             if isect and isect.is_valid():
+    #                 print(f"intersect {isect}")
+    #
 
     def test_join_horiz_vert_lines_prisma(self):
         """
@@ -1421,7 +1462,7 @@ finds horizontal and vertical lines and joins into polylines
 [610, 2]
 ]
         y_line_tool = edge_manager.join_ami_lines(X)
-        assert y_line_tool.polylines == [
+        assert y_line_tool.line_points_list == [
 [[485, 309], [486, 195], [485, 81]],
 [[485, 363], [486, 410], [485, 460]],
 [[486, 515], [485, 611]],
@@ -1434,7 +1475,7 @@ finds horizontal and vertical lines and joins into polylines
 [[139, 364], [140, 460]],
 [[140, 514], [139, 610]]]
         x_line_tool = edge_manager.join_ami_lines(Y)
-        assert x_line_tool.polylines == [
+        assert x_line_tool.line_points_list == [
         [[486, 410], [580, 410], [591, 410]],
 [[486, 195], [580, 195], [591, 195]],
 [[289, 500], [294, 502], [299, 500]],
@@ -1483,9 +1524,9 @@ finds horizontal and vertical lines and joins into polylines
             edge_manager.read_edges(ami_edges)
             counts_by_xcoord, counts_by_ycoord = edge_manager.merge_neighbouring_coords()
             y_line_tool = edge_manager.join_ami_lines(X)
-            assert y_line_tool.polylines == y_polylines[i]
+            assert y_line_tool.line_points_list == y_polylines[i]
             x_line_tool = edge_manager.join_ami_lines(Y)
-            assert x_line_tool.polylines == x_polylines[i]
+            assert x_line_tool.line_points_list == x_polylines[i]
 
             # =====================================
     # test helpers
@@ -1508,3 +1549,4 @@ finds horizontal and vertical lines and joins into polylines
         fig.tight_layout()
         if interactive:
             plt.show()
+

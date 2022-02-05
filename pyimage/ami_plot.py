@@ -2,6 +2,7 @@ import logging
 from collections import Counter
 # local
 from ..pyimage.ami_util import AmiUtil
+from ..pyimage.bbox import BBox
 
 logger = logging.getLogger(__name__)
 
@@ -100,27 +101,42 @@ class AmiPolyline:
     """polyline. can represent solid or dashed (NYI) lines. contains attachment points
     """
 
-    def __init__(self, points_list=None, ami_edge=None):
-        """xy12 of form [[x1, y1], [x2, y2]]
-        direction is xy1 -> xy2 if significant"""
+    def __init__(self, points_list=None, ami_edge=None, tolerance=1):
+        """
+        polyline contains a list of connected points and also
+        :param points_list:
+        :param ami_edge:
+        :param tolerance:
+        """
         self.ami_edge = ami_edge
-        self.point_list = []
+        self.points_list = []  # 2D coords
+        self.bbox = None
         if points_list:
             for point in points_list:
-                self.point_list
+                self.points_list.append([point[0], point[1]])
+        self.tolerance = tolerance
+
+    def get_bounding_box(self):
+        if not self.bbox and self.points_list:
+            self.bbox = BBox()
+            for point in self.points_list:
+                self.bbox.add_coordinate(point)
+            if self.tolerance and self.tolerance > 0:
+                self.bbox.expand_by_margin(self.tolerance)
+        return self.bbox
 
     def __repr__(self):
-        return str(self.point_list)
+        return str(self.points_list)
 
     def __str__(self):
-        return str(self.point_list)
+        return str(self.points_list)
 
     @property
     def vector(self):
         """vector between end points
         :return: xy2 - xy1
         """
-        pl = self.point_list
+        pl = self.points_list
         return [pl[0][X] - pl[-1][X], pl[1][Y] - pl[1][Y]]
 
     @property
@@ -128,8 +144,8 @@ class AmiPolyline:
         """get midpoint of line
         :return: 2-array [x, y] of None if coords not set"""
 
-        if self.point_list and len(self.point_list) > 1:
-            pl = self.point_list
+        if self.points_list and len(self.points_list) > 1:
+            pl = self.points_list
             return [(pl[0][X] - pl[-1][X]) // 2, (pl[1][Y] - pl[1][Y]) // 2]
         return None
 
@@ -156,17 +172,50 @@ class AmiPolyline:
                 hv_dict[int(xy_mid)] += 1
         return hv_dict
 
-    def get_min_end(self, xy_flag):
-        return None if xy_flag is None else min(self.xy1[xy_flag], self.xy2[xy_flag])
+    def range(self, tolerance=None):
+        """range from min to max; only works for axial lines
+        if start/end points are the same return None
 
-    def get_max_end(self, xy_flag):
-        return None if xy_flag is None else max(self.xy1[xy_flag], self.xy2[xy_flag])
+        """
+        if tolerance is None:
+            tolerance = self.tolerance
+        if not self.points_list or len(self.points_list) < 2:
+                return None
+        dx = self.points_list[-1][0] - self.points_list[0][0]
+        dy = self.points_list[-1][1] - self.points_list[0][1]
+
+        if abs(dx) <= tolerance and abs(dy) <= tolerance:
+            return None
+        if abs(dx) <= tolerance:
+            l = [self.points_list[-1][1], self.points_list[0][1]] if dy < 0 else [self.points_list[0][1], self.points_list[-1][1]]
+            return l
+        if abs(dy) <= tolerance:
+            l = [self.points_list[-1][0], self.points_list[0][0]] if dy < 0 else [self.points_list[0][0], self.points_list[-1][0]]
+            return l
+        return None
+        # raise ValueError(f"cannot calculate range {self.points_list}")
 
     def get_attachment_points(self):
-        if self.point_list and len(self.point_list) >= 2:
-            return self.point_list[1:-2]
+        if self.points_list and len(self.points_list) >= 2:
+            return self.points_list[1:-1]
         return None
 
+    def get_length(self):
+        """gets length for axial polylines
+        :return: abs distance in axial coordinate else NaN"""
+        range = self.range()
+        return float("NaN") if range is None else abs(range[0] - range[1])
+
+    def find_points_in_box(self, bbox):
+        """iterates over all points including ends in polyline
+        :param bbox: BBox within which point must fit
+        :return: """
+        points_in_box = []
+        for point in self.points_list:
+            if bbox.contains_point(point):
+                # print(f"found {point}")
+                points_in_box.append(point)
+        return points_in_box
 
 class AmiLineTool:
     """joins points or straight line segments
@@ -197,7 +246,7 @@ class AmiLineTool:
             for point in points:
                 self.add_point(point)
         ami_polylines = []  # NYI
-        self.polylines = []  # obsolete?
+        self.line_points_list = []  # obsolete?
         self.polygons = []  # obsolete?
 
     def __repr__(self):
@@ -262,16 +311,6 @@ class AmiLineTool:
         for segment in segments:
             self.add_segment(segment)
 
-    # def insert_segment(self, pos, segval):
-    #     if type(segval) is AmiLine:
-    #         segment = [segval.xy1,segval.xy2]
-    #     else:
-    #         segment = segval
-    #     self._validate_segment(segment)
-    #     if not self._are_coincident_points(segment[1], self.points[0]):
-    #         raise ValueError("non-overlapping insertion at pos {pos} {segment}")
-    #     self.points.insert(pos, segment[0])
-
     def _are_coincident_points(self, point1, point2):
         AmiLineTool._validate_point(point1)
         AmiLineTool._validate_point(point2)
@@ -325,15 +364,15 @@ class AmiLineTool:
 
         :param polyline_to_add: polyline to add (may be anynumber of points, 1, 2, many
         """
-        if self.polylines == []:
+        if self.line_points_list == []:
             polylinex = []
             for point in polyline_to_add:
                 polylinex.append([point[0], point[1]])
-            self.polylines.append(polylinex)
+            self.line_points_list.append(polylinex)
         else:
             added_polyline = None
             # have to consider directions of lines
-            for polyline in self.polylines:
+            for polyline in self.line_points_list:
                 added_polyline = self.join_heads_and_tails(polyline, polyline_to_add)
                 if added_polyline is not None:
                     break
@@ -350,7 +389,7 @@ class AmiLineTool:
         if self._are_coincident_points(added_polyline[0], added_polyline[-1]):
             logger.debug(f"CYCLIC {added_polyline}")
             if self.mode == POLYGON:
-                self.polylines.remove(polyline)
+                self.line_points_list.remove(polyline)
                 point0 = polyline[0]
                 polyline.remove(point0)
                 self.polygons.append(polyline)
@@ -395,105 +434,31 @@ class AmiLineTool:
 
         return added_polyline
 
-    # def add_segment_to_poly_list(self, segment):
-    #     """add segment, assuming current list is sorted
-    #     polyline            polyline
-    #     lo-----hi           lo----------hi
-    #                lo---hi
-    #                segment
-    #     """
-    #     # seg_low = segment.get_min(self.xy_flag)
-    #     # seg_hi = segment.get_max(self.xy_flag)
-    #     if self.polylines == []:
-    #         polyline = segment
-    #         self.polylines.append(polyline)
-    #         return
-    #     last_polyline = None
-    #     if self.xy_flag is None:
-    #         raise ValueError("must set xy_flag for adding segments")
-    #     xyf = self.xy_flag
-    #     inserted = False
-    #     for i, polyline in enumerate(self.polylines):
-    #         # does it overlap the next exactly?
-    #         assert len(segment) == 2
-    #         assert len(segment[0]) == 2
-    #         assert type(polyline) is list  # list of points
-    #         # assert type(polyline[0]) is list , f"list of lists?"
-    #         AmiLineTool._validate_point(polyline[0],
-    #                                     message=f"expected point for {polyline[0]} in {polyline}")  # point as list
-    #         if self._are_coincident_points(segment[1], polyline[0]):
-    #             if last_polyline is None:
-    #                 # end of first polyline
-    #                 self.prepend_segment_to_polyline(segment, polyline)
-    #                 inserted = True
-    #             elif self._are_coincident_points(segment[0], last_polyline[-1]):
-    #                 # join in the middle of last_polyline and polyline
-    #                 # join to predecessor
-    #                 self.prepend_segment_to_polyline(segment, polyline)
-    #                 # and then add last
-    #                 self.append_polyline_to_polyline_and_remove(last_polyline, polyline)
-    #                 # and clear the last
-    #                 self.polylines.remove(last_polyline)
-    #                 inserted = True
-    #
-    #         elif segment[1][xyf] < polyline[0][xyf]:
-    #             # falls behind preceding and leads last if any
-    #             if last_polyline is None or segment[0][xyf] > (last_polyline[-1][xyf] + self.tolerance):
-    #                 self.polylines.insert(i, segment)
-    #                 inserted = True
-    #             else:
-    #                 raise ValueError(f"too big {segment} cannot insert")
-    #
-    #         if inserted:
-    #             break
-    #
-    #         last_polyline = polyline
-    #
-    #     if not inserted:
-    #         if self._are_coincident_points(last_polyline[1], segment[0]):
-    #             self.append_segment_to_polyline(segment, last_polyline)
-    #             # self.polylines.append(last_polyline)
-    #         elif segment[0][xyf] < last_polyline[1][xyf]:
-    #             raise f"cannot add segment at head {segment}"
-    #         else:
-    #             self.polylines.append(segment)
-
-    # def prepend_segment_to_polyline(self, segment, polyline):
-    #     polyline.insert(0, segment[0])
-
-    # def append_segment_to_polyline(self, segment, polyline):
-    #     polyline.append(segment[1])
-    #
-
-    # def append_polyline_to_polyline_and_remove(self, last_polyline, polyline):
-    #     last_polyline.add(polyline)
-    #     self.polylines.remove(polyline)
-
     @classmethod
-    def copy_append(cls, polyline_to_add, polyline):
-        logger.debug(f"adding {polyline_to_add} to {polyline}")
-        for point in polyline_to_add:
+    def copy_append(cls, line_points_to_add, target_line_points):
+        logger.debug(f"adding {line_points_to_add} to {target_line_points}")
+        for point in line_points_to_add:
             point1 = [point[0], point[1]]
-            polyline.append(point1)
+            target_line_points.append(point1)
 
     @classmethod
-    def copy_prepend(cls, polyline_to_add, polyline):
+    def copy_prepend(cls, line_points_to_add, line_points_list):
         """prepends polyline_to_add to front of list
         uses insert(0, ...) which is SLOW unless lines are deques
         """
-        for point in polyline_to_add:
+        for point in line_points_to_add:
             point1 = [point[0], point[1]]
-            polyline.insert(0, point1)
+            line_points_list.insert(0, point1)
 
     def copy_and_append(self, polyline_to_add):
         """
         copies into new polyline and adds this to self.polylines
         :param polyline_to_add: polyline to add may have 1,2, more points
         """
-        polyline = []
+        line_points = []
         for point in polyline_to_add:
-            polyline.append([point[0], point[1]])
-        self.polylines.append(polyline)
+            line_points.append([point[0], point[1]])
+        self.line_points_list.append(line_points)
 
 
 class AmiEdgeTool:
