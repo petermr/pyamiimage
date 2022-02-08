@@ -1,3 +1,4 @@
+import setuptools
 try:
     from setuptools import setup
 except ImportError:
@@ -20,19 +21,15 @@ setup(
     description='Image analysis for words and graphics.',
     long_description_content_type='text/markdown',
     long_description=readme,
-    author="Peter Murray-Rust",
+    author="Peter Murray-Rust, Anubhab Chakraborty",
     author_email='petermurrayrust@googlemail.com',
-    author="Anuv Chakraborty",
-    author_email='anuv.chakrabo@gmail.com',
     license='Apache2',
-    install_requires=required
+    install_requires=required,
     include_package_data=True,
     zip_safe=False,
     keywords='text and image mining',
-    packages=[
-        'pyamiimage'
-    ],
-    package_dir={'pyimage': 'pyimage'},
+    package_dir={'': 'pyimage'},
+    packages=setuptools.find_packages(where="pyimage"),
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
