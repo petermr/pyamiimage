@@ -19,10 +19,10 @@ from skimage.measure import approximate_polygon, subdivide_polygon
 from skimage.morphology import skeletonize
 
 # local
-from ..pyimage.ami_edge_manager import AmiEdgeAnalyzer, X, Y
+from ..pyimage.ami_edge_manager import AmiEdgeAnalyzer
 from ..pyimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
 from ..pyimage.ami_image import AmiImage
-from ..pyimage.ami_plot import AmiEdgeTool, AmiLine, AmiPolyline
+from ..pyimage.ami_plot import AmiEdgeTool, AmiLine, AmiPolyline, X, Y
 from ..pyimage.ami_util import AmiUtil
 from ..pyimage.bbox import BBox
 from ..pyimage.text_box import TextBox, TextUtil
