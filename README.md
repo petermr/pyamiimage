@@ -11,6 +11,10 @@ Documentation on Wiki.
 
 Demos on ipynb Notebooks.
 
+# Installation
+```
+pip install pyamiimage
+```
 # components
 
 ## AmiImage
