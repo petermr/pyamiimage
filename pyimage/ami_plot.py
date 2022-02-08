@@ -200,7 +200,7 @@ class AmiPolyline:
             return self.points_list[1:-1]
         return None
 
-    def get_length(self):
+    def get_cartesian_length(self):
         """gets length for axial polylines
         :return: abs distance in axial coordinate else NaN"""
         range = self.range()
@@ -211,11 +211,44 @@ class AmiPolyline:
         :param bbox: BBox within which point must fit
         :return: """
         points_in_box = []
-        for point in self.points_list:
+        size = len(self.points_list)
+        for i, point in enumerate(self.points_list):
             if bbox.contains_point(point):
                 # print(f"found {point}")
-                points_in_box.append(point)
+                points_in_box.append((i, i-size, point))
         return points_in_box
+
+    def number_of_points(self):
+        """
+        :return: 0 if no points_list else number of points
+        """
+        return len(self.points_list) if self.points_list else 0
+
+    def split_line(self, point_triple):
+        """split polyline at point
+        :param point_triple: triple created by AmiPolyline.find_points_in_box() (index_left, index_right, coords)
+        :param polyline: to split
+        :return: two lines, if one is length 0, nul and orginal polyline
+        """
+        lines = [None, None]
+        l = self.number_of_points()
+        if point_triple[0] == 0:
+            lines[1] = self
+        elif point_triple[0] == -1:
+            lines[0] = self
+        else:
+            lines[0] = self.sub_polyline(0, point_triple[0])
+            lines[1] = self.sub_polyline(point_triple[0], l-1)
+
+        return lines
+
+    def sub_polyline(self, index0, index1):
+        """slice line at points , keeping both
+        not pythonic
+        """
+        polyline = AmiPolyline(self.points_list[index0:index1+1])
+        return polyline
+
 
 class AmiLineTool:
     """joins points or straight line segments

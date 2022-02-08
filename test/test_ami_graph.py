@@ -1386,20 +1386,21 @@ finds horizontal and vertical lines and joins into polylines
             horiz_ami_polylines = []
             for horiz_line in horiz_line_tool.line_points_list:
                 ami_polyline = AmiPolyline(points_list=horiz_line)
-                if ami_polyline.get_length() > bbox_factor * bbox.get_width():
+                if ami_polyline.get_cartesian_length() > bbox_factor * bbox.get_width():
                     horiz_ami_polylines.append(ami_polyline)
                     print(f"polyline Horiz ends {ami_polyline.points_list[0]} -> {ami_polyline.points_list[-1]}")
             print(f"===========VERT==========")
             vert_ami_polylines = []
             for vert_line in vert_line_tool.line_points_list:
                 ami_polyline = AmiPolyline(points_list=vert_line)
-                if ami_polyline.get_length() > bbox_factor * bbox.get_height():
+                if ami_polyline.get_cartesian_length() > bbox_factor * bbox.get_height():
                     vert_ami_polylines.append(ami_polyline)
                     print(f"polyline Vert ends {ami_polyline.points_list[0]} -> {ami_polyline.points_list[-1]}")
             self.find_crossing_horiz_vert_polylines(horiz_ami_polylines, vert_ami_polylines)
 
     def find_crossing_horiz_vert_polylines(self, horiz_ami_polylines, vert_ami_polylines):
         print("==========================")
+
         for h_ami_polyline in horiz_ami_polylines:
             h_box = h_ami_polyline.get_bounding_box()
             for v_ami_polyline in vert_ami_polylines:
@@ -1409,24 +1410,19 @@ finds horizontal and vertical lines and joins into polylines
                     # print(f"isect {intersect_box}")
                     # print(f"h_poly {h_ami_polyline}")
                     h_points = h_ami_polyline.find_points_in_box(intersect_box)
-                    # print(f"v_poly {v_ami_polyline}")
-                    v_points = v_ami_polyline.find_points_in_box(intersect_box)
-                    print(f"intersect H {h_points} V {v_points}")
+                    if len(h_points) == 1:
+                        h_point = h_points[0]
+                        v_points = v_ami_polyline.find_points_in_box(intersect_box)
+                        if len(v_points) == 1:
+                            v_point = v_points[0]
+                            h_lines = h_ami_polyline.split_line(h_point)
+                            v_lines = v_ami_polyline.split_line(v_point)
+                            print(f"H  {h_point} // {len(h_lines)} {h_lines} // \nV {v_point} // {len(v_lines)} {v_lines}")
+                        else:
+                            print(f"too many v_points {v_points}")
+                    else:
+                        print(f"too many h_points {h_points}")
 
-
-    # def find_crossing_horiz_vert(self, horiz_line_tool, vert_line_tool, tolerance=2, minlen=None):
-    #     """look for where H and V cross"""
-    #     # horiz_line_tool.line_points_list, vert_line_tool.line_points_list
-    #     for horiz_points in horiz_line_tool.line_points_list:
-    #         h_ami_polyline = AmiPolyline(points_list=horiz_points, tolerance=tolerance)
-    #         h_box = h_ami_polyline.get_bounding_box()
-    #         for vert_points in vert_line_tool.line_points_list:
-    #             v_ami_polyline = AmiPolyline(points_list=vert_points, tolerance=tolerance)
-    #             v_box = v_ami_polyline.get_bounding_box()
-    #             isect = h_box.intersect(v_box)
-    #             if isect and isect.is_valid():
-    #                 print(f"intersect {isect}")
-    #
 
     def test_join_horiz_vert_lines_prisma(self):
         """
