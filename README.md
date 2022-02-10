@@ -1,36 +1,33 @@
 # pyamiimage
-Image analysis in Python
+`pyamiimage` is a set of tools to extract semantic information from scientific diagrams. 
 
-See also the Java tools in https://github.com/ContentMine/imageanalysis. This is not a fork, but completely rewritten.
+The current goal is to extract terpene synthase pathway diagrams. 
+'Extraction' means that we will go from pixel values in an image to a 'smart diagram'. The output of `pyamiimage` is an image with annotations of substrate, products and enzymes.
 
-Code is *copied* from https://github.com/petermr/opendiagram, mainly from https://github.com/petermr/openDiagram/tree/master/physchem/python/image
-
-Test-Driven
-
-Documentation on Wiki.
-
-Demos on ipynb Notebooks.
+We are working to add more support for open formats that encode chemical information such as [CML](https://www.xml-cml.org/) and [GPML](https://github.com/PathVisio/GPML).
 
 # Installation
+
+### Tesseract
+To run `pyamiimage` on your local system you need to have `Tesseract` installed. If you don't have `Tesseract` installed, install it from [here](https://tesseract-ocr.github.io/tessdoc/).
+
 ```
 pip install pyamiimage
 ```
-# components
+# Usage
 
-## AmiImage
+### AmiImage
+AmiImage class provides methods for image manipulation. 
+```
+from test.resources import Resources
+from pyamiimage.ami_image import AmiImage
 
-Tools for image reading, conversion and writing. Most are based on skimage
+biosynth2_path = Resources.BIOSYNTH_2
+gray = AmiImage.create_grayscale_from_file(biosynth2_path)
+```
 
-## branches
+### AmiGraph
+AmiGraph class generate a graph from arrows in a diagram.
 
-* tess_anuv - tesseract to create words and phrases
-* nodes_and_islands. analysis of components using sknw and nx_graph. Able to extract arrows and merge with textboxes
-Now merged back into main.
-
-Provides a wrapper for `sknw` and `networkX`.
-
-Can extract island primitives such as arrows.
-
-
-* adding_pipeline - stitching together parts of pyamiimage to form cohesive outputs from images
-
+### AmiOCR
+AmiOCR class provides methods to extract words from the iamge. Uses Tesseract.
