@@ -6,7 +6,7 @@ The current goal is to extract terpene synthase pathway diagrams.
 
 We are working to add more support for open formats that encode chemical information such as [CML](https://www.xml-cml.org/) and [GPML](https://github.com/PathVisio/GPML).
 
-# Installation
+## Installation
 
 ### Tesseract
 To run `pyamiimage` on your local system you need to have `Tesseract` installed. If you don't have `Tesseract` installed, install it from [here](https://tesseract-ocr.github.io/tessdoc/).
@@ -14,7 +14,7 @@ To run `pyamiimage` on your local system you need to have `Tesseract` installed.
 ```
 pip install pyamiimage
 ```
-# Usage
+## Usage
 
 ### AmiImage
 AmiImage class provides methods for image manipulation. 
