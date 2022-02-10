@@ -116,6 +116,17 @@ class AmiPolyline:
                 self.points_list.append([point[0], point[1]])
         self.tolerance = tolerance
 
+    @property
+    def id(self):
+        idd = None
+        if self.points_list:
+            p0 = self.points_list[0]
+            idd = str(p0[0]) + "_" + str(p0[1])
+            idd += "__"
+            p1 = self.points_list[-1]
+            idd += str(p1[0]) + "_" + str(p1[1])
+        return idd
+
     def get_bounding_box(self):
         if not self.bbox and self.points_list:
             self.bbox = BBox()
@@ -214,7 +225,6 @@ class AmiPolyline:
         size = len(self.points_list)
         for i, point in enumerate(self.points_list):
             if bbox.contains_point(point):
-                # print(f"found {point}")
                 points_in_box.append((i, i-size, point))
         return points_in_box
 
@@ -537,7 +547,7 @@ class AmiEdgeTool:
             for ami_edge in node_ami_edges:
                 if ami_edge.has_start_lt_end():
                     if ami_edge not in self.ami_edges:
-                        print(f" cannot find {ami_edge} in edges")
+                        logger.error(f" cannot find {ami_edge} in edges")
                     else:
                         new_ami_edges.add(ami_edge)
         return new_ami_nodes, new_ami_edges

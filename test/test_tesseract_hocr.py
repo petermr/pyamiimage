@@ -93,6 +93,7 @@ class TestTesseractHOCR:
 
         return
 
+    @unittest.skip("smoke test")
     def test_pretty_print_html(self):
         TesseractOCR.pretty_print_hocr(self.biosynth3_elem)
 

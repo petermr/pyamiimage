@@ -1,6 +1,7 @@
 import logging
+import pprint
 # local
-from ..pyimage.ami_plot import AmiLine
+from ..pyimage.ami_plot import AmiLine, AmiPolyline
 from ..pyimage.ami_plot import POLYLINE
 from ..pyimage.ami_plot import AmiLineTool
 from ..pyimage.ami_graph_all import AmiEdge
@@ -32,26 +33,35 @@ class AmiEdgeAnalyzer:
     contains and analyzes edges, building higher-level objects
     """
 
-    def __init__(self, tolerance=1):
+    def __init__(self, tolerance=1, island=None):
         self.horizontal_edges = None
-        self.vertical_edges = None
         self.horiz_ami_lines = None
-        self.vert_ami_lines = None
-
-        self.axial_polylines = None
-        self.vert_dict = []
-        self.horiz_dict = []
-        self.tolerance = tolerance
-
-        self.line_x_coords_by_count = None
+        self.horiz_ami_polylines = []
+        self.horiz_line_tool = None
+        self.horiz_dict = dict()
         self.line_y_coords_by_count = None
 
-        # temporary work variables
+        self.vertical_edges = None
+        self.vert_ami_lines = None
+        self.vert_ami_polylines = []
+        self.vert_line_tool = None
+        self.vert_dict = dict()
+        self.line_x_coords_by_count = None
 
+        self.non_axial_edges = None
+        self.axial_polylines = None
+        self.tolerance = tolerance
+        self.island = island
 
     def read_edges(self, ami_edges):
         self.horizontal_edges = AmiEdge.get_horizontal_edges(ami_edges, tolerance=self.tolerance)
         self.vertical_edges = AmiEdge.get_vertical_edges(ami_edges, tolerance=self.tolerance)
+        self.non_axial_edges = AmiEdge.get_non_axial_edges(ami_edges, tolerance=self.tolerance)
+        print(f"non_axial {len(self.non_axial_edges)}")
+        for non_axial_edge in self.non_axial_edges:
+            logger.debug(f"non-axial {non_axial_edge.pixel_length()} {round(non_axial_edge.get_cartesian_length(), 2)}"
+                         f" {non_axial_edge.xdelta_direct} {non_axial_edge.ydelta_direct}")
+
         self.horiz_ami_lines = AmiEdge.get_single_lines(self.horizontal_edges)
         self.vert_ami_lines = AmiEdge.get_single_lines(self.vertical_edges)
 
@@ -110,7 +120,6 @@ class AmiEdgeAnalyzer:
         join lines with constant coordinate (vert/X, or horiz/Y)
 
         :param xy_flag: 0 or 1 for X/Y
-        :param gap_factor: gap allowed to next line as ratio of length
         :return: joined lines as list
 
         default is lines must touch within self.tolerance. gap_factor = 1.0 gives
@@ -118,7 +127,6 @@ class AmiEdgeAnalyzer:
 
         """
 
-        other = 1 - xy_flag
         line_coords_by_count = self.line_x_coords_by_count if xy_flag == X else self.line_y_coords_by_count
         line_tool = AmiLineTool(mode=POLYLINE, xy_flag=xy_flag)
         for this_coord, count in line_coords_by_count:
@@ -126,22 +134,6 @@ class AmiEdgeAnalyzer:
             for segment in ami_lines:
                 line_tool.add_segment(segment)
         return line_tool
-
-
-        # if False:
-        #     polylines = []
-        #     for segment in ami_lines:
-        #         new_ami_line = self.create_new_line_with_ascending_coords(segment, xy_flag)
-        #         polylines.append(new_ami_line)
-        #
-        #     # sort on second xy coord; x or y determined by xy_flag/other
-        #     polylines = sorted(polylines, key=lambda ami_linex: ami_linex.xy2[other])
-        #     logger.debug(f"new lines {polylines}")
-        #     long_ami_line = None
-        #     long_ami_lines = []
-        #     for segment in polylines:
-        #         long_ami_line = self.add_ami_lines_to_long_lines(segment, long_ami_line)
-        #     pass
 
     @classmethod
     def _delta(cls, point0, point1):
@@ -155,40 +147,41 @@ class AmiEdgeAnalyzer:
         long_ami_line.mid_points.append(ami_line.xy1)
         return long_ami_line
 
-    def add_ami_lines_to_long_lines(self, ami_line, long_ami_line):
-        """
+    # def add_ami_lines_to_long_lines(self, ami_line, long_ami_line):
+    #     """
+    #
+    #     :param ami_line:
+    #     :param long_ami_line:
+    #     :return: list of long_ami_lines
+    #
+    #     """
+    #     long_ami_lines = []
+    #     if long_ami_line is None:
+    #         long_ami_line = ami_line
+    #         long_ami_lines.append(long_ami_line)
+    #         long_ami_line.mid_points = []
+    #         return
+    #     else:
+    #         point0 = long_ami_line.xy2  # joinable point
+    #         point1 = ami_line.xy1  # incoming joinable point
+    #         if self._delta(point0, point1) <= self.tolerance:
+    #             # close enough? join
+    #             long_ami_line = self._join(long_ami_line, ami_line)
+    #         else:
+    #             # no, create new line
+    #             long_ami_line = None
+    #
+    #     return long_ami_lines
 
-        :param ami_line:
-        :param long_ami_line:
-        :return: list of long_ami_lines
-
-        """
-        long_ami_lines = []
-        if long_ami_line is None:
-            long_ami_line = ami_line
-            long_ami_lines.append(long_ami_line)
-            long_ami_line.mid_points = []
-            return
-        else:
-            point0 = long_ami_line.xy2  # joinable point
-            point1 = ami_line.xy1  # incoming joinable point
-            if self._delta(point0, point1) <= self.tolerance:
-                # close enough? join
-                long_ami_line = self._join(long_ami_line, ami_line)
-            else:
-                # no, create new line
-                long_ami_line = None
-
-        return long_ami_lines
-
-    def create_new_line_with_ascending_coords(self, ami_line, xy_flag):
-        """NOT TESTED"""
-        # [[[66, 61], [66, 131]], [[66, 131], [66, 185]],...
-        other = 1 - xy_flag
-        swap = ami_line.xy1[other] < ami_line.xy2[other]
-        xy1 = [ami_line.xy1[xy_flag], ami_line.xy1[other]] if swap else [ami_line.xy2[xy_flag], ami_line.xy2[other]]
-        xy2 = [ami_line.xy2[xy_flag], ami_line.xy2[other]] if swap else [ami_line.xy1[xy_flag], ami_line.xy1[other]]
-        return AmiLine(xy12=[xy1, xy2])
+    # @classmethod
+    # def create_new_line_with_ascending_coords(cls, ami_line, xy_flag):
+    #     """NOT TESTED"""
+    #     # [[[66, 61], [66, 131]], [[66, 131], [66, 185]],...
+    #     other = 1 - xy_flag
+    #     swap = ami_line.xy1[other] < ami_line.xy2[other]
+    #     xy1 = [ami_line.xy1[xy_flag], ami_line.xy1[other]] if swap else [ami_line.xy2[xy_flag], ami_line.xy2[other]]
+    #     xy2 = [ami_line.xy2[xy_flag], ami_line.xy2[other]] if swap else [ami_line.xy1[xy_flag], ami_line.xy1[other]]
+    #     return AmiLine(xy12=[xy1, xy2])
 
     def find_sorted_ami_lines_with_coord(self, xy_flag, coord):
         """
@@ -206,7 +199,7 @@ class AmiEdgeAnalyzer:
         ami_lines = sorted(ami_lines, key=lambda linex: linex.xy1[other_coord])
         return ami_lines
 
-    def create_line_tools(self, island):
+    def create_horiz_vert_line_tools(self, island):
         """create horizontal and vertical line_tools
         :param island:
         :return: horizontal line tool, vertical line tool
@@ -215,6 +208,55 @@ class AmiEdgeAnalyzer:
         ami_edges = island.get_or_create_ami_edges()
         self.read_edges(ami_edges)
         self.merge_neighbouring_coords()
-        vert_line_tool = self.join_ami_lines(X)
-        horiz_line_tool = self.join_ami_lines(Y)
-        return horiz_line_tool, vert_line_tool
+        self.vert_line_tool = self.join_ami_lines(X)
+        self.horiz_line_tool = self.join_ami_lines(Y)
+
+    def make_horiz_vert_polylines(self, min_horiz_length=0, min_vert_length=0):
+        self.create_horiz_vert_line_tools(self.island)
+
+        self.horiz_ami_polylines = self._create_polylines(min_horiz_length, self.horiz_line_tool.line_points_list)
+        self.vert_ami_polylines = self._create_polylines(min_vert_length, self.vert_line_tool.line_points_list)
+
+        self.find_crossing_horiz_vert_polylines()
+
+    @classmethod
+    def _create_polylines(cls, min_length, points_list_x):
+        polylines = []
+        for line in points_list_x:
+            ami_polyline = AmiPolyline(points_list=line)
+            if ami_polyline.get_cartesian_length() > min_length:
+                polylines.append(ami_polyline)
+        return polylines
+
+    def find_crossing_horiz_vert_polylines(self):
+
+        h_poly_dict = dict()
+        h_poly_dict["intersect"] = []
+        v_poly_dict = dict()
+        v_poly_dict["intersect"] = []
+        for h_ami_polyline in self.horiz_ami_polylines:
+            h_box = h_ami_polyline.get_bounding_box()
+            for v_ami_polyline in self.vert_ami_polylines:
+                v_box = v_ami_polyline.get_bounding_box()
+                intersect_box = h_box.intersect(v_box)
+                if intersect_box and intersect_box.is_valid():
+                    h_points = h_ami_polyline.find_points_in_box(intersect_box)
+                    if len(h_points) == 1:
+                        h_point = h_points[0]
+                        v_points = v_ami_polyline.find_points_in_box(intersect_box)
+                        if len(v_points) == 1:
+                            v_point = v_points[0]
+                            h_poly_dict["intersect"].append((h_point, v_point, v_ami_polyline.id))
+                            h_lines = h_ami_polyline.split_line(h_point)
+                            v_poly_dict["intersect"].append((v_point, h_point, h_ami_polyline.id))
+                            v_lines = v_ami_polyline.split_line(v_point)
+                            print(
+                                f"H  {h_point} // {len(h_lines)} {h_lines} // "
+                                f"\nV {v_point} // {len(v_lines)} {v_lines}")
+                        else:
+                            print(f"too many v_points {v_points}")
+                    else:
+                        print(f"too many h_points {h_points}")
+        pprinter = pprint.PrettyPrinter(indent=4)
+        pprinter.pprint(h_poly_dict)
+        pprinter.pprint(v_poly_dict)

@@ -16,7 +16,7 @@ from skimage.measure import approximate_polygon
 
 # local
 from ..pyimage.ami_image import AmiImage
-from ..pyimage.ami_plot import AmiLine
+from ..pyimage.ami_plot import AmiLine, X, Y
 from ..pyimage.ami_util import AmiUtil
 from ..pyimage.svg import BBox
 from ..pyimage.text_box import TextBox
@@ -275,10 +275,10 @@ class AmiGraph:
         pts_index = 2
         for edge in nx_edgelist[:debug_count]:
             pts_ = edge[pts_index]['pts']
-            print("points", pts_)
+            logger.warning("points", pts_)
         edgelist_pts_ = nx_edgelist[0][2]['pts']
         for step in edgelist_pts_[:debug_count]:
-            print("step", step)
+            logger.warning("step", step)
             pass
 
     def get_edge_list_ids_through_maximum_spanning_edges(self):
@@ -363,8 +363,6 @@ class AmiGraph:
                     ami_edge = self.get_or_create_ami_edge_from_ids(start_id, end_id)
                     self.ami_edges.append(ami_edge)
 
-            # print(f"ami_edge_dict {self.ami_edge_dict.keys()} ")
-            #       f"=> {self.ami_edge_dict} ")
         return self.ami_edges
 
     def get_ami_edge_list_for_start_end(self, start_id, end_id):
@@ -553,10 +551,6 @@ class AmiGraph:
         assert node_ids is not None
         assert node_ids[0] is not None, f"node_ids {node_ids}"
 
-        # xys = {node_id: AmiNode(ami_graph=self, node_id=node_id).centroid_xy for node_id in node_ids}
-        # print(xys.keys())
-
-        # angle_dict = {node1: self.get_angle(node_ids[0], node_id, node1) for node1 in node_ids[1:]}
         angle_dict = {}
         for node1 in node_ids:
             angle = self.get_angle_between_nodes(node_ids[0], node_id, node1)
@@ -611,7 +605,7 @@ class AmiGraph:
             for (start_id, end_id) in self.nx_graph.edges():
                 branch_ids = self.get_branch_ids_for_start_end(start_id, end_id)
                 for branch_id in branch_ids:
-                    print(f" {__name__} branch_ids / id {branch_ids} {branch_id}")
+                    logger.debug(f" {__name__} branch_ids / id {branch_ids} {branch_id}")
                     pts = self.get_points_on_line(start_id, end_id, branch_id=branch_id)
                     ami_edge = self.get_or_create_ami_edge_from_ids(start_id, end_id, branch_id=branch_id)
                     ami_edge.plot_edge(pts, plot_target, edge_id=branch_id)
@@ -622,7 +616,7 @@ class AmiGraph:
                 ami_edge.plot_edge(pts, plot_target)
 
     def get_points_on_line(self, start_id, end_id, branch_id=None):
-        print(f"s/e/b {start_id} {end_id} {branch_id}")
+        logger.debug(f"s/e/b {start_id} {end_id} {branch_id}")
         if self.nx_graph.is_multigraph and type(branch_id) is int:
             try:
                 points = self.nx_graph[start_id][end_id][branch_id][AmiEdge.PTS]
@@ -692,13 +686,6 @@ class AmiGraph:
         nx_edges = list(self.nx_graph.edges(node_id, keys=True))
 
         return nx_edges
-
-    # def get_angle_to_x(self, edge):
-    #
-    #     n0 = self.nx_graph.nodes[edge[0]]
-    #     n1 = self.nx_graph.nodes[edge[1]]
-    #     print(f"x0 {n0} x1 {n1}")
-    #
 
     # AmiGraph
 
@@ -933,7 +920,7 @@ class AmiEdge:
         self.line_points = None
         self.tolerance = 1
         self.segments = None
-        self.get_points()
+        self._extract_points_from_nx()
 
     def __eq__(self, other):
         """equality is based on node_ids and branch_id alone
@@ -972,7 +959,9 @@ class AmiEdge:
         """
         return f"{self.start_id}_{self.end_id}_{self.branch_id}"
 
-    def get_points(self):
+    def _extract_points_from_nx(self):
+        """extract points from self.PTS and create self.points_xy
+        """
         assert self.start_id is not None
         assert self.end_id is not None
         edges = self.nx_graph[self.start_id][self.end_id]
@@ -988,7 +977,7 @@ class AmiEdge:
         else:
             points = edges[self.PTS]
         if points is not None:
-            self.read_nx_edge_points_yx_into_self_points_xy(points)
+            self._read_nx_edge_points_yx_into_self_points_xy(points)
         return points
 
     # class AmiEdge:
@@ -1003,7 +992,15 @@ class AmiEdge:
         assert dist is not None
         return dist
 
-    def read_nx_edge_points_yx_into_self_points_xy(self, points_array_yx):
+    @property
+    def first_point(self):
+        return self.points_xy[0] if self.points_xy and len(self.points_xy) > 0 else None
+
+    @property
+    def last_point(self):
+        return self.points_xy[-1] if self.points_xy and len(self.points_xy) > 0 else None
+
+    def _read_nx_edge_points_yx_into_self_points_xy(self, points_array_yx):
         """
         convert from nx_points (held as yarray, xarray) to array(x, y)
         :param points_array_yx:
@@ -1066,6 +1063,40 @@ class AmiEdge:
 
         logger.debug(f"bbox {self.bbox}")
         return self.bbox
+
+    @property
+    def xrange_direct(self):
+        """The range between the end points
+        for complete range use BBox
+        :return: [xstart, xend]
+        """
+        return [self.first_point[X], self.last_point[X]] if self.first_point and self.last_point else None
+
+    @property
+    def yrange_direct(self):
+        """The range between the end points
+        for complete range use BBox
+        :return: [ystart, yend]
+        """
+        return [self.first_point[Y], self.last_point[Y]] if self.first_point and self.last_point else None
+
+    @property
+    def xdelta_direct(self):
+        """direct x-distance between end points
+        the sign is only meaningful for directed edges
+        :return: distance in pixels
+        """
+        return None if not self.xrange_direct or not self.xrange_direct[0] or not self.xrange_direct[1] \
+            else self.xrange_direct[1] - self.xrange_direct[0]
+
+    @property
+    def ydelta_direct(self):
+        """direct y-distance between end points
+        the sign is only meaningful for directed edges
+        :return: distance in pixels
+        """
+        return None if not self.yrange_direct or not self.yrange_direct[0] or not self.yrange_direct[1] \
+            else self.yrange_direct[1] - self.yrange_direct[0]
 
     def create_line_segments(self, tolerance=1):
         """create AmiLine segments from sknw points
@@ -1138,7 +1169,6 @@ class AmiEdge:
         :return:
         """
         colors = ["green", "blue", "magenta", "cyan"]
-        # print(f"edge_id {edge_id} pts: {pts[:5]}")
 
         if boxcolor is not None:
             bbox = self.get_or_create_bbox()
@@ -1188,7 +1218,8 @@ class AmiEdge:
         segment = self.get_single_segment(tolerance=tolerance)
         return segment is not None and segment.is_vertical(tolerance=tolerance)
 
-    def _get_axial_corners(self, segments, tolerance):
+    @classmethod
+    def _get_axial_corners(cls, segments, tolerance):
         """
         finds Hor-Vert and Vert-Hor corners in segments
         :param tolerance:
@@ -1214,6 +1245,13 @@ class AmiEdge:
     @classmethod
     def get_horizontal_edges(cls, ami_edges, tolerance=1):
         return list(filter(lambda ami_edge: ami_edge.is_horizontal(tolerance=tolerance), ami_edges))
+
+    @classmethod
+    def get_non_axial_edges(cls, ami_edges, tolerance=1):
+        return list(filter(
+            lambda ami_edge:
+            not ami_edge.is_horizontal(tolerance=tolerance) and not ami_edge.is_vertical(tolerance=tolerance),
+            ami_edges))
 
     # =========================================
 
@@ -1265,9 +1303,7 @@ class AmiEdge:
         node_pts = [nx_graph.nodes[ij[0]][AmiNode.CENTROID], nx_graph.nodes[ij[1]][AmiNode.CENTROID]]
         delta_dist = None
         if move:
-            # print(f"line end {points[0]} moved to {node_pts[0]}")
             points[0] = node_pts[0]
-            # print(f"line end {points[-1]} moved to {node_pts[1]}")
             points[-1] = node_pts[1]
         else:
             delta_dist = math.dist(pts[0], node_pts[0]) + math.dist(pts[1], node_pts[1])
@@ -1313,93 +1349,6 @@ class AmiEdge:
         return None
 
 
-    # def douglas_peucker2(self):
-    #     """https://towardsdatascience.com/simplify-polylines-with-the-douglas-peucker-algorithm-ac8ed487a4a1
-    #     Experimental - may not keep
-    #     """
-    #     import matplotlib.animation as animation
-    #     import numpy as np
-    #
-    #     def rdp(points, epsilon):
-    #         # get the start and end points
-    #         start = np.tile(np.expand_dims(points[0], axis=0), (points.shape[0], 1))
-    #         end = np.tile(np.expand_dims(points[-1], axis=0), (points.shape[0], 1))
-    #
-    #         # find distance from other_points to line formed by start and end
-    #         dist_point_to_line = np.abs(np.cross(end - start, points - start, axis=-1)) / np.linalg.norm(end - start,
-    #                                                                                                      axis=-1)
-    #         # get the index of the points with the largest distance
-    #         max_idx = np.argmax(dist_point_to_line)
-    #         max_value = dist_point_to_line[max_idx]
-    #
-    #         result = []
-    #         if max_value > epsilon:
-    #             partial_results_left = rdp(points[:max_idx + 1], epsilon)
-    #             result += [list(i) for i in partial_results_left if list(i) not in result]
-    #             partial_results_right = rdp(points[max_idx:], epsilon)
-    #             result += [list(i) for i in partial_results_right if list(i) not in result]
-    #         else:
-    #             result += [points[0], points[-1]]
-    #
-    #         return result
-    #
-    #     if __name__ == "__main__":
-    #         min_x = 0
-    #         max_x = 5
-    #
-    #         xs = np.linspace(min_x, max_x, num=200)
-    #         ys = np.exp(-xs) * np.cos(2 * np.pi * xs)
-    #         sample_points = np.concatenate([
-    #             np.expand_dims(xs, axis=-1),
-    #             np.expand_dims(ys, axis=-1)
-    #         ], axis=-1)
-    #
-    #         # First set up the figure, the axis, and the plot element we want to animate
-    #         fig = plt.figure()
-    #         ax = plt.axes(xlim=(min_x, max_x), ylim=(-1, 1))
-    #         plt.xlabel("x")
-    #         plt.ylabel("y")
-    #         text_values = ax.text(
-    #             0.70,
-    #             0.15,
-    #             "",
-    #             transform=ax.transAxes,
-    #             fontsize=12,
-    #             verticalalignment='top',
-    #             bbox=dict(boxstyle='round',
-    #                       facecolor='wheat',
-    #                       alpha=0.2)
-    #         )
-    #         original_line, = ax.plot(xs, ys, lw=2, label=r"$y = e^{-x}cos(2 \pi x)$")
-    #         simplified_line, = ax.plot([], [], lw=2, label="simplified", marker='o', color='r')
-    #
-    #         # initialization function: plot the background of each frame
-    #         def init():
-    #             simplified_line.set_data(xs, ys)
-    #             return original_line, simplified_line, text_values
-    #
-    #         # animation function.  This is called sequentially
-    #         def animate(i):
-    #             epsilon = 0 + (i * 0.1)
-    #             simplified = np.array(rdp(sample_points, epsilon))
-    #             print(f"i: {i}, episilon: {'%.1f' % epsilon}, n: {simplified.shape[0]}")
-    #             simplified_line.set_data(simplified[:, 0], simplified[:, 1])
-    #             text_values.set_text(fr"$\epsilon$: {'%.1f' % epsilon}, $n$: {simplified.shape[0]}")
-    #             return original_line, simplified_line, text_values
-    #
-    #         # call the animator.  blit=True means only re-draw the parts that have changed.
-    #         anim = animation.FuncAnimation(
-    #             fig,
-    #             animate,
-    #             init_func=init,
-    #             frames=21,
-    #             interval=1000,
-    #             repeat=True
-    #         )
-    #         plt.legend()
-    #         plt.show()
-
-
 """a wrapper for an sknw/nx node, still being developed"""
 
 """
@@ -1434,7 +1383,7 @@ class AmiNode:
         if node_id is None:
             raise ValueError("AmiNode must have node_id")
         if len(str(node_id)) > 4:
-            print(f"ami_graph {ami_graph}, nx_graph {nx_graph}")
+            logger.error(f"ami_graph {ami_graph}, nx_graph {nx_graph}")
             raise Exception(f"id should be simple {node_id}")
 
         self.ami_graph = ami_graph

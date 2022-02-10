@@ -226,10 +226,10 @@ class TestArrow:
         image_dict = {}
         image_dict["biosynth3"] = {'input': None, "ami_graph": self.biosynth3_ami_graph,
                                    "temp_output": "biosynth3_arrows.svg"}
-        print(image_dict.keys())
+        logger.debug(image_dict.keys())
         for key in image_dict.keys():
             param_dict = image_dict[key]
-            print(param_dict)
+            logger.debug(param_dict)
             TestArrow.create_and_test_arrows(param_dict["ami_graph"], 40, output_temp=param_dict["temp_output"])
 
     def test_arrows_and_text_biosynth6(self):
@@ -244,7 +244,7 @@ class TestArrow:
         :return:
         """
         element = etree.parse(str(self.resources.BIOSYNTH1_ARROWS_TEXT_SVG))
-        print("FILE", self.resources.BIOSYNTH1_ARROWS_TEXT_SVG)
+        logger.debug("FILE", self.resources.BIOSYNTH1_ARROWS_TEXT_SVG)
         assert element is not None, f"{self.resources.BIOSYNTH1_ARROWS_TEXT_SVG}"
         gs = ns_xpath(element, f"{{{SVG_NS}}}g")
         assert len(gs) == 2, f"2 svg:g children (a and t)  expected"
@@ -309,37 +309,6 @@ class TestArrow:
         assert type(text0_text0) is etree._Element, f"element {text0_text0}"
         assert text0_text0.get("y") == "385", f"y"
 
-    @unittest.skip("obsolete")
-    def test_analyze_front_arrows_text_biosynth1(self):
-        """
-        analyze prepared pathway with points of up/down/right/left arrows and multiple texts
-        :return:
-        """
-        svgsvg = etree.parse(str(self.resources.BIOSYNTH1_ARROWS_TEXT_SVG))
-        position = "front"
-        self.overlap_arrows_and_text(position, svgsvg)
-        return
-
-        front_arrows = ns_xpath(svgsvg,
-                                f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']/{{{SVG_NS}}}rect[@position='{position}']")
-        assert len(front_arrows) == 10, f"arrows"
-        for front_arrow_elem in front_arrows:
-            front_arrow_bbox = self.get_bbox(front_arrow_elem)
-            print("bbox", front_arrow_bbox)
-        texts = ns_xpath(svgsvg, f"{{{SVG_NS}}}g[@role='texts']/{{{SVG_NS}}}g[@role='text']")
-        assert len(texts) == 28, f"texts"
-        for txt in texts:
-            text_bbox_elem = ns_xpath(txt, f"{{{SVG_NS}}}rect[@role='bbox']")[0]
-            text_bbox = self.get_bbox(text_bbox_elem)
-            text_val = ns_xpath(txt, f"{{{SVG_NS}}}text")[0].text
-            for front_arrow_elem in front_arrows:
-                front_arrow_bbox = self.get_bbox(front_arrow_elem)
-                overlap = text_bbox.intersect(front_arrow_bbox)
-                if overlap.is_valid():
-                    print("front arrow", front_arrow_bbox)
-                    print("textbox", text_bbox, text_val)
-                    print("overlap", overlap)
-
     def test_analyze_arrows_text_biosynth1(self):
         """
         analyze prepared pathway with tails of up/down/right/left arrows and multiple texts
@@ -349,26 +318,6 @@ class TestArrow:
         ami_network = AmiNetwork.create_from_svgsvg(svgsvg)
         ami_network.overlap_arrows_and_text()
         ami_network.write_graph(Path(Resources.TEMP_DIR, "biosynth1_network.gpml"))
-
-    # @unittest.skip("under development")
-    # def test_raw_arrows_to_bboxes(self):
-    #     """
-    #     raw arrows in SVG resulting from pixel analysis
-    #     processed to add bounding boxes
-    #     :return:
-    #     """
-    #     element = etree.parse(str(self.resources.BIOSYNTH1_RAW_ARROWS_SVG))
-    #     assert element is not None, f"{self.resources.BIOSYNTH1_RAW_ARROWS_SVG}"
-    #     arrows = ns_xpath(element, f"{{{SVG_NS}}}g[@role='arrows']/{{{SVG_NS}}}g[@role='arrow']")
-    #     assert len(arrows) == 10, f"expected arrow count"
-    #     for arrow_svg in arrows:
-    #         svg_arrow = SVGArrow.create_from_svgg(arrow_svg)
-    #         ami_arrow = AmiArrow.create_from_svg_arrow(svg_arrow)
-    #         if ami_arrow is not None:
-    #             print("ami arrow str:", str(ami_arrow))
-    #         else:
-    #             print("cannot create AmiArrow")
-    #         print(ami_arrow.ge)
 
     @unittest.skip("Obsolete?")
     def test_write_gpml(self):
@@ -442,17 +391,16 @@ class TestArrow:
                 svg_rect.set_attribute("opacity", "0.3")
                 g.append(svg_rect)
                 gg.append(g)
-        print("svg: ", svg.tostring(pretty_print=True))
+        logger.debug("svg: ", svg.tostring(pretty_print=True))
         path = Path(Resources.TEMP_DIR, "arrow_bboxes.svg")
         with open(path, "w") as f:
             f.write(svg.tostring(pretty_print=True))
 
         for arrow, exp_boxes in zip(arrows, expected_boxes):
-            print("a ", arrow)
+            logger.debug("a ", arrow)
             ami_arrow = AmiArrow()
             ami_arrow.svg_arrow = SVGArrow(tail_xy=arrow[0], head_xy=arrow[1])
             box_tuple = ami_arrow.make_overlap_boxes(arrow_width=30, length=50, len_trim=10)
-            # print("BOXTUPLE", box_tuple)
 
             for box, expect in zip(box_tuple, exp_boxes):
                 assert str(box) == str(expect), f"expected {expect}"
