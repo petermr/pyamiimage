@@ -6,6 +6,8 @@ import numpy as np
 import numpy.linalg as LA
 import math
 
+X = 0
+Y = 1
 
 class AmiUtil:
 
@@ -189,6 +191,41 @@ class AmiUtil:
     @classmethod
     def swap_yx_to_xy(cls, yx):
         return [yx[1], yx[0]]
+
+    @classmethod
+    def are_coincident(cls, point1, point2, tolerance=0.001):
+        """are two points coincident within a tolerance?
+        uses abs(deltax) + abs(deltay) <= tolerance
+        :param point1:
+        :param point2:
+        :param tolerance: default 0.001
+        :return: true if sum of detas within tolerance
+        """
+        if not point1 or not point2:
+            return False
+        if abs(point1[X] - point2[X]) + abs(point1[Y] - point2[Y]) <= tolerance:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def make_unique_points_list(cls, points, tolerance):
+        """merge points which are within tolerance
+        simplistic (probably O(n**2)
+        compares each point with each other
+        :param points: list of points
+        :param tolerance:
+        """
+        new_points = []
+        for point in points:
+            exist = False
+            for new_point in new_points:
+                if AmiUtil.are_coincident(point, new_point, tolerance):
+                    exist = True
+                    break
+            if not exist:
+                new_points.append(point)
+        return new_points
 
 class Vector2:
 

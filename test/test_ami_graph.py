@@ -1388,11 +1388,30 @@ finds horizontal and vertical lines and joins into polylines
         islands = ami_graph.get_or_create_ami_islands(mindim=100)
         for i, island in enumerate(islands):
             bbox = island.get_or_create_bbox()
+            # print(f"island bbox {bbox}")
             edge_manager = AmiEdgeAnalyzer(tolerance=tolerance, island=island)
             edge_manager.make_horiz_vert_polylines(
                                 min_horiz_length=bbox_factor * bbox.get_width(),
                                 min_vert_length=bbox_factor * bbox.get_height(),
                                 )
+
+    def test_yw5003_5_ab(self):
+        """two panels each with  12 horizontally roughly parallel line graphs in a box with x-axial scales """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        # ami_nodes = ami_graph.get_ami_nodes()
+        tolerance = 2
+        for island in ami_graph.get_or_create_ami_islands(mindim=100):
+            print("\nis: raw bbox:", island.get_or_create_bbox())
+            edge_manager = AmiEdgeAnalyzer(tolerance=tolerance, island=island)
+            edge_manager.explore_horiza_vert_lines(bbox_factor=0.9)
+
+    def test_med_34909142_3_boxes(self):
+        """four panels with somewhat noisy lines """
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.MED_34909142_3)
+        for island in ami_graph.get_or_create_ami_islands(mindim=100):
+            print("\nis: raw bbox:", island.get_or_create_bbox())
+            edge_manager = AmiEdgeAnalyzer(tolerance=2, island=island)
+            edge_manager.explore_horiza_vert_lines(bbox_factor=0.9)
 
     def test_join_horiz_vert_lines_prisma(self):
         """

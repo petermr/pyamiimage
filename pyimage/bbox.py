@@ -44,6 +44,27 @@ class BBox:
             raise ValueError(f"cannot create bbox from {xy},{width},{height}")
         return BBox(xy_ranges=xy_ranges)
 
+    @classmethod
+    def create_from_points(cls, points_list, tolerance=0.001):
+        """make bounding box if 4 points can be aligned in a rectangle within tolerance
+        choose low/low and high/high ; don't use othe values except as True/False
+        :param points_list: reqyires len=4
+        :param tolerance: must be aligned within tolerance; default 0.001
+        :return: BBox [lowx,  lowy] [highx, highy] => [[lowx, highx], [lowy, highy]] or None
+        """
+        if not points_list or len(points_list) != 4:
+            return None
+        high_high = cls._find_low_low_high_high(points_list, 1, tolerance)
+        low_low = cls._find_low_low_high_high(points_list, -1, tolerance)
+        bbox = None
+        if low_low and high_high:
+            bbox = BBox(xy_ranges=[
+                [low_low[0], high_high[0]],
+                [low_low[1], high_high[1]]
+                ])
+        return bbox
+
+
     def set_ranges(self, xy_ranges):
         if xy_ranges is None:
             raise ValueError("no lists given")
@@ -342,6 +363,25 @@ class BBox:
         if point is None or len(point) != 2:
             return False
         return AmiUtil.is_number(point[0]) and AmiUtil.is_number(point[1])
+
+    @classmethod
+    def _find_low_low_high_high(cls, points_list, sign, tolerance=0.001):
+        """
+        :param points_list: list of 4 points [x,y]
+        :param sign: 1 for high_high or -1 for low_low
+        :param tolerance: default 0.001
+        :return: point with lowestx, lowesty (sign=-1) or highest, higest (sign=1)
+        """
+        point = None
+        if points_list and len(points_list) == 4:
+            for p in points_list:
+                if point is None:
+                    point = p
+                elif (p[0] - (point[0] + tolerance)) * sign > 0:
+                    point = p
+        return point
+
+
 """If you looking for the overlap between two real-valued bounded intervals, then this is quite nice:
 
 def overlap(start1, end1, start2, end2):

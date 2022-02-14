@@ -763,15 +763,10 @@ class AmiGraph:
         assert type(nx_graph) is nx.Graph or type(nx_graph) is nx.MultiGraph, f"not a graph {type(nx_graph)} "
         return [node_id for node_id in nx_graph.nodes if nx_graph.degree(node_id) == degree]
 
-    # def get_node_ids_with_degree(self, degree):
-    #     """
-    #     iterates over graph.nodes to find those with given degree
-    #     graph may be a subgraph
-    #     :param degree:
-    #     :return: list of node_ids (may be empty)
-    #     """
-    #     return AmiGraph.get_node_ids_from_graph_with_degree(self.nx_graph, degree)
-    #
+    def get_ami_nodes(self):
+        """creates a list of AmniNodes from self.nx_graph.nodes"""
+        return self.create_ami_nodes_from_ids(self.nx_graph.nodes)
+
     def create_ami_nodes_from_ids(self, node_ids):
         """
         creates a list of AmiNodes from a list of node_ids
@@ -1021,8 +1016,8 @@ class AmiEdge:
         s = ""
         if self.points_xy is not None:
             ll = int(self.pixel_length() / 2)
-            s = f"ami_edge {self.start_id}...{self.end_id} ({self.pixel_length()}) " \
-                f"{self.points_xy[:1]}___{self.points_xy[ll - 0:ll + 1]}___{self.points_xy[-1:]}"
+            s = f"ami_edge ids: {self.start_id}...{self.end_id} pixlen ({self.pixel_length()}) " \
+                f"s {self.points_xy[:1]} m {self.points_xy[ll - 0:ll + 1]} e {self.points_xy[-1:]}"
         return s
 
     def has_start_lt_end(self):
@@ -1097,6 +1092,8 @@ class AmiEdge:
         """
         return None if not self.yrange_direct or not self.yrange_direct[0] or not self.yrange_direct[1] \
             else self.yrange_direct[1] - self.yrange_direct[0]
+
+    # class AmiEdge:
 
     def create_line_segments(self, tolerance=1):
         """create AmiLine segments from sknw points
@@ -1218,6 +1215,8 @@ class AmiEdge:
         segment = self.get_single_segment(tolerance=tolerance)
         return segment is not None and segment.is_vertical(tolerance=tolerance)
 
+    # class AmiEdge:
+
     @classmethod
     def _get_axial_corners(cls, segments, tolerance):
         """
@@ -1252,6 +1251,15 @@ class AmiEdge:
             lambda ami_edge:
             not ami_edge.is_horizontal(tolerance=tolerance) and not ami_edge.is_vertical(tolerance=tolerance),
             ami_edges))
+
+    def end_point(self, endx):
+        """select end 0 (first) or 1 (last)
+         :param endx: 0 or 1
+         :return: point [x,y] or None
+         """
+        if not endx or endx < 0 or endx > 1 or not self.points_xy:
+            return None
+        return self.first_point if endx == 0 else self.last_point
 
     # =========================================
 
@@ -1651,6 +1659,12 @@ class AmiIsland:
         :return:
         """
         return AmiGraph.get_node_ids_from_graph_with_degree(self.island_nx_graph, node_count)
+
+    def get_ami_nodes(self):
+        """
+        :return: ami_nodes
+        """
+        return [self.ami_graph.get_or_create_ami_node(node_id) for node_id in self.island_nx_graph.nodes]
 
     def get_or_create_ami_edges(self):
         self.create_nx_edges()

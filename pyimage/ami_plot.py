@@ -355,8 +355,6 @@ class AmiLineTool:
             self.add_segment(segment)
 
     def _are_coincident_points(self, point1, point2):
-        AmiLineTool._validate_point(point1)
-        AmiLineTool._validate_point(point2)
         """
 
         overlaps if either dx or dy >= self.tolerance
@@ -364,7 +362,10 @@ class AmiLineTool:
         :param point2: [x, y]
         :return:
         """
-        return abs(point1[X] - point2[X]) + abs(point1[Y] - point2[Y]) <= self.tolerance
+        AmiLineTool._validate_point(point1)
+        AmiLineTool._validate_point(point2)
+        return AmiUtil.are_coincident(point1, point2, self.tolerance)
+
 
     def _validate_segment(self, segment):
         if type(segment) is list:

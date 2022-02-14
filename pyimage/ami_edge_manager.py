@@ -5,11 +5,15 @@ from ..pyimage.ami_plot import AmiLine, AmiPolyline
 from ..pyimage.ami_plot import POLYLINE
 from ..pyimage.ami_plot import AmiLineTool
 from ..pyimage.ami_graph_all import AmiEdge
+from ..pyimage.ami_util import AmiUtil
+from ..pyimage.bbox import BBox
 
 logger = logging.getLogger(__name__)
 
 COORD = 0
 COUNT = 1
+INTERSECT = "intersect"
+
 X = 0
 Y = 1
 XY = ["X", "y"]
@@ -58,6 +62,7 @@ class AmiEdgeAnalyzer:
         self.vertical_edges = AmiEdge.get_vertical_edges(ami_edges, tolerance=self.tolerance)
         self.non_axial_edges = AmiEdge.get_non_axial_edges(ami_edges, tolerance=self.tolerance)
         print(f"non_axial {len(self.non_axial_edges)}")
+        # remove later
         for non_axial_edge in self.non_axial_edges:
             logger.debug(f"non-axial {non_axial_edge.pixel_length()} {round(non_axial_edge.get_cartesian_length(), 2)}"
                          f" {non_axial_edge.xdelta_direct} {non_axial_edge.ydelta_direct}")
@@ -66,6 +71,8 @@ class AmiEdgeAnalyzer:
         self.vert_ami_lines = AmiEdge.get_single_lines(self.vertical_edges)
 
         self.axial_polylines = AmiEdge.get_axial_polylines(ami_edges, tolerance=self.tolerance)
+        self.non_axial_polylines = self.create_non_axial_polylines();
+        self.print_non_axial_edges(debug=False)
 
         self.extract_lines_from_polylines()
 
@@ -229,11 +236,18 @@ class AmiEdgeAnalyzer:
         return polylines
 
     def find_crossing_horiz_vert_polylines(self):
+        """get crossings of polylines
+        Important use is to detect boxes- there will be a rectangle of 4
 
+        :return: horiz and vert intersection dicts
+        """
         h_poly_dict = dict()
-        h_poly_dict["intersect"] = []
+        h_poly_dict[INTERSECT] = []
         v_poly_dict = dict()
-        v_poly_dict["intersect"] = []
+        v_poly_dict[INTERSECT] = []
+        h_point_set = set()
+        v_point_set = set()
+        points_list = []
         for h_ami_polyline in self.horiz_ami_polylines:
             h_box = h_ami_polyline.get_bounding_box()
             for v_ami_polyline in self.vert_ami_polylines:
@@ -246,17 +260,82 @@ class AmiEdgeAnalyzer:
                         v_points = v_ami_polyline.find_points_in_box(intersect_box)
                         if len(v_points) == 1:
                             v_point = v_points[0]
-                            h_poly_dict["intersect"].append((h_point, v_point, v_ami_polyline.id))
+                            # print("len_v", len(v_point), v_point[2], v_point[2][0], v_point[2][1])
+                            # there are multiple places where coordinates occur, this is one
+                            v_point_set.add(v_point[2][1])
+                            h_point_set.add(v_point[2][0])
+                            points_list.append(v_point[2])
+                            points_list.append(h_point[2])
+                            h_poly_dict[INTERSECT].append((h_point, v_point, v_ami_polyline.id))
                             h_lines = h_ami_polyline.split_line(h_point)
-                            v_poly_dict["intersect"].append((v_point, h_point, h_ami_polyline.id))
+                            v_poly_dict[INTERSECT].append((v_point, h_point, h_ami_polyline.id))
                             v_lines = v_ami_polyline.split_line(v_point)
-                            print(
-                                f"H  {h_point} // {len(h_lines)} {h_lines} // "
-                                f"\nV {v_point} // {len(v_lines)} {v_lines}")
                         else:
-                            print(f"too many v_points {v_points}")
+                            logger.error(f"too many v_points {v_points}")
                     else:
-                        print(f"too many h_points {h_points}")
+                        logger.error(f"too many h_points {h_points}")
         pprinter = pprint.PrettyPrinter(indent=4)
-        pprinter.pprint(h_poly_dict)
-        pprinter.pprint(v_poly_dict)
+        # print("h_poly_dict")
+        # pprinter.pprint(h_poly_dict)
+        # print("v_poly_dict")
+        # pprinter.pprint(v_poly_dict)
+        points_list = AmiUtil.make_unique_points_list(points_list, self.tolerance)
+        bbox = BBox.create_from_points(points_list, self.tolerance)
+        print(f"bbox {bbox}")
+        # v_point_list = AmiUtil.make_unique_points_list(list(v_point_set), self.tolerance)
+        # print(f"v_points {v_point_list}")
+        # print(f"h_points {h_point_list}")
+        return h_poly_dict, v_poly_dict
+
+    def create_non_axial_polylines(self, debug=False):
+        """merge touching non_axial_edges (hor and vert edges omitted)
+        if three or more non_axials meet at a node, the latter are skipped
+        the result will then be arbitrary
+        Mainly intended as a heuristuice to find plot lines
+        """
+        self.joined_non_axial_polylines = []
+        tolerance = self.tolerance
+        for i, edge_i in enumerate(self.non_axial_edges):
+            for j, edge_j in enumerate(self.non_axial_edges):
+                if j > i:
+                    for ii in range(2):
+                        point_i_ii = edge_i.end_point(ii)
+                        for jj in range(2):
+                            point_j_jj = edge_j.end_point(jj)
+                            if AmiUtil.are_coincident(point_i_ii, point_j_jj, tolerance):
+                                if debug:
+                                    print(f"{i}-{ii} {edge_i} coincides {j}-{jj} {edge_j}")
+                                # JOIN lines
+                                pass
+
+    def print_non_axial_edges(self, debug=False):
+        """prints non-axial edges"""
+        if debug:
+            for i, edge_i in enumerate(self.non_axial_edges):
+                print(f"EDGE {i} {edge_i}")
+
+
+    def explore_horiza_vert_lines(self, bbox_factor, island=None):
+        """creates horizontal and vertical polylines to explore higher-order objects
+        :param bbox_factor: scalefactor for min_horiz and min_vert engths for axial polylines
+        :param island: if None uses self.island else sets self.island"""
+        if island:
+            self.island = island
+        if not self.island:
+            logger.error("no island given")
+            return
+        ami_nodes = self.island.get_ami_nodes()
+        # for ami_node in ami_nodes:
+        #     print(f">>ami_node {ami_node}")
+        bbox = self.island.get_or_create_bbox()
+        # print(f"island bbox {bbox}")
+        self.make_horiz_vert_polylines(
+            min_horiz_length=bbox_factor * bbox.get_width(),
+            min_vert_length=bbox_factor * bbox.get_height(),
+        )
+
+
+
+
+
+
