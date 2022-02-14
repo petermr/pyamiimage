@@ -10,3 +10,4 @@ https://pretagteam.com/question/how-to-connect-broken-lines-in-a-binary-image-us
 
 * Branches
  - 20220117 checked merge compatibility with `nodes_and_pixels` . No tests in `main` fail.
+ - 20220128 merged nodes_and_pixels with main
