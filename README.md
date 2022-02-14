@@ -4,7 +4,7 @@
 The current goal is to extract terpene synthase pathway diagrams. 
 'Extraction' means that we will go from pixel values in an image to a 'smart diagram'. The output of `pyamiimage` is an image with annotations of substrate, products and enzymes.
 
-We are working to add more support for open formats that encode chemical information such as [CML](https://www.xml-cml.org/) and [GPML](https://github.com/PathVisio/GPML).
+We are working to add more support for open formats that encode chemical/pathway information such as [CML](https://www.xml-cml.org/) and [GPML](https://github.com/PathVisio/GPML).
 
 ## Installation
 
