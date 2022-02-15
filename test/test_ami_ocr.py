@@ -1,8 +1,8 @@
 import unittest
-from pyamiimage.pyimage.bbox import BBox
+from ..pyimage.bbox import BBox
 from skimage import io
 
-from pyimage.ami_image import AmiImage
+from ..pyimage.ami_image import AmiImage
 from ..pyimage.ami_ocr import TextBox, AmiOCR
 from ..test.resources import Resources # Asserting all images take time
 

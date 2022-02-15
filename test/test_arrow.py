@@ -46,7 +46,6 @@ class TestArrow:
         self.biosynth3_ami_graph = self.resources.biosynth3_dto.ami_graph
         self.biosynth6_compounds_ami_graph = self.resources.biosynth6_compounds_dto.ami_graph
 
-    def test_extract_single_arrow(self):
         ami_graph = self.one_head_island.ami_graph
         assert len(self.one_head_island.node_ids) == 5, \
             f"single arrow should have 5 nodes, found {len(self.one_head_island.node_ids)}"

@@ -10,13 +10,15 @@ import scipy.ndimage as ndimage
 from skimage import io
 from matplotlib import pyplot as plt
 
-from pyimage.ami_image import AmiImage
+
 try:
     from pyimage.bbox import BBox
     from pyimage.cleaner import WordCleaner
+    from pyimage.ami_image import AmiImage
 except: 
     from ..pyimage.bbox import BBox
     from ..pyimage.cleaner import WordCleaner
+    from ..pyimage.ami_image import AmiImage
 
 class TextBox():
     # TextBox inherits BBox
