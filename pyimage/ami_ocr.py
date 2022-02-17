@@ -11,10 +11,11 @@ from skimage import io
 from matplotlib import pyplot as plt
 
 
+
 try:
-    from pyimage.bbox import BBox
-    from pyimage.cleaner import WordCleaner
-    from pyimage.ami_image import AmiImage
+    from bbox import BBox
+    from cleaner import WordCleaner
+    from ami_image import AmiImage
 except: 
     from ..pyimage.bbox import BBox
     from ..pyimage.cleaner import WordCleaner
@@ -573,3 +574,9 @@ class AmiOCR:
         plt.imshow(image_bin)
         plt.plot(row, signal, color='red')
         plt.show()
+
+    
+    def write_list_to_file(self, list, filename):
+        with open(filename, 'w') as f:
+            for textbox in list:
+                f.write(textbox.text + "\n")
