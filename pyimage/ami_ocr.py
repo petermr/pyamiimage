@@ -6,15 +6,20 @@ import codecs
 import pytesseract
 from lxml import etree as et
 from PIL import Image
+import scipy.ndimage as ndimage
 from skimage import io
+from matplotlib import pyplot as plt
 
-from pyimage.ami_image import AmiImage
+
+
 try:
-    from pyimage.bbox import BBox
-    from pyimage.cleaner import WordCleaner
+    from bbox import BBox
+    from cleaner import WordCleaner
+    from ami_image import AmiImage
 except: 
     from ..pyimage.bbox import BBox
     from ..pyimage.cleaner import WordCleaner
+    from ..pyimage.ami_image import AmiImage
 
 class TextBox():
     # TextBox inherits BBox
@@ -44,27 +49,43 @@ class TextBox():
 
 class AmiOCR:
     TESSERACT_TEMP_PATH = Path(Path(__file__).parent.parent, "temp/tesseract/")
-    def __init__(self, path=None, image=None, filename="default.png") -> None:
+    def __init__(self, path=None, image=None) -> None:
         """Creates an OCR object from path and images, if both path and images are given, path takes precendence"""
-        self.hocr_string = None
         if path is not None:
-            self.hocr = self.run_ocr(path)
+            self.hocr = AmiOCR.run_ocr(path)
         elif image is not None:
-            filepath = Path(AmiOCR.TESSERACT_TEMP_PATH, filename)
-            print(filepath)
-            AmiImage.write(filepath, image, mkdir=False)
-            self.hocr = self.run_ocr(filepath)
+            self.hocr = AmiOCR.run_ocr_on_image(image)
         else:
             self.hocr = None
         self.words = []
         self.phrases = []
         self.groups = []
 
-    def run_ocr(self, path=None):
+    @classmethod
+    def run_ocr_on_image(cls, image, filename="default.png"):
+        """
+        saves image as a temp file then ocr the file
+        image is a 2D numpy arr
+        """
+        filepath = Path(AmiOCR.TESSERACT_TEMP_PATH, filename)
+        AmiImage.write(filepath, image, mkdir=False)
+        hocr = AmiOCR.hocr_from_image_path(filepath)
+        return hocr
+    
+    @classmethod
+    def create_temp_file(cls, image, filename):
+        """creates a temporary file given path and image"""
+        filepath = Path(AmiOCR.TESSERACT_TEMP_PATH, filename)
+        AmiImage.write(filepath, image, mkdir=False)
+
+
+    @classmethod
+    def run_ocr(cls, path=None):
         if path is None:
             return None
         else:
-            return self.hocr_from_image_path(path)
+            hocr = AmiOCR.hocr_from_image_path(path)
+            return hocr
 
 
     def get_words(self):
@@ -90,23 +111,28 @@ class AmiOCR:
         """
         print(et.tostring(hocr_element, pretty_print=True).decode("utf-8"))
 
-    def hocr_from_image_path(self, path):
+    @classmethod
+    def hocr_from_image_path(cls, path, psm='12'):
         """Runs tesseract hocr on the given image
         :param: Path
         :returns: hocr
         """
+        hocr_string = AmiOCR.hocr_string_from_path(path, psm)
+        hocr = AmiOCR.parse_hocr_string(hocr_string)
+        return hocr
+
+    @classmethod
+    def hocr_string_from_path(cls, path, psm='12'):
         # pytesseract only seems to accept string for image path
         if path is not str:
             path = str(path)
 
-        self.hocr_string = pytesseract.image_to_pdf_or_hocr(path, extension='hocr', config='11')
-        # self.hocr_string = codecs.decode(self.hocr_string, 'UTF-8')
-        # print(self.hocr_string)
-        hocr = self.parse_hocr_string(self.hocr_string)
-        print(hocr)
-        return hocr
+        hocr_string = pytesseract.image_to_pdf_or_hocr(path, extension='hocr', config=psm)
+        return hocr_string
 
-    def parse_hocr_string(self, hocr_string):
+
+    @classmethod
+    def parse_hocr_string(cls, hocr_string):
         """Parses hocr output in string format as a tree using lxml
         :input: hocr html as string
         :returns: root of hocr as an object of lxml.etree.Element class
@@ -115,7 +141,7 @@ class AmiOCR:
         root = et.HTML(hocr_string, parser)
         return root
 
-    def parse_hocr_tree(self, hocr_element=None):
+    def parse_hocr_tree(self, hocr_element=None, cleaning=False):
         """to extract bbox coordinates from html
         :param hocr_element: lxml.etree.Element object
         :returns: tuple of (list of bboxes, list of words)
@@ -142,7 +168,10 @@ class AmiOCR:
                 xy_range = self.create_xy_range_from_bbox_string(bbox_string)
                 textbox = TextBox(child.text, xy_range)
                 words.append(textbox)
-        self.words = AmiOCR.clean_all(words)
+        if cleaning:
+            self.words = AmiOCR.clean_all(words)
+        else:
+            self.words = words
         return self.words
     
     def find_words_from_image_path(self, image_path):
@@ -360,7 +389,6 @@ class AmiOCR:
             if child.attrib['class'] == 'ocr_line':
                 # coordinates for bbox has the following format: 'bbox 333 74 471 102; x_wconf 76'
                 # we are only interested in the coordinates, so we split at ; and append the first part
-                print("pause here")
                 baseline = child.attrib['title'].split(';')[1]
                 bbox_string = child.attrib['title'].split(';')[0]
                 xy_range = self.create_xy_range_from_bbox_string(bbox_string)
@@ -376,17 +404,28 @@ class AmiOCR:
         and return a list of numpy arrays"""
         patches = []
         for textbox in textboxes:
-            xy_range = textbox.bbox.xy_ranges
-            min_y = xy_range[1][0]
-            max_y = xy_range[1][1]
-            min_x = xy_range[0][0]
-            max_x = xy_range[0][1]
-            print(f"min_y: {min_y}", f"max_y: {max_y}", f"min_x: {min_x}", f"max_x: {max_x}")
-            patch = image[min_y:max_y, min_x:max_x]
-            print(patch.shape)
-            patches.append(patch)
-        
+            patch = AmiOCR.copy_textbox_values(image, textbox)
+            patches.append(patch)   
         return patches
+
+    @classmethod
+    def copy_textbox_values(cls, image, textbox, padding=0):
+        """given image and textbox, will return the numpy array of the size of the textbox from the image"""
+        xy_range = textbox.bbox.xy_ranges
+        min_y = xy_range[1][0]
+        max_y = xy_range[1][1]
+        min_x = xy_range[0][0]
+        max_x = xy_range[0][1]
+        # print(f"min_y: {min_y}", f"max_y: {max_y}", f"min_x: {min_x}", f"max_x: {max_x}")
+        patch = image[min_y:max_y, min_x:max_x]
+        return patch
+
+    @classmethod
+    def read_textbox(cls, image, textbox):
+        """rereads the textboxes with some added padding"""
+        patch = AmiOCR.copy_textbox_values(image, textbox)
+        patch_ocr = AmiOCR(image=patch)
+        return patch_ocr
 
     @classmethod
     def clean_all(self, textboxes):
@@ -394,5 +433,150 @@ class AmiOCR:
         cleaned = WordCleaner.remove_all_single_characters(cleaned)
         cleaned = WordCleaner.remove_all_sequences_of_special_characters(cleaned)
         cleaned = WordCleaner.remove_misread_letters(cleaned)
-        cleaned = WordCleaner.remove_numbers_only(cleaned)
+        #cleaned = WordCleaner.remove_numbers_only(cleaned)
         return cleaned
+
+    @classmethod
+    def set_bbox_to_bg(cls, image, bbox):
+        """given a bounding box set the value in the bounding box in the image to bg color"""
+        bg = 255
+        # bg = AmiOCR.find_bg() #TBI
+        y_range = bbox.get_yrange()
+        x_range = bbox.get_xrange()
+        image[x_range[0]: x_range[1]+1, y_range[0] : y_range[1]+1] = bg
+        return image
+
+    @classmethod
+    def extract_labels_from_plot(cls, image, plot_area_bbox):
+        """
+        given the image and plot boundaries extracts vertical y labels and horizontal x labels
+        :param: image 
+        :type: numpy array
+        :param: plot_bbox 
+        :type: BBox object
+        :returns: AmiOCR object for the whole plot
+        """
+        new_img = BBox.plot_bbox_on(image, plot_area_bbox)
+        io.imshow(new_img)
+        io.show()
+        label_bboxes = AmiOCR.label_bboxes_from_plot_bbox(image, plot_area_bbox)
+        # # x_label = AmiOCR.copy_bbox_from_img(image, label_bboxes['x'])
+        # # y_label = AmiOCR.copy_bbox_from_img(image, label_bboxes['y'])
+        
+        #================= X label ===============
+        # x_label_ocr = AmiOCR.ocr_subimage(image, label_bboxes['x'])
+        # x_items = x_label_ocr.get_words()
+
+        # full_img_with_xlabels = AmiOCR.plot_bboxes_on_image(image, x_items) 
+        # io.imshow(full_img_with_xlabels)
+
+        #================ Y label ===============
+        # Does not work yet
+        # y_label_ocr = AmiOCR.ocr_subimage(image, label_bboxes['y'])
+        # y_items = y_label_ocr.get_words()
+
+        # full_img_with_labels = AmiOCR.plot_bboxes_on_image(full_img_with_xlabels, y_items)
+        
+        y_ticks_ocr = AmiOCR.ocr_subimage(image, label_bboxes['y_ticks'])
+        y_tk_items = y_ticks_ocr.get_words()
+        for item in y_tk_items:
+            print(item)
+
+        full_img_with_ticks = AmiOCR.plot_bboxes_on_image(image, y_tk_items)
+        io.imshow(full_img_with_ticks)
+        io.show()
+
+    @classmethod
+    def ocr_subimage(cls, image, bbox):
+        """given an image and bbox, return AmiOCR object of the image with only the bbox being in OCR
+        :param: image
+        :type: numpy array
+        :bbox: bounding box for subimage to OCR
+        :type: BBox
+        :returns: AmiOCR object
+        """
+        subimage = AmiOCR.copy_bbox_from_img(image, bbox)
+        io.imshow(subimage)
+        io.show()
+        subimage_ocr = AmiOCR(image=subimage)
+        starting_point = bbox.get_point_pair()[0]
+        col_shift = starting_point[1]
+        row_shift = starting_point[0]
+        words = subimage_ocr.get_words()
+        print(len(words))
+        for word in subimage_ocr.words:
+            print("word with range: ", word)
+            old_range = word.bbox.get_ranges()
+            # shift the coordinates of the bounding boxes for the coordinates of the whole image
+            new_range = [[x+col_shift for x in old_range[0]], [y+row_shift for y in old_range[1]]]
+            word.bbox.set_ranges(new_range)
+            print("words with new range: ", word)
+        return subimage_ocr
+
+
+    def join(self, other):
+        """Combines two AmiOCR objects into one"""
+        if other is AmiOCR:
+            self.words += other.words
+            self.phrases += other.phrases
+            self.groups += other.groups
+        else:
+            print("parameter must be AmiOCR object")
+
+    @classmethod
+    def label_bboxes_from_plot_bbox(cls, image, plot_bbox, tick_dist = 42):
+        """given image and plot_bbox generate x_label bbox and y_label bbox
+        :param: image
+        :type: numpy array
+        :param: plot_bbox
+        :type: BBox object
+        """
+        plot_col_range = plot_bbox.get_xrange()
+        plot_row_range = plot_bbox.get_yrange()
+        img_height = image.shape[0]
+        img_width = image.shape[1]
+        x_tk_bbox = BBox([[plot_col_range[0], img_width], [plot_row_range[1],plot_row_range[1]+tick_dist]])
+        y_tk_bbox = BBox([[plot_col_range[0]-45, plot_col_range[0]],[0, plot_row_range[1]]])
+        x_bbox = BBox([[plot_col_range[0], img_width], [plot_row_range[1],img_height]])
+        y_bbox = BBox([[0, plot_col_range[0]],[0, plot_row_range[1]]])
+        return {'x': x_bbox, 'y':y_bbox, 'y_ticks':y_tk_bbox, 'x_ticks':x_tk_bbox}
+
+    @classmethod
+    def copy_bbox_from_img(cls, image, bbox):
+        """given an image and a bounding box, returns a image having values from the image within the bbox
+        :param: image
+        :type: numpy array
+        :param: bbox
+        :type: BBox
+        :returns: numpy array (image)
+        """
+        row_range = bbox.get_yrange()
+        col_range = bbox.get_xrange()
+        snippet = image[row_range[0]:row_range[1], col_range[0]: col_range[1]]
+        return snippet
+
+    @classmethod
+    def image_pixel_stats(cls, image, signal_val, axis=1):
+        """sum of signal values along a axis in an array"""
+        signal = np.count_nonzero(image==signal_val, axis=axis)
+        signal = np.array(signal)
+        return signal
+
+    @classmethod
+    def image_rotate(cls, image, degrees):
+        return ndimage.rotate(image, degrees, reshape=True)
+
+    @classmethod
+    def plot_image_pixel_stats(cls, image, signal_val, axis=1):
+        image_bin = AmiImage.create_white_binary_from_image(image)
+        signal = AmiOCR.image_pixel_stats(image_bin, signal_val, axis-1)
+        row = np.arange(0, len(signal))
+        plt.imshow(image_bin)
+        plt.plot(row, signal, color='red')
+        plt.show()
+
+    
+    def write_list_to_file(self, list, filename):
+        with open(filename, 'w') as f:
+            for textbox in list:
+                f.write(textbox.text + "\n")
