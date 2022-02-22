@@ -1,13 +1,15 @@
 # from ..pyimage import tesseract_hocr
 
-from skimage import io
-from matplotlib import pyplot as plt
-from pathlib import Path
-import numpy as np
-from skan.pre import threshold
-import unittest
-from lxml import etree as ET
 import logging
+import unittest
+from pathlib import Path
+
+import numpy as np
+from lxml import etree as ET
+from matplotlib import pyplot as plt
+from skan.pre import threshold
+from skimage import io
+
 # local
 from ..pyimage.tesseract_hocr import TesseractOCR
 from ..test.resources import Resources
@@ -67,12 +69,14 @@ class TestTesseractHOCR:
         assert ndark == 28888
         nlight = np.sum(image > 127)
         assert nlight == 962552
-        print(f"\nnpix {npix}, nwhite {nwhite}, nblack {nblack}  nother {npix - nwhite - nblack}, ndark {ndark}, "
-              f"nlight {nlight}")
+        print(
+            f"\nnpix {npix}, nwhite {nwhite}, nblack {nblack}  nother {npix - nwhite - nblack}, ndark {ndark}, "
+            f"nlight {nlight}"
+        )
         # images are not shown in tests, I think
         fig, ax = plt.subplots()
         if self.interactive:
-            ax.imshow(image, cmap='gray')
+            ax.imshow(image, cmap="gray")
 
         binary = threshold(image)
         assert binary.shape == (972, 1020)
@@ -104,7 +108,7 @@ class TestTesseractHOCR:
         """
         bbox, words = TesseractOCR.extract_bbox_from_hocr(self.biosynth3_elem)
         assert len(words) == 60
-        assert words[:3] == ['Straight', 'chain', 'ester']
+        assert words[:3] == ["Straight", "chain", "ester"]
         assert len(bbox) == 60
         assert list(bbox[0]) == [201, 45, 302, 75]
 
@@ -129,22 +133,24 @@ class TestTesseractHOCR:
 
     def test_output_phrases_to_file(self):
         sample_phrases = ["test phrase", "more test phrase", "one more"]
-        file = TesseractOCR.output_phrases_to_file(sample_phrases, 'test_file.txt')
+        file = TesseractOCR.output_phrases_to_file(sample_phrases, "test_file.txt")
         # phrases = []
-        with open(file, 'r') as f:
-            phrases = f.read().split('\n')
+        with open(file, "r") as f:
+            phrases = f.read().split("\n")
         phrases.pop(-1)  # remove empty string associated with last \n
         assert file.exists()
         assert phrases == sample_phrases
 
     def test_extract_bbox_from_hocr3(self):
-        test_hocr_file = Path(Path(__file__).parent, 'resources/tesseract_biosynth_path_3.hocr.html')
+        test_hocr_file = Path(
+            Path(__file__).parent, "resources/tesseract_biosynth_path_3.hocr.html"
+        )
         root = TesseractOCR.read_hocr_file(test_hocr_file)
         bboxes, words = TesseractOCR.extract_bbox_from_hocr(root)
         assert len(bboxes) == 60
 
     def test_extract_bboxes_from_image(self):
-        image_path = Path(Path(__file__).parent, 'resources/biosynth_path_3.png')
+        image_path = Path(Path(__file__).parent, "resources/biosynth_path_3.png")
         bboxes, words = TesseractOCR.extract_bbox_from_image(image_path)
         assert len(bboxes) == 60
         assert str(bboxes[0]) == "[201  45 302  75]"
@@ -153,6 +159,9 @@ class TestTesseractHOCR:
     def test_create_svg_rect_from_bbox(self):
         bbox = [[10, 20], [30, 50]]
         svg_rect = TesseractOCR.create_svg_rect_from_bbox(bbox, height=None)
-        svg_str = ET.tostring(svg_rect).decode('utf-8')
-        assert svg_str == '<svg:rect xmlns:svg="http://www.w3.org/2000/svg" x="10" width="10" ' \
-                          'y="30" height="20" stroke-width="1.0" stroke="red" fill="none"/>'
+        svg_str = ET.tostring(svg_rect).decode("utf-8")
+        assert (
+            svg_str
+            == '<svg:rect xmlns:svg="http://www.w3.org/2000/svg" x="10" width="10" '
+            'y="30" height="20" stroke-width="1.0" stroke="red" fill="none"/>'
+        )

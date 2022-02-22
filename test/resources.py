@@ -1,16 +1,19 @@
 """Resources such as data used by other modules
 This may develop into a dataclass"""
 
-from pathlib import Path
-from skimage import io
 import logging
+from pathlib import Path
+
 import numpy as np
+from skimage import io
+
 # local
 from ..pyimage.ami_graph_all import AmiGraph
-from ..pyimage.tesseract_hocr import TesseractOCR
 from ..pyimage.ami_image import AmiImageDTO
+from ..pyimage.tesseract_hocr import TesseractOCR
 
 logger = logging.getLogger(__name__)
+
 
 class Resources:
     TEST_RESOURCE_DIR = Path(Path(__file__).parent, "resources")
@@ -22,12 +25,18 @@ class Resources:
     assert BIOSYNTH1_HOCR.exists(), f"file exists {BIOSYNTH1_HOCR}"
     BIOSYNTH1_CROPPED = Path(TEST_RESOURCE_DIR, "biosynth_path_1_cropped.png")
     assert BIOSYNTH1_CROPPED.exists(), f"file exists {BIOSYNTH1_CROPPED}"
-    BIOSYNTH1_TEXT = Path(TEST_RESOURCE_DIR, "biosynth_path_1_cropped_arrows_removed.png")
+    BIOSYNTH1_TEXT = Path(
+        TEST_RESOURCE_DIR, "biosynth_path_1_cropped_arrows_removed.png"
+    )
     assert BIOSYNTH1_TEXT.exists(), f"file exists {BIOSYNTH1_TEXT}"
-    BIOSYNTH1_ARROWS = Path(TEST_RESOURCE_DIR, "biosynth_path_1_cropped_text_removed.png")
+    BIOSYNTH1_ARROWS = Path(
+        TEST_RESOURCE_DIR, "biosynth_path_1_cropped_text_removed.png"
+    )
     assert BIOSYNTH1_ARROWS.exists(), f"file exists {BIOSYNTH1_ARROWS}"
     BIOSYNTH1_ARROWS_TEXT_SVG = Path(TEST_RESOURCE_DIR, "biosynth1_arrows_text.svg")
-    assert BIOSYNTH1_ARROWS_TEXT_SVG.exists(), f"file exists {BIOSYNTH1_ARROWS_TEXT_SVG}"
+    assert (
+        BIOSYNTH1_ARROWS_TEXT_SVG.exists()
+    ), f"file exists {BIOSYNTH1_ARROWS_TEXT_SVG}"
     BIOSYNTH1_RAW_ARROWS_SVG = Path(TEST_RESOURCE_DIR, "biosynth1_raw_arrows.svg")
     assert BIOSYNTH1_RAW_ARROWS_SVG.exists(), f"file exists {BIOSYNTH1_RAW_ARROWS_SVG}"
 
@@ -75,13 +84,16 @@ class Resources:
     assert BATTERY1.exists(), f"file exists {BATTERY1}"
     BATTERY1BSQUARE = Path(TEST_RESOURCE_DIR, "battery1bsquare.png")
     assert BATTERY1BSQUARE.exists(), f"file exists {BATTERY1BSQUARE}"
+    BATTERY2 = Path(TEST_RESOURCE_DIR, "battery2.png")
+    assert BATTERY2.exists(), f"file exists {BATTERY2}"
+
     PRIMITIVES = Path(TEST_RESOURCE_DIR, "primitives.png")
     assert PRIMITIVES.exists(), f"file exists {PRIMITIVES}"
 
     YW5003_5 = Path(TEST_RESOURCE_DIR, "iucr_yw5003_fig5.png")
     assert YW5003_5.exists(), f"file exists {YW5003_5}"
 
-# =====================
+    # =====================
 
     TEMP_DIR = Path(TEST_RESOURCE_DIR.parent.parent, "temp")
     assert TEMP_DIR.is_dir(), f"file exists {TEMP_DIR}"
@@ -98,61 +110,93 @@ class Resources:
         self.biosynth3_dto = None
 
     def create_ami_graph_objects(self):
-        """creates image derivatives
-        """
+        """creates image derivatives"""
         logger.debug(f"{__name__} create_ami_graph_objects {self.cached}")
         if not self.cached:
-            logger.warning(f"{__name__} setting up Resources" )
+            logger.warning(f"{__name__} setting up Resources")
             self.cached = True
             self.arrows1_image = io.imread(Resources.BIOSYNTH1_ARROWS)
             assert self.arrows1_image.shape == (315, 1512)
             self.arrows1_image = np.where(self.arrows1_image < 127, 0, 255)
-            self.nx_graph_arrows1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
-            self.arrows1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+            self.nx_graph_arrows1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(
+                Resources.BIOSYNTH1_ARROWS
+            )
+            self.arrows1_ami_graph = (
+                AmiGraph.create_ami_graph_from_arbitrary_image_file(
+                    Resources.BIOSYNTH1_ARROWS
+                )
+            )
 
-# biosynth1 has solid arrowheads and (unfortunately) some primitives overlap
+            # biosynth1 has solid arrowheads and (unfortunately) some primitives overlap
             self.biosynth1 = io.imread(Resources.BIOSYNTH1)
             assert self.biosynth1.shape == (1167, 1515)
             self.biosynth1_binary = np.where(self.biosynth1 < 127, 0, 255)
-            self.nx_graph_biosynth1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
+            self.nx_graph_biosynth1 = (
+                AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
+            )
             self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH1)
             self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
-            self.biosynth1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
-
-
+            self.biosynth1_ami_graph = (
+                AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1)
+            )
 
             prisma = io.imread(Resources.PRISMA)
             assert prisma.shape == (667, 977, 4)
-            self.nx_graph_prisma = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRISMA)
+            self.nx_graph_prisma = AmiGraph.create_nx_graph_from_arbitrary_image_file(
+                Resources.PRISMA
+            )
 
             self.battery1_image = io.imread(Resources.BATTERY1)
             assert self.battery1_image.shape == (546, 1354, 3)
             self.battery1_binary = np.where(self.battery1_image < 127, 0, 255)
-            self.nx_graph_battery1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BATTERY1)
+            self.nx_graph_battery1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(
+                Resources.BATTERY1
+            )
 
             self.battery1bsquare = io.imread(Resources.BATTERY1BSQUARE)
             assert self.battery1_image.shape == (546, 1354, 3)
             # self.battery1_binary = np.where(self.battery1 < 127, 0, 255)
-            self.nx_graph_battery1bsquare = AmiGraph.create_nx_graph_from_arbitrary_image_file(
-                Resources.BATTERY1BSQUARE)
+            self.nx_graph_battery1bsquare = (
+                AmiGraph.create_nx_graph_from_arbitrary_image_file(
+                    Resources.BATTERY1BSQUARE
+                )
+            )
 
             self.primitives = io.imread(Resources.PRIMITIVES)
             assert self.primitives.shape == (405, 720, 3)
-            self.nx_graph_primitives = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRIMITIVES)
+            self.nx_graph_primitives = (
+                AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.PRIMITIVES)
+            )
 
-# DTO approach
+            # DTO approach
             if not self.biosynth1_dto:
-                self.biosynth1_dto = self.get_image_dto(raw_image_file = Resources.BIOSYNTH1, raw_image_shape = (1167, 1515), threshold = 127)
+                self.biosynth1_dto = self.get_image_dto(
+                    raw_image_file=Resources.BIOSYNTH1,
+                    raw_image_shape=(1167, 1515),
+                    threshold=127,
+                )
             # if not self.biosynth2_dto:
             #     self.biosynth2_dto = self.get_image_dto(raw_image_file = Resources.BIOSYNTH2, raw_image_shape = (1391, 1420, 3), threshold = 127)
             if not self.biosynth3_dto:
-                self.biosynth3_dto = self.get_image_dto(raw_image_file = Resources.BIOSYNTH3, raw_image_shape = (972, 1020), threshold = 127)
-            self.biosynth6_compounds_dto = self.get_image_dto(raw_image_file = \
-                                                    Resources.BIOSYNTH6COMPOUND, raw_image_shape = (967, 367, 3), threshold = 127)
+                self.biosynth3_dto = self.get_image_dto(
+                    raw_image_file=Resources.BIOSYNTH3,
+                    raw_image_shape=(972, 1020),
+                    threshold=127,
+                )
+            self.biosynth6_compounds_dto = self.get_image_dto(
+                raw_image_file=Resources.BIOSYNTH6COMPOUND,
+                raw_image_shape=(967, 367, 3),
+                threshold=127,
+            )
 
             return self
 
-    def get_image_dto(self, raw_image_file, raw_image_shape=None, threshold=127, ):
+    def get_image_dto(
+        self,
+        raw_image_file,
+        raw_image_shape=None,
+        threshold=127,
+    ):
         """
         return Data Transfer Object containin downstream image artefacts
         create one of these for each image being processed
@@ -164,16 +208,17 @@ class Resources:
         image_dto.image_file = raw_image_file
         image_dto.image = io.imread(raw_image_file)
         if raw_image_shape is not None:
-            assert image_dto.image.shape == raw_image_shape, f"expected {image_dto.image.shape}"
+            assert (
+                image_dto.image.shape == raw_image_shape
+            ), f"expected {image_dto.image.shape}"
         image_dto.image_binary = np.where(image_dto.image < threshold, 0, 255)
-        image_dto.nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(raw_image_file)
-        image_dto.ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(raw_image_file)
+        image_dto.nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(
+            raw_image_file
+        )
+        image_dto.ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
+            raw_image_file
+        )
         image_dto.hocr = TesseractOCR.hocr_from_image_path(raw_image_file)
         image_dto.hocr_html_element = TesseractOCR.parse_hocr_string(image_dto.hocr)
 
         return image_dto
-
-
-
-
-

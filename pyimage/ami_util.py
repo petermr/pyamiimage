@@ -53,6 +53,16 @@ class AmiUtil:
             return False
 
     @classmethod
+    def int2hex(cls, ii):
+        """convert int (0-255) to 2-character hex string
+        :param ii: integer
+        :return: 2-digit hex string of form 01, 09, 0f, 10, ff , or None if not int 0-125
+        """
+        if ii is None or not type(ii) is int or ii < 0 or ii> 255:
+            return None
+        return ('0' + hex(ii)[2:])[-2:]
+
+    @classmethod
     def get_xy_from_sknw_centroid(cls, yx):
         """
         yx is a 2-array and coords need swapping

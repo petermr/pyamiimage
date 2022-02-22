@@ -10,6 +10,7 @@ import skimage
 from pathlib import Path
 import os
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
 
 
 class AmiImage:
@@ -265,6 +266,29 @@ class AmiImage:
         if path.exists() and overwrite:
             os.remove(path)
         io.imsave(path, image)
+
+    @classmethod
+    def kmeans(cls, raw_image, n_colors, background):
+        """finds kmeans in colour space and projects image into each mean
+        :param raw_image: raw multicolor image, gets reshaped
+        :param n_colors: number of kmeans to extract
+        :param background: to add in extracted images
+        :return: (labels, centers_i, quantized_images) ;
+            labels are per-pixel ints (don't know what)
+            centers_i are RGB values at kmeans-centers,
+            quantized_images are single colour+background
+        """
+        reshaped_image = raw_image.reshape((-1, 3))
+        kmeans = KMeans(n_clusters=n_colors, random_state=42).fit(reshaped_image)
+        labels = kmeans.labels_
+        color_centers = kmeans.cluster_centers_
+        centers_i = [[int(center[0]), int(center[1]), int(center[2])] for center in color_centers]
+        colors_image = color_centers[labels].reshape(raw_image.shape).astype('uint8')
+        quantized_images = []
+        for i, center_i in enumerate(centers_i):
+            quantized_images.append(np.where(colors_image == centers_i[i], [centers_i[i]], background))
+        return (labels, centers_i, quantized_images)
+
 
 
 class AmiImageDTO():

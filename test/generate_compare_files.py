@@ -1,16 +1,19 @@
-from pathlib import Path
-from pyimage.ami_image import AmiImage
-from skimage import io
 import os
+from pathlib import Path
+
+from skimage import io
+
+from pyimage.ami_image import AmiImage
 
 RESOURCE_DIR = Path(Path(__file__).parent, "resources")
 COMPARE_DIR = Path(Path(__file__).parent, "comparison_images")
 
 RGB_SNIPPET = Path(RESOURCE_DIR, "snippet_rgb.png")
 
-class AmiImageFileGenerator():
+
+class AmiImageFileGenerator:
     """This class generates image files for comparison in test_ami_image"""
-    
+
     def __init__(self, image_path) -> None:
         self.image = io.imread(image_path)
         if not COMPARE_DIR.exists():
@@ -63,10 +66,12 @@ class AmiImageFileGenerator():
     def write_image_to_path(image, path):
         io.imsave(path, image)
 
+
 def main():
     image_path = RGB_SNIPPET
     file_generator = AmiImageFileGenerator(image_path)
     file_generator.generate_all()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -1,6 +1,9 @@
 """bounding box"""
+
+import math
 # from ..pyimage.svg import SVGG, SVGRect
 from ..pyimage.ami_util import AmiUtil
+
 
 class BBox:
     """bounding box 2array of 2arrays, based on integers
@@ -41,7 +44,7 @@ class BBox:
         try:
             xy_ranges = [[float(xy[0]), float(xy[0]) + float(width)], [float(xy[1]), float(xy[1]) + float(height)]]
         except Exception as e:
-            raise ValueError(f"cannot create bbox from {xy},{width},{height}")
+            raise ValueError(f"cannot create bbox from {xy},{width},{height}, {e}")
         return BBox(xy_ranges=xy_ranges)
 
     @classmethod
@@ -52,18 +55,21 @@ class BBox:
         :param tolerance: must be aligned within tolerance; default 0.001
         :return: BBox [lowx,  lowy] [highx, highy] => [[lowx, highx], [lowy, highy]] or None
         """
+        if not points_list:
+            return None
         if not points_list or len(points_list) != 4:
             return None
         high_high = cls._find_low_low_high_high(points_list, 1, tolerance)
         low_low = cls._find_low_low_high_high(points_list, -1, tolerance)
+        print(f"high_high {high_high}")
+        print(f"lo_lo {low_low}")
         bbox = None
         if low_low and high_high:
             bbox = BBox(xy_ranges=[
                 [low_low[0], high_high[0]],
                 [low_low[1], high_high[1]]
-                ])
+            ])
         return bbox
-
 
     def set_ranges(self, xy_ranges):
         if xy_ranges is None:
@@ -95,7 +101,7 @@ class BBox:
         """get width
         :return: width or None if x range invalid or not set"""
         if self.get_xrange() is None or len(self.get_xrange()) == 0:
-            return None;
+            return None
         assert self.get_xrange() is not None
         assert len(self.get_xrange()) == 2, f"xrange, got {len(self.get_xrange())}"
         return self.get_xrange()[1] - self.get_xrange()[0]
@@ -377,9 +383,35 @@ class BBox:
             for p in points_list:
                 if point is None:
                     point = p
-                elif (p[0] - (point[0] + tolerance)) * sign > 0:
-                    point = p
+                else:
+                    if cls._is_movable(p[0], point[0], tolerance, sign) and cls._is_movable(p[1], point[1], tolerance,
+                                                                                            sign):
+                        point = p
         return point
+
+    @classmethod
+    def _is_movable(cls, coord_new, coord_old, tolerance, sign):
+        if abs(coord_new - coord_old) < tolerance:
+            return True
+        if math.copysign(1, coord_new - coord_old) == sign:
+            return True
+
+    @classmethod
+    def assert_xy_ranges(cls, bbox, target_ranges):
+        """asserts that bbox has given xy_ranges (main equality test)
+        :param bbox: Bbox
+        :param target_ranges: 2-D array of floats [[x0,x1], y0,y1]]
+        :except: throws variaous exceptions
+        """
+        if not bbox:
+            if not target_ranges:
+                # expected None
+                return
+            else:
+                raise ValueError("parameter/s are None")
+        if not bbox.is_valid():
+            raise ValueError("Bad bbox {bbox}")
+        assert bbox.xy_ranges == target_ranges, f"bbox_xy_ranges {bbox.xy_ranges}, target_ranges {target_ranges}"
 
 
 """If you looking for the overlap between two real-valued bounded intervals, then this is quite nice:

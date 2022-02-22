@@ -1,12 +1,15 @@
 from skimage import io
 
-from ..test.resources import Resources
 from ..pyimage.tesseract_hocr import TesseractOCR
 from ..pyimage.text_box import TextBox
+from ..test.resources import Resources
+
 
 class TestTextBox:
     def setup_method(self, method):
-        self.cropped1_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH1_CROPPED)
+        self.cropped1_hocr = TesseractOCR.hocr_from_image_path(
+            Resources.BIOSYNTH1_CROPPED
+        )
         self.cropped1_elem = TesseractOCR.parse_hocr_string(self.cropped1_hocr)
         self.biosynth2_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH2)
         self.biosynth2_elem = TesseractOCR.parse_hocr_string(self.biosynth2_hocr)
@@ -39,5 +42,3 @@ class TestTextBox:
         for text_box in text_boxes:
             # print(text_box.text, text_box.bbox)
             pass
-
-

@@ -30,3 +30,5 @@ Can extract island primitives such as arrows.
 
 * adding_pipeline - stitching together parts of pyamiimage to form cohesive outputs from images
 
+# Notes
+https://python.plainenglish.io/10-tools-to-help-claw-your-way-back-to-sanity-while-coding-python-df0af160c33e

@@ -57,6 +57,8 @@ class AmiEdgeAnalyzer:
         self.tolerance = tolerance
         self.island = island
 
+        self.bbox = None
+
     def read_edges(self, ami_edges):
         self.horizontal_edges = AmiEdge.get_horizontal_edges(ami_edges, tolerance=self.tolerance)
         self.vertical_edges = AmiEdge.get_vertical_edges(ami_edges, tolerance=self.tolerance)
@@ -280,8 +282,9 @@ class AmiEdgeAnalyzer:
         # print("v_poly_dict")
         # pprinter.pprint(v_poly_dict)
         points_list = AmiUtil.make_unique_points_list(points_list, self.tolerance)
-        bbox = BBox.create_from_points(points_list, self.tolerance)
-        print(f"bbox {bbox}")
+        print(f"points_list {points_list}")
+        self.bbox = BBox.create_from_points(points_list, self.tolerance)
+        print(f"bbox {self.bbox}")
         # v_point_list = AmiUtil.make_unique_points_list(list(v_point_set), self.tolerance)
         # print(f"v_points {v_point_list}")
         # print(f"h_points {h_point_list}")

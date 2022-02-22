@@ -1261,6 +1261,9 @@ class AmiEdge:
             return None
         return self.first_point if endx == 0 else self.last_point
 
+    def is_cyclic(self):
+        """start and end are identical and length > 1"""
+        return len(self.points_xy) > 1 and self.start_id and self.start_id == self.end_id
     # =========================================
 
     @classmethod
@@ -1639,7 +1642,7 @@ class AmiIsland:
 
         :return: list of graph edges
         """
-        logger.warning(f"{__name__} Probably should use subgraph instead")
+        # logger.warning(f"{__name__} Probably should use subgraph instead")
         assert self.ami_graph.nx_graph is not None
         nx_graph = self.ami_graph.nx_graph
         self.nx_edges = []

@@ -8,15 +8,14 @@ from lxml import etree
 
 from ..pyimage.ami_arrow import AmiArrow, AmiNetwork
 from ..pyimage.ami_graph_all import AmiGraph, AmiIsland
-from ..pyimage.svg import SVGSVG, SVGArrow, SVGG, SVGRect, ns_xpath, SVG_NS
 from ..pyimage.bbox import BBox
+from ..pyimage.svg import SVG_NS, SVGG, SVGSVG, SVGArrow, SVGRect, ns_xpath
 from ..test.resources import Resources
 
 logger = logging.getLogger(__name__)
 
 
 class TestArrow:
-
     def setup_class(self):
         """
         resources are created once only in self.resources.create_ami_graph_objects()
@@ -44,16 +43,26 @@ class TestArrow:
         # self.biosynth3_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH3)
         self.biosynth1_ami_graph = self.resources.biosynth1_ami_graph
         self.biosynth3_ami_graph = self.resources.biosynth3_dto.ami_graph
-        self.biosynth6_compounds_ami_graph = self.resources.biosynth6_compounds_dto.ami_graph
+        self.biosynth6_compounds_ami_graph = (
+            self.resources.biosynth6_compounds_dto.ami_graph
+        )
 
     def test_extract_single_arrow(self):
         ami_graph = self.one_head_island.ami_graph
-        assert len(self.one_head_island.node_ids) == 5, \
-            f"single arrow should have 5 nodes, found {len(self.one_head_island.node_ids)}"
+        assert (
+            len(self.one_head_island.node_ids) == 5
+        ), f"single arrow should have 5 nodes, found {len(self.one_head_island.node_ids)}"
         list1 = AmiGraph.get_node_ids_from_graph_with_degree(ami_graph.nx_graph, 1)
         assert len(list1) == 20
-        list2 = AmiGraph.get_node_ids_from_graph_with_degree(self.one_head_island.island_nx_graph, 1)
-        assert list2 == [21, 22, 23, 25], f"{__name__} ligands found {list2} expected {[21, 22, 23, 25]}"
+        list2 = AmiGraph.get_node_ids_from_graph_with_degree(
+            self.one_head_island.island_nx_graph, 1
+        )
+        assert list2 == [
+            21,
+            22,
+            23,
+            25,
+        ], f"{__name__} ligands found {list2} expected {[21, 22, 23, 25]}"
         longest_edge = ami_graph.find_longest_edge(24)
         assert longest_edge[0] == (24, 21)
         assert longest_edge[1] == pytest.approx(30.0)
@@ -62,8 +71,9 @@ class TestArrow:
             print(f"{node0} - {central} - {idx} = {other_dict[idx]}")
 
     def test_double_arrow(self):
-        assert len(self.double_arrow_island.node_ids) == 8, \
-            f"double arrow should have 8 nodes, found {len(self.double_arrow_island.node_ids)}"
+        assert (
+            len(self.double_arrow_island.node_ids) == 8
+        ), f"double arrow should have 8 nodes, found {len(self.double_arrow_island.node_ids)}"
         nodes4 = self.double_arrow_island.get_node_ids_of_degree(4)
         assert nodes4 == [2, 4], f"nodes or degree 4 should be {[2, 4]}"
         assert self.double_arrow_island.get_node_ids_of_degree(3) == []
@@ -74,20 +84,31 @@ class TestArrow:
         one-tailed arrow that bifurcates into 2 heads
         :return:
         """
-        TestArrow.assert_arrows(self.branched_two_heads_island,
-                                {1: [10, 11, 14, 15, 16, 17, 20], 2: [], 3: [12], 4: [13, 18]})
+        TestArrow.assert_arrows(
+            self.branched_two_heads_island,
+            {1: [10, 11, 14, 15, 16, 17, 20], 2: [], 3: [12], 4: [13, 18]},
+        )
 
     def test_no_heads(self):
-        assert len(self.no_heads.node_ids) == 4, \
-            f"no heads should have 4 nodes, found {len(self.no_heads.node_ids)}"
+        assert (
+            len(self.no_heads.node_ids) == 4
+        ), f"no heads should have 4 nodes, found {len(self.no_heads.node_ids)}"
         TestArrow.assert_arrows(self.no_heads, {1: [8, 9, 26], 2: [], 3: [19], 4: []})
 
     def test_get_edges_and_lengths(self):
         node_id = 24
         nx_edges = self.arrows1_ami_graph.get_nx_edge_list_for_node(node_id)
-        assert [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)] == nx_edges, \
+        assert [
+            (24, 21, 0),
+            (24, 22, 0),
+            (24, 23, 0),
+            (24, 25, 0),
+        ] == nx_edges, (
             "edges should be [(24, 21), (24, 22), (24, 23), (24, 25)], found {nx_edges}"
-        edge_length_dict = self.arrows1_ami_graph.get_nx_edge_lengths_by_edge_list_for_node(node_id)
+        )
+        edge_length_dict = (
+            self.arrows1_ami_graph.get_nx_edge_lengths_by_edge_list_for_node(node_id)
+        )
         edge_lengths = [v for v in edge_length_dict.values()]
         assert pytest.approx(edge_lengths, rel=0.001) == [30.00, 8.944, 9.848, 12.041]
 
@@ -101,20 +122,27 @@ class TestArrow:
             self.arrows1_ami_graph.pre_plot_nodes(plot_ids=True)
             plt.show()
 
-        assert [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)] == nx_edges, \
-            "edges should be [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)], found {nx_edges}"
+        assert [
+            (24, 21, 0),
+            (24, 22, 0),
+            (24, 23, 0),
+            (24, 25, 0),
+        ] == nx_edges, "edges should be [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)], found {nx_edges}"
         angles = []
 
         for edge0 in nx_edges:
             for edge1 in nx_edges:
                 # only do upper triangle
                 if (edge0 is not edge1) and edge0[1] < edge1[1]:
-                    angle = self.arrows1_ami_graph.get_interedge_tuple_angle(edge0, edge1)
+                    angle = self.arrows1_ami_graph.get_interedge_tuple_angle(
+                        edge0, edge1
+                    )
                     angles.append(angle)
         expected = [-1.107, 1.152, 3.058, 2.259, -2.117, 1.906]
 
-        assert expected == pytest.approx(angles, 0.001), \
-            f"expected {expected} found {pytest.approx(angles, 0.001)}"
+        assert expected == pytest.approx(
+            angles, 0.001
+        ), f"expected {expected} found {pytest.approx(angles, 0.001)}"
 
     def test_whole_image_biosynth3(self):
         assert self.biosynth3_ami_graph is not None
@@ -168,9 +196,14 @@ class TestArrow:
 
         ami_graph = self.biosynth1_ami_graph
 
-        TestArrow.create_and_test_arrows(ami_graph, max_dim, big_island_count=big_island_count,
-                                         expected_arrows=expected_arrows,
-                                         output_temp=output_temp, total_islands=total_islands)
+        TestArrow.create_and_test_arrows(
+            ami_graph,
+            max_dim,
+            big_island_count=big_island_count,
+            expected_arrows=expected_arrows,
+            output_temp=output_temp,
+            total_islands=total_islands,
+        )
 
     def test_biosynth3_arrows(self):
         """
@@ -178,7 +211,9 @@ class TestArrow:
         full defaults except output
         :return:
         """
-        TestArrow.create_and_test_arrows(self.biosynth3_ami_graph, 40, output_temp="biosynth3_arrows.svg")
+        TestArrow.create_and_test_arrows(
+            self.biosynth3_ami_graph, 40, output_temp="biosynth3_arrows.svg"
+        )
 
     def test_biosynth6_compounds_arrows(self):
         # TODO get interedge angles
@@ -211,9 +246,14 @@ class TestArrow:
             str(None),
             "tail 1594 - head 1702 > point 1703 barbs [1700, 1701]",
         ]
-        TestArrow.create_and_test_arrows(self.biosynth6_compounds_ami_graph, max_dim, big_island_count=big_island_count,
-                                         expected_arrows=None,
-                                         output_temp="biosynth6_compounds_arrows.svg", total_islands=total_islands)
+        TestArrow.create_and_test_arrows(
+            self.biosynth6_compounds_ami_graph,
+            max_dim,
+            big_island_count=big_island_count,
+            expected_arrows=None,
+            output_temp="biosynth6_compounds_arrows.svg",
+            total_islands=total_islands,
+        )
 
     # @unittest.skip("Not yet implemented")
     def test_several_files(self):
@@ -224,17 +264,24 @@ class TestArrow:
         NYI
         """
         image_dict = {}
-        image_dict["biosynth3"] = {'input': None, "ami_graph": self.biosynth3_ami_graph,
-                                   "temp_output": "biosynth3_arrows.svg"}
+        image_dict["biosynth3"] = {
+            "input": None,
+            "ami_graph": self.biosynth3_ami_graph,
+            "temp_output": "biosynth3_arrows.svg",
+        }
         logger.debug(image_dict.keys())
         for key in image_dict.keys():
             param_dict = image_dict[key]
             logger.debug(param_dict)
-            TestArrow.create_and_test_arrows(param_dict["ami_graph"], 40, output_temp=param_dict["temp_output"])
+            TestArrow.create_and_test_arrows(
+                param_dict["ami_graph"], 40, output_temp=param_dict["temp_output"]
+            )
 
     def test_arrows_and_text_biosynth6(self):
         """simplest reaction pathway of 8 steps"""
-        self.biosynth6_compounds_ami_graph = self.resources.biosynth6_compounds_dto.ami_graph
+        self.biosynth6_compounds_ami_graph = (
+            self.resources.biosynth6_compounds_dto.ami_graph
+        )
         image = self.resources.biosynth6_compounds_dto.image
 
     def test_validate_arrows_text_biosynth1(self):
@@ -271,8 +318,8 @@ class TestArrow:
         </svg:g>        
         """
         # rects
-        assert arrows[0].get("role") == 'arrow', "role should be arrow"
-        assert arrows[0].get("orient") == 'up', "orient should be up"
+        assert arrows[0].get("role") == "arrow", "role should be arrow"
+        assert arrows[0].get("orient") == "up", "orient should be up"
         rect = ns_xpath(arrows[0], f"./{{{SVG_NS}}}rect[@position='core']")
         assert rect is not None, f"only one core expected"
         assert rect.get("x") == "220", f"x coord of core"
@@ -325,8 +372,7 @@ class TestArrow:
         ami_network.write_graph(Path(Resources.TEMP_DIR, "test.gpml"))
 
     def test_create_overlap_boxes(self):
-        """Create front/back/side overlap boxes
-        """
+        """Create front/back/side overlap boxes"""
         svg = SVGSVG()
         arrows = [
             [[400, 300], [500, 300]],  # PLUSX horiziontal right
@@ -337,25 +383,35 @@ class TestArrow:
         expected_boxes = [
             # PLUSX right
             [
-                [[400, 500], [285, 315]], [[410, 490], [225, 285]], [[410, 490], [315, 375]], [[500, 550], [285, 315]],
-                [[350, 400], [285, 315]]
-
+                [[400, 500], [285, 315]],
+                [[410, 490], [225, 285]],
+                [[410, 490], [315, 375]],
+                [[500, 550], [285, 315]],
+                [[350, 400], [285, 315]],
             ],
             # PLUSY down
             [
-                [[285, 315], [400, 500]], [[225, 285], [410, 490]], [[315, 375], [410, 490]], [[285, 315], [500, 550]],
-                [[285, 315], [350, 500]]
-
+                [[285, 315], [400, 500]],
+                [[225, 285], [410, 490]],
+                [[315, 375], [410, 490]],
+                [[285, 315], [500, 550]],
+                [[285, 315], [350, 500]],
             ],
             # MINUSX left
             [
-                [[100, 200], [285, 315]], [[110, 190], [225, 285]], [[110, 190], [315, 375]], [[50, 100], [285, 315]],
-                [[200, 250], [285, 315]]
+                [[100, 200], [285, 315]],
+                [[110, 190], [225, 285]],
+                [[110, 190], [315, 375]],
+                [[50, 100], [285, 315]],
+                [[200, 250], [285, 315]],
             ],
-
             # MINUSY up
             [
-                [[285, 315], [100, 200]], [[225, 285], [110, 190]], [[315, 375], [110, 190]], [[285, 315], [50, 100]], [[285, 315], [200, 250]]
+                [[285, 315], [100, 200]],
+                [[225, 285], [110, 190]],
+                [[315, 375], [110, 190]],
+                [[285, 315], [50, 100]],
+                [[285, 315], [200, 250]],
             ],
         ]
 
@@ -385,7 +441,7 @@ class TestArrow:
                 bbox = BBox(xy_ranges=xy_ranges, swap_minmax=True)
                 ranges = bbox.get_ranges()
                 g = SVGG()
-                svg_rect = SVGRect(xy_ranges = ranges)
+                svg_rect = SVGRect(xy_ranges=ranges)
                 svg_rect.set_attribute("fill", "none")
                 svg_rect.set_attribute("stroke", "red")
                 svg_rect.set_attribute("opacity", "0.3")
@@ -400,7 +456,9 @@ class TestArrow:
             logger.debug("a ", arrow)
             ami_arrow = AmiArrow()
             ami_arrow.svg_arrow = SVGArrow(tail_xy=arrow[0], head_xy=arrow[1])
-            box_tuple = ami_arrow.make_overlap_boxes(arrow_width=30, length=50, len_trim=10)
+            box_tuple = ami_arrow.make_overlap_boxes(
+                arrow_width=30, length=50, len_trim=10
+            )
 
             for box, expect in zip(box_tuple, exp_boxes):
                 assert str(box) == str(expect), f"expected {expect}"
@@ -408,12 +466,21 @@ class TestArrow:
     # ------------ helpers -------------
 
     @classmethod
-    def create_and_test_arrows(cls, ami_graph, max_dim, total_islands=None, expected_arrows=None, big_island_count=None,
-                               output_temp=None):
+    def create_and_test_arrows(
+        cls,
+        ami_graph,
+        max_dim,
+        total_islands=None,
+        expected_arrows=None,
+        big_island_count=None,
+        output_temp=None,
+    ):
         islands = ami_graph.get_or_create_ami_islands()
         if total_islands:
             assert len(islands) == total_islands
-        big_islands = AmiIsland.get_islands_with_max_dimension_greater_than(max_dim, islands)
+        big_islands = AmiIsland.get_islands_with_max_dimension_greater_than(
+            max_dim, islands
+        )
         if big_island_count:
             assert len(big_islands) == big_island_count
         svg = SVGSVG()
