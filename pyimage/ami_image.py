@@ -11,7 +11,7 @@ from pathlib import Path
 import os
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
-
+from PIL import Image
 
 class AmiImage:
     """
@@ -277,8 +277,20 @@ class AmiImage:
             labels are per-pixel ints (don't know what)
             centers_i are RGB values at kmeans-centers,
             quantized_images are single colour+background
+        :except: may throw "cannot reshape"
         """
-        reshaped_image = raw_image.reshape((-1, 3))
+        print(f"raw {raw_image.shape}")
+        col_layers = raw_image.shape[2]  # find colour layers
+        print(f"COLORS: {col_layers}")
+        if col_layers == 4:
+            # image = PIL.Image.open(file_path)
+            image = Image.fromarray(raw_image)
+            # image.thumbnail(resample_size)
+            image = image.convert("RGB")
+            image = np.asarray(image, dtype=np.float32) / 255
+            image = image[:, :, :3]
+        # this might raise error
+        reshaped_image = raw_image.reshape((-1, col_layers))
         kmeans = KMeans(n_clusters=n_colors, random_state=42).fit(reshaped_image)
         labels = kmeans.labels_
         color_centers = kmeans.cluster_centers_

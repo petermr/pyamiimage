@@ -251,21 +251,32 @@ class TestOctree:
         name = "green"
         self._means_test_write(name, expected=expected)
 
-        for name in ["pmc8839570", "MED_34909142_3"]:
-            self._means_test_write(name)
+    def test_kmeans_long(self):
 
-    def _means_test_write(self, name, background=[255, 255, 255], expected=None):
+        for name in ["pmc8839570", "MED_34909142_3", "Signal_transduction_pathways_wp",
+                     "red_black_cv", "prisma"]:
+            print(f"======{name}======")
+            self._means_test_write(name, background=[255,255, 200], ncolors=10)
+
+    def _means_test_write(self, name, background=[255, 255, 255], expected=None, ncolors=10):
         path = Path(Resources.TEST_RESOURCE_DIR, name + ".png")
         if not path.exists():
             path = Path(Resources.TEST_RESOURCE_DIR, name + ".jpeg")
         raw_image = io.imread(path)
-        n_colors = 10
-        labels, color_centers, quantized_images = AmiImage.kmeans(raw_image, n_colors, background)
+        color_delta = 20
+        labels, color_centers, quantized_images = AmiImage.kmeans(raw_image, ncolors, background)
         print(color_centers)
-        for i, color_center in enumerate(color_centers):
-            hexs = ''.join(AmiUtil.int2hex(c)[-2:-1] for c in color_center)
+        for i, color in enumerate(color_centers):
+            if AmiUtil.is_white(color, color_delta):
+                print(f"white: {color}")
+            elif AmiUtil.is_black(color, color_delta):
+                print(f"black: {color}")
+            elif AmiUtil.is_gray(color, color_delta):
+                print(f"gray: {color}")
+                continue
+            hexs = ''.join(AmiUtil.int2hex(c)[-2:-1] for c in color)
             if expected:
-                assert color_center == expected[i], f"color_centers {color_center}"
+                assert color == expected[i], f"color_centers {color}"
             dir_path = Path(Resources.TEMP_DIR, name)
             if not dir_path.exists():
                 dir_path.mkdir()

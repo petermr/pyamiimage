@@ -63,6 +63,49 @@ class AmiUtil:
         return ('0' + hex(ii)[2:])[-2:]
 
     @classmethod
+    def is_white(cls, color, delta=20, sat=255):
+        """is color white within given tolerance
+        255 - color[i] < delta
+         """
+        if color is None or len(color) != 3 or not AmiUtil.is_number(color[0]) \
+                or not AmiUtil.is_number(delta):
+            return False
+        for i in range(3):
+            if sat - color[i] > delta:
+                return False
+        return True
+
+    @classmethod
+    def is_black(cls, color, delta=20):
+        """is color white within given tolerance
+        color[i] < delta
+         """
+        if color is None or len(color) != 3 or not AmiUtil.is_number(color[0]) \
+                or not AmiUtil.is_number(delta):
+            return False
+        for i in range(3):
+            if color[i] > delta:
+                return False
+        return True
+
+
+    @classmethod
+    def is_gray(cls, color, delta=20):
+        """is color gray within given tolerance
+        color is triple of numbers , mean is its mean
+        if abs(color[i] - mean) > delta) return False
+         """
+        if color is None or len(color) != 3 or not AmiUtil.is_number(color[0]) \
+                or not AmiUtil.is_number(delta):
+            return False
+        mean = (color[0] + color[1] + color[2]) / 3
+        for i in range(3):
+            if abs(color[i] - mean) > delta:
+                return False
+        return True
+
+
+    @classmethod
     def get_xy_from_sknw_centroid(cls, yx):
         """
         yx is a 2-array and coords need swapping
