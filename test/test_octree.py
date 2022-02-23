@@ -253,8 +253,13 @@ class TestOctree:
 
     def test_kmeans_long(self):
 
-        for name in ["pmc8839570", "MED_34909142_3", "Signal_transduction_pathways_wp",
-                     "red_black_cv", "prisma"]:
+        for name in [
+            "pmc8839570",
+            "MED_34909142_3",
+            "Signal_transduction_pathways_wp",
+            "red_black_cv",
+            "prisma"
+        ]:
             print(f"======{name}======")
             self._means_test_write(name, background=[255,255, 200], ncolors=10)
 
