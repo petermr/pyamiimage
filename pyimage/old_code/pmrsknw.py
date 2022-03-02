@@ -272,7 +272,7 @@ class PmrSknw:
         return  # so we can display in debug mode!
 
     def example4(self):
-        img = Path(Path(__file__).parent.parent, "test/resources/biosynth_path_3.png")
+        img = Path(Path(__file__).parent.parent, "test/resources/raw.png")
         self.skeleton_and_plot(img)
         return  # so we can display in debug mode!
 

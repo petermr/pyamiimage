@@ -37,7 +37,7 @@ def example_fill_bbox_in_image():
 def example_2_fill_bbox_in_image():
     ocr = TesseractOCR()
     resources_dir = Path(Path(__file__).parent.parent, "test/resources")
-    image_path = Path(resources_dir, "biosynth_path_3.png")
+    image_path = Path(resources_dir, "raw.png")
     # image_path = Path(resources_dir, "biosynth_path_1_cropped.png")
     image_processor = ImageProcessor()
     
@@ -50,7 +50,7 @@ def example_2_fill_bbox_in_image():
 
 def example_2_fill_bbox_for_phrases():
     resources_dir = Path(Path(__file__).parent.parent, "test/resources")
-    image_path = Path(resources_dir, "biosynth_path_3.png")
+    image_path = Path(resources_dir, "raw.png")
     # image_path = Path(resources_dir, "biosynth_path_1_cropped.png")
     image_processor = ImageProcessor()
     

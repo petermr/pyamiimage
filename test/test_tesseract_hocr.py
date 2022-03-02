@@ -150,7 +150,7 @@ class TestTesseractHOCR:
         assert len(bboxes) == 60
 
     def test_extract_bboxes_from_image(self):
-        image_path = Path(Path(__file__).parent, "resources/biosynth_path_3.png")
+        image_path = Path(Path(__file__).parent, "resources/biosynth_path_3/raw.png")
         bboxes, words = TesseractOCR.extract_bbox_from_image(image_path)
         assert len(bboxes) == 60
         assert str(bboxes[0]) == "[201  45 302  75]"

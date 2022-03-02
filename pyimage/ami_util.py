@@ -131,11 +131,11 @@ class AmiUtil:
         assert type(numpy_array) is np.ndarray, \
             f"object should be numpy.darray, found {type(numpy_array)} \n {numpy_array}"
         if shape:
-            assert numpy_array.shape == shape, f"shape should be {numpy_array.shape}"
+            assert numpy_array.shape == shape, f"shape was {numpy_array.shape} should be {shape}"
         if maxx:
-            assert np.max(numpy_array) == maxx, f"max should be {np.max(numpy_array)}"
+            assert np.max(numpy_array) == maxx, f"maxx was {np.max(numpy_array)}, shou,d be {maxx}"
         if dtype:
-            assert numpy_array.dtype == dtype, f"dtype should be {numpy_array.dtype}"
+            assert numpy_array.dtype == dtype, f"dtype was {numpy_array.dtype} should be {dtype}"
 
     @classmethod
     def get_angle(cls, p0, p1, p2):

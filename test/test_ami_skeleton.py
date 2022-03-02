@@ -103,10 +103,6 @@ class TestAmiSkeleton:
         assert ndark == 4285
         nlight = np.sum(image > 127)
         assert nlight == 471995
-        print(
-            f"\nnpix {npix}, nwhite {nwhite}, nblack {nblack}  nother {npix - nwhite - nblack}, ndark {ndark}, "
-            f"nlight {nlight}"
-        )
         fig, ax = plt.subplots()
         ax.set_title("greyscale")
         fig.set_title = "FIGURE"

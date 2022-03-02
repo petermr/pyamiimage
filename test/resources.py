@@ -40,34 +40,34 @@ class Resources:
     BIOSYNTH1_RAW_ARROWS_SVG = Path(TEST_RESOURCE_DIR, "biosynth1_raw_arrows.svg")
     assert BIOSYNTH1_RAW_ARROWS_SVG.exists(), f"file exists {BIOSYNTH1_RAW_ARROWS_SVG}"
 
-    BIOSYNTH2 = Path(TEST_RESOURCE_DIR, "biosynth_path_2.jpg")
+    BIOSYNTH2 = Path(TEST_RESOURCE_DIR, "biosynth_path_2", "raw.jpg")
     assert BIOSYNTH2.exists(), f"file exists {BIOSYNTH2}"
-    BIOSYNTH3 = Path(TEST_RESOURCE_DIR, "biosynth_path_3.png")
+    BIOSYNTH3 = Path(TEST_RESOURCE_DIR, "biosynth_path_3", "raw.png")
     assert BIOSYNTH3.exists(), f"file exists {BIOSYNTH3}"
-    BIOSYNTH4 = Path(TEST_RESOURCE_DIR, "biosynth_path_4.jpeg")
+    BIOSYNTH4 = Path(TEST_RESOURCE_DIR, "biosynth_path_4", "raw.jpeg")
     assert BIOSYNTH4.exists(), f"file exists {BIOSYNTH4}"
-    BIOSYNTH5 = Path(TEST_RESOURCE_DIR, "biosynth_path_5.jpeg")
+    BIOSYNTH5 = Path(TEST_RESOURCE_DIR, "biosynth_path_5", "raw.jpeg")
     assert BIOSYNTH5.exists(), f"file exists {BIOSYNTH5}"
-    BIOSYNTH6 = Path(TEST_RESOURCE_DIR, "biosynth_path_6.jpeg")
+    BIOSYNTH6 = Path(TEST_RESOURCE_DIR, "biosynth_path_6", "raw.jpeg")
     assert BIOSYNTH6.exists(), f"file exists {BIOSYNTH6}"
-    BIOSYNTH6COMPOUND = Path(TEST_RESOURCE_DIR, "biosynth_path_6_compounds_only.jpeg")
+    BIOSYNTH6COMPOUND = Path(TEST_RESOURCE_DIR, "biosynth_path_6", "compounds_only.jpeg")
     assert BIOSYNTH6COMPOUND.exists(), f"file exists {BIOSYNTH6COMPOUND}"
-    BIOSYNTH7 = Path(TEST_RESOURCE_DIR, "biosynth_path_7.jpeg")
+    BIOSYNTH7 = Path(TEST_RESOURCE_DIR, "biosynth_path_7", "raw.jpeg")
     assert BIOSYNTH7.exists(), f"file exists {BIOSYNTH7}"
-    BIOSYNTH8 = Path(TEST_RESOURCE_DIR, "biosynth_path_8.jpeg")
+    BIOSYNTH8 = Path(TEST_RESOURCE_DIR, "biosynth_path_8", "raw.jpeg")
     assert BIOSYNTH8.exists(), f"file exists {BIOSYNTH8}"
 
-    BIOSYNTH3_HOCR = Path(TEST_RESOURCE_DIR, "tesseract_biosynth_path_3.hocr.html")
-    assert BIOSYNTH3_HOCR.exists(), f"file exists {BIOSYNTH3_HOCR}"
-    BIOSYNTH4_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_4.hocr")
+    BIOSYNTH3_HOCR = Path(TEST_RESOURCE_DIR, "tesseract_biosynth_path_3", "hocr.html")
+    # assert BIOSYNTH3_HOCR.exists(), f"file exists {BIOSYNTH3_HOCR}"
+    BIOSYNTH4_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_4", "hocr.html")
     assert BIOSYNTH4_HOCR.exists(), f"file exists {BIOSYNTH4_HOCR}"
-    BIOSYNTH5_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_5.hocr")
+    BIOSYNTH5_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_5", "hocr.html")
     assert BIOSYNTH5_HOCR.exists(), f"file exists {BIOSYNTH5_HOCR}"
-    BIOSYNTH6_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_6.hocr")
+    BIOSYNTH6_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_6", "hocr.html")
     assert BIOSYNTH6_HOCR.exists(), f"file exists {BIOSYNTH6_HOCR}"
-    BIOSYNTH7_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_7.hocr")
+    BIOSYNTH7_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_7", "hocr.html")
     assert BIOSYNTH7_HOCR.exists(), f"file exists {BIOSYNTH7_HOCR}"
-    BIOSYNTH8_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_8.hocr")
+    BIOSYNTH8_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_8", "hocr.html")
     assert BIOSYNTH8_HOCR.exists(), f"file exists {BIOSYNTH8_HOCR}"
 
     ISLANDS_5_SKEL = Path(TEST_RESOURCE_DIR, "islands_5.png")

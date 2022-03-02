@@ -1,4 +1,5 @@
 # library imports
+import unittest
 from pathlib import Path
 from skimage import io
 
@@ -19,13 +20,14 @@ from ..pyimage.ami_image import AmiImage
 from ..pyimage.ami_util import AmiUtil
 
 interactive = False
-interactive = True
+#interactive = True
 
 PYAMI_DIR = Path(__file__).parent.parent
 TEST_DIR = Path(PYAMI_DIR, "test")
 PICO_DIR = Path(TEST_DIR, "alex_pico/")
 RESOURCES_DIR = Path(TEST_DIR, "resources")
 
+LONG_TEST = False
 
 class TestOctree:
     def setup_method(self, method=None):
@@ -251,6 +253,7 @@ class TestOctree:
         name = "green"
         self._means_test_write(name, expected=expected)
 
+    @unittest.skipUnless(LONG_TEST, "takes too long")
     def test_kmeans_long(self):
 
         for name in [
