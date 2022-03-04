@@ -105,7 +105,7 @@ plt.imshow(img, cmap='gray')
 # draw edges by pts
 for (s,e) in graph.edges():
     ps = graph[s][e]['pts']
-    plt.plot(ps[:,1], ps[:,0], 'green')
+    plt.plot(ps[:,1], ps[:,0], 'green_old')
 
 # draw node by o
 nodes = graph.nodes()
@@ -151,7 +151,7 @@ plt.show()"""
             if i < nprint and prnt:
                 print(f"{s} {e} {edge.keys()}")
             points = edge[AmiEdge.PTS]
-            plt.plot(points[:, 1], points[:, 0], "green")
+            plt.plot(points[:, 1], points[:, 0], "green_old")
 
         # draw node by o
         print(f"=========neighbours=========")
@@ -242,7 +242,7 @@ plt.show()"""
 
         :return:
         """
-        skel_path = Resources.BIOSYNTH1_ARROWS
+        skel_path = Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         assert isinstance(skel_path, PurePath)
 
         skeleton_array = AmiImage.create_white_skeleton_from_file(skel_path)
@@ -250,7 +250,7 @@ plt.show()"""
 
         # nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         AmiUtil.check_type_and_existence(nx_graph, nx.classes.multigraph.MultiGraph)
 
@@ -354,7 +354,7 @@ plt.show()"""
     def test_ami_edges(self):
         """wrappers for nx_graph"""
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         ami_edges = ami_graph.get_or_create_all_ami_edges()
         assert len(ami_edges) == 23, f"found {len(ami_edges)}"
@@ -372,7 +372,7 @@ plt.show()"""
         :return:
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
 
         """
@@ -411,7 +411,7 @@ plt.show()"""
         assert np.array_equal(points0_2, expected_numpy), f"found {points0_2}"
 
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         ami_edges = ami_graph.get_or_create_all_ami_edges()
         assert len(ami_edges) == 23
@@ -500,7 +500,7 @@ plt.show()"""
         * half arrow. point with one edge backwards (e.g. in chemical equilibrium
         :return:
         """
-        AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
 
     def test_islands(self):
         """
@@ -508,7 +508,7 @@ plt.show()"""
         :return:
         """
         nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
 
         # connected_components = list(nx.algorithms.components.connected_components(nx_graph))
@@ -544,14 +544,14 @@ plt.show()"""
         :return:
         """
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         xy = ami_graph.get_or_create_centroid_xy(0)
         assert xy == [844.0, 82.0]
 
     def test_get_nx_edge_list_for_node(self):
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         edges = ami_graph.get_nx_edge_list_for_node(24)
         assert edges == [
@@ -563,7 +563,7 @@ plt.show()"""
 
     def test_get_nx_edge_lengths_for_node(self):
         ami_graph = self.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         lengths = ami_graph.get_nx_edge_lengths_by_edge_list_for_node(24)
         print(f"lengths {lengths}")
@@ -579,7 +579,7 @@ plt.show()"""
         :return:
         """
         ami_graph = self.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         self.assert_degrees(ami_graph, 4, [2, 4, 13, 18, 24])
         self.assert_degrees(ami_graph, 3, [12, 19])
@@ -592,7 +592,7 @@ plt.show()"""
 
     def test_distal_node(self):
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         edge = ami_graph.get_nx_edge_list_for_node(1)[0]
         ami_edge0 = ami_graph.get_or_create_ami_edge_from_ids(edge[0], edge[1], edge[2])
@@ -604,7 +604,7 @@ plt.show()"""
 
     def test_get_neighbours(self):
         ami_graph = self.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         assert [2] == ami_graph.get_or_create_ami_node(0).get_neighbour_ids()
         assert [4] == ami_graph.get_or_create_ami_node(1).get_neighbour_ids()
@@ -623,7 +623,7 @@ plt.show()"""
 
     def test_get_angles_of_edges_node(self):
         ami_graph = self.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         edge_ids = ami_graph.get_nx_edge_list_for_node(24)
         assert edge_ids == [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)]
@@ -658,7 +658,7 @@ plt.show()"""
         :return:
         """
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         islands = ami_graph.get_or_create_ami_islands()
         assert len(islands) == 4, "arrows"
@@ -709,7 +709,7 @@ plt.show()"""
                 ]
             )
 
-            # subdivide polygon using 2nd degree B-Splines (green)
+            # subdivide polygon using 2nd degree B-Splines (green_old)
             new_hand = hand.copy()
             ncycle = 5  # doubles the number of points/splines each cycle
             for _ in range(ncycle):
@@ -818,7 +818,7 @@ plt.show()"""
 
     def test_prisma(self):
         """extract primitives from partial prisma diagram"""
-        assert Resources.PRISMA.exists()
+        assert Resources.PRISMA_RAW.exists()
         ami_graph = AmiGraph(self.nx_graph_prisma)
         islands = ami_graph.get_or_create_ami_islands()
         assert len(islands) == 382
@@ -877,7 +877,7 @@ plt.show()"""
         :return:
         """
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         edge_length_by_nx_edge = ami_graph.get_nx_edge_lengths_by_edge_list_for_node(24)
         assert {"a": 2.000001} == pytest.approx({"a": 2})
@@ -905,7 +905,7 @@ plt.show()"""
         """
         # TODO package commands into AmiGraph
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.BATTERY1, interactive=False
+            Resources.BATTERY1_RAW, interactive=False
         )
         nx_graph = ami_graph.nx_graph
         assert len(nx_graph.nodes) == 647  # multi, iso, ring full
@@ -955,7 +955,7 @@ plt.show()"""
         """
         # TODO package commands into AmiGraph
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.BATTERY1BSQUARE, interactive=False
+            Resources.BATTERY1BSQUARE_RAW, interactive=False
         )
         nx_graph = ami_graph.nx_graph
         assert type(nx_graph) is nx.MultiGraph
@@ -1012,7 +1012,7 @@ plt.show()"""
     def test_create_ami_nodes_from_ids(self):
         """wrap node_ids in AmiNodes"""
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         node_ids = [0, 1, 2, 3, 4, 5, 6, 7]
         ami_node_list = ami_graph.create_ami_nodes_from_ids(node_ids)
@@ -1045,7 +1045,7 @@ plt.show()"""
             "inrect",
         ]
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.PRIMITIVES, interactive=interact
+            Resources.PRIMITIVES_RAW, interactive=interact
         )
         nx_graph = ami_graph.nx_graph
         assert type(nx_graph) is nx.MultiGraph
@@ -1075,7 +1075,7 @@ plt.show()"""
                 pass
 
         # draw image
-        AmiImage.pre_plot_image(Resources.PRIMITIVES, erode_rad=2)
+        AmiImage.pre_plot_image(Resources.PRIMITIVES_RAW, erode_rad=2)
 
         # draw edges by pts
         ami_graph.pre_plot_edges(plt.gca())
@@ -1213,7 +1213,7 @@ plt.show()"""
     def test_island_sizes(self):
         """uses mindim, maxdim, to filter in/out islands. etc."""
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.YW5003_5
+            Resources.YW5003_5_RAW
         )
         # all islands
         islands = ami_graph.get_or_create_ami_islands()
@@ -1254,7 +1254,7 @@ plt.show()"""
         # NOTE these tests seem correct but pixel-fragile
 
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.YW5003_5
+            Resources.YW5003_5_RAW
         )
         # second largest island is a boxed plot
         # all islands

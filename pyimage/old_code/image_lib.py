@@ -29,7 +29,7 @@ class ImageLib:
     def old_init(self):
         # should not be run on init
         self.image = data.binary_blobs()
-        self.image = io.imread('../../images/green.png')
+        self.image = io.imread('../../images/green_old.png')
         self.image = rgb2gray(self.image)
         self.image = 255 - self.image
         thresh = threshold_otsu(self.image)
@@ -104,9 +104,9 @@ class ImageExamples:
         #        self.image = data.astronaut()
         #        plt.imshow(image)
 
-        self.image = io.imread('../../images/green.png')
+        self.image = io.imread('../../images/green_old.png')
         plt.imshow(self.image)
-        io.imsave('../../outputs/misc1/green.png', self.image)
+        io.imsave('../../outputs/misc1/green_old.png', self.image)
 
         #        images = io.ImageCollection('../images/*.png:../images/*.jpg')
         #        print('Type:', type(images))
@@ -333,7 +333,7 @@ class ImageExamples:
         img = img > 20
         """
 
-        img = io.imread('../../images/green.png')
+        img = io.imread('../../images/green_old.png')
         img = rgb2gray(img)
         img = 1 - img
         print(sum(img), img)

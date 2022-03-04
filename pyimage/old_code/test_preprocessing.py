@@ -26,7 +26,7 @@ class TestImageCode():
     TEST_RESOURCES_DIR = Path(Path(__file__).parent, "../../test/resources")
     RED_BLACK_IMAGE = Path(TEST_RESOURCES_DIR, "red_black_cv.png")
     assert RED_BLACK_IMAGE.exists(), f"red_black_image {RED_BLACK_IMAGE} should exist"
-    BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")
+    BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "raw.png")
     assert BIOSYNTH_PATH_IMAGE.exists(), f"biosynthetic pathway {BIOSYNTH_PATH_IMAGE} should exist"
 
     def setup_method(self, method):

@@ -53,9 +53,9 @@ class TestAmiSkeleton:
 
     def setup_method(self):
         self.arrows_skeleton = TestAmiSkeleton.create_biosynth_arrows_skeleton()
-        self.arrows1_image = io.imread(Resources.BIOSYNTH1_ARROWS)
+        self.arrows1_image = io.imread(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         self.arrows1_skeleton = AmiImage.invert_binarize_skeletonize(
-            io.imread(Resources.BIOSYNTH1_ARROWS)
+            io.imread(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         )
         self.arrows1_graph = AmiGraph.create_nx_graph_from_skeleton(
             self.arrows1_skeleton
@@ -65,7 +65,7 @@ class TestAmiSkeleton:
     @classmethod
     def create_biosynth_arrows_skeleton(cls):
         skeleton_image = TestAmiSkeleton.create_skeleton_from_file(
-            Resources.BIOSYNTH1_ARROWS
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         )
         return skeleton_image
         # @unittest.skipIf(skip_OK, "already runs")
@@ -89,7 +89,7 @@ class TestAmiSkeleton:
         cmap = "Greens"
         cmap = self.cmap
 
-        file = Resources.BIOSYNTH1_ARROWS
+        file = Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         assert file.exists()
         image = io.imread(file)
         # this is a gray image??
@@ -251,7 +251,7 @@ class TestAmiSkeleton:
         assert connected_components[1] == {8, 9, 26, 19}
 
     def test_remove_pixels_in_bounding_box_arrows1(self):
-        image = io.imread(Resources.BIOSYNTH1_ARROWS)
+        image = io.imread(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         bbox = ((82, 102), (661, 863))
         image = AmiGraph.set_bbox_pixels_to_color(bbox, image)
         fig, ax = plt.subplots()
@@ -274,11 +274,7 @@ class TestAmiSkeleton:
 
     @classmethod
     def binarize_and_skeletonize_arrows(cls):
-        test_resources_dir = Path(Path(__file__).parent.parent, "test/resources")
-        biosynth_path_image = Path(
-            test_resources_dir, "biosynth_path_1_cropped_text_removed.png"
-        )
-        grayscale = AmiImage.create_grayscale_from_file(biosynth_path_image)
+        grayscale = AmiImage.create_grayscale_from_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         skeleton = AmiImage.create_white_skeleton_from_image(grayscale)
         return skeleton
 

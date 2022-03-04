@@ -122,7 +122,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         :return:
         """
         for edge_xy in self.edge_xy_list:
-            plt.plot(edge_xy[:, 1], np.negative(edge_xy[:, 0]), 'green')
+            plt.plot(edge_xy[:, 1], np.negative(edge_xy[:, 0]), 'green_old')
         # draw node by small circle (".")
         plt.plot(self.node_xy[:, 1], np.negative(self.node_xy[:, 0]), 'r.')
         # title and show

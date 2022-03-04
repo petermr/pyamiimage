@@ -22,7 +22,7 @@ Tests for tesseract_hocr.py
 (to run tesseract:
 tesseract <pathname> <output_root> hocr
 e.g.,
-tesseract test/resources/biosynth_path_1_cropped_arrows_removed.png arrows_removed hocr
+tesseract test/resources/arrows_removed.png arrows_removed hocr
 creates:
 arrows_removed.hocr (actually html file)
 we may have to manually rename these to .html
@@ -38,7 +38,7 @@ class TestTesseractHOCR:
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
         """
-        self.biosynth3 = Resources.BIOSYNTH3
+        self.biosynth3 = Resources.BIOSYNTH3_RAW
         self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(self.biosynth3)
         self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
 
@@ -122,7 +122,7 @@ class TestTesseractHOCR:
 
     @unittest.skipIf(skip_long_tests, "wikidata lookup")
     def test_phrase_wikidata_search(self):
-        path = Resources.BIOSYNTH3
+        path = Resources.BIOSYNTH3_RAW
         hocr = TesseractOCR.hocr_from_image_path(path)
         root = TesseractOCR.parse_hocr_string(hocr)
         phrases, bbox_for_phrases = TesseractOCR.find_phrases(root)
@@ -142,16 +142,12 @@ class TestTesseractHOCR:
         assert phrases == sample_phrases
 
     def test_extract_bbox_from_hocr3(self):
-        test_hocr_file = Path(
-            Path(__file__).parent, "resources/tesseract_biosynth_path_3.hocr.html"
-        )
-        root = TesseractOCR.read_hocr_file(test_hocr_file)
+        root = TesseractOCR.read_hocr_file(Resources.BIOSYNTH3_HOCR)
         bboxes, words = TesseractOCR.extract_bbox_from_hocr(root)
         assert len(bboxes) == 60
 
     def test_extract_bboxes_from_image(self):
-        image_path = Path(Path(__file__).parent, "resources/biosynth_path_3/raw.png")
-        bboxes, words = TesseractOCR.extract_bbox_from_image(image_path)
+        bboxes, words = TesseractOCR.extract_bbox_from_image(Resources.BIOSYNTH3_RAW)
         assert len(bboxes) == 60
         assert str(bboxes[0]) == "[201  45 302  75]"
         assert words[0] == "Straight"

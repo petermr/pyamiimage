@@ -90,7 +90,7 @@ class TestAmiImage:
 
     def test_sharpen_iucr(self):
         """shows effect of sharpening (interactive display)"""
-        image = io.imread(str(Path(Resources.YW5003_5)))
+        image = io.imread(str(Path(Resources.YW5003_5_RAW)))
         assert image is not None
         print(image.shape)
         image = AmiImage.create_rgb_from_rgba(image)

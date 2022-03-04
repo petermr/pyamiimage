@@ -233,7 +233,7 @@ class PmrSknw:
         # draw edges by pts
         for (s, e) in self.graph.nx_edges():
             ps = self.graph[s][e]['pts']
-            plt.plot(ps[:, 1], ps[:, 0], 'green')
+            plt.plot(ps[:, 1], ps[:, 0], 'green_old')
 
     # def example1(self):
     #     self.read_thinned_image_calculate_graph_and_plot(img)
@@ -255,7 +255,7 @@ class PmrSknw:
         # draw edges by pts
         for (s, e) in graph.edges():
             ps = graph[s][e]['pts']
-            plt.plot(ps[:, 1], ps[:, 0], 'green')
+            plt.plot(ps[:, 1], ps[:, 0], 'green_old')
 
         # draw node by o
         nodes = graph.nodes()

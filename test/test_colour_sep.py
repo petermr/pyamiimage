@@ -29,6 +29,7 @@ RESOURCES_DIR = Path(TEST_DIR, "resources")
 
 LONG_TEST = False
 
+"""Tests both Octree and kmeans color separation"""
 class TestOctree:
     def setup_method(self, method=None):
         pass
@@ -119,7 +120,7 @@ class TestOctree:
 
     def test_green_battery(self):
         streams = Quantizer(
-            input_dir=RESOURCES_DIR, method="octree", root="green"
+            input_dir=Resources.BATTERY_DIR, method="octree", root="green"
         ).extract_color_streams()
         print(f"streams {streams}")
 
@@ -206,7 +207,7 @@ class TestOctree:
     def test_skimage1(self):
 
         n_colors = 4
-        path = Path(Resources.TEST_RESOURCE_DIR, "green.png")
+        path = Path(Resources.BATTERY_DIR, "green.png")
         img0 = io.imread(path)
         img = np.array(img0, dtype=np.float64) / 255
         w, h, d = original_shape = tuple(img.shape)
@@ -267,6 +268,7 @@ class TestOctree:
             self._means_test_write(name, background=[255,255, 200], ncolors=10)
 
     def _means_test_write(self, name, background=[255, 255, 255], expected=None, ncolors=10):
+        """skimage kmeans"""
         path = Path(Resources.TEST_RESOURCE_DIR, name + ".png")
         if not path.exists():
             path = Path(Resources.TEST_RESOURCE_DIR, name + ".jpeg")
