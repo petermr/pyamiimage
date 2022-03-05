@@ -1,10 +1,6 @@
 """bounding box"""
 from skimage import draw
-
-import math
 # from ..pyimage.svg import SVGG, SVGRect
-from ..pyimage.ami_util import AmiUtil
-
 
 class BBox:
     """bounding box 2array of 2arrays, based on integers
@@ -45,32 +41,8 @@ class BBox:
         try:
             xy_ranges = [[float(xy[0]), float(xy[0]) + float(width)], [float(xy[1]), float(xy[1]) + float(height)]]
         except Exception as e:
-            raise ValueError(f"cannot create bbox from {xy},{width},{height}, {e}")
+            raise ValueError(f"cannot create bbox from {xy},{width},{height}")
         return BBox(xy_ranges=xy_ranges)
-
-    @classmethod
-    def create_from_points(cls, points_list, tolerance=0.001):
-        """make bounding box if 4 points can be aligned in a rectangle within tolerance
-        choose low/low and high/high ; don't use othe values except as True/False
-        :param points_list: reqyires len=4
-        :param tolerance: must be aligned within tolerance; default 0.001
-        :return: BBox [lowx,  lowy] [highx, highy] => [[lowx, highx], [lowy, highy]] or None
-        """
-        if not points_list:
-            return None
-        if not points_list or len(points_list) != 4:
-            return None
-        high_high = cls._find_low_low_high_high(points_list, 1, tolerance)
-        low_low = cls._find_low_low_high_high(points_list, -1, tolerance)
-        print(f"high_high {high_high}")
-        print(f"lo_lo {low_low}")
-        bbox = None
-        if low_low and high_high:
-            bbox = BBox(xy_ranges=[
-                [low_low[0], high_high[0]],
-                [low_low[1], high_high[1]]
-            ])
-        return bbox
 
     def set_ranges(self, xy_ranges):
         if xy_ranges is None:
@@ -102,7 +74,7 @@ class BBox:
         """get width
         :return: width or None if x range invalid or not set"""
         if self.get_xrange() is None or len(self.get_xrange()) == 0:
-            return None
+            return None;
         assert self.get_xrange() is not None
         assert len(self.get_xrange()) == 2, f"xrange, got {len(self.get_xrange())}"
         return self.get_xrange()[1] - self.get_xrange()[0]
@@ -256,8 +228,8 @@ class BBox:
         if index != 0 and index != 1:
             raise ValueError(f"Bad index for range {index}")
         rr = self.xy_ranges[index]
-        rr[0] -= margin
-        rr[1] += margin
+        rr[0] -= margin[index]
+        rr[1] += margin[index]
         # range cannot be <= 0
         if rr[0] >= rr[1]:
             mid = (rr[0] + rr[1]) / 2
@@ -359,13 +331,13 @@ class BBox:
         """
         Plots bbox on an image
         :param: image
-        :type: numpy array
+        :type: numpy array 
         :param: bbox
         :type: BBox or list
         :returns: fig, ax
         """
         # bbox can either be BBox object or in form of [[a, b][c, d]]
-
+        
         # if type(bbox) == BBox:
         #     assert bbox.is_valid()
         # elif type(bbox) == list:
@@ -380,7 +352,7 @@ class BBox:
         if point_pair[0][0] > image.shape[0] or point_pair[0][1] >image.shape[1]:
             # if the starting point is outside the image, ignore bbox
             return image
-
+        
         try:
             row, col = draw.rectangle_perimeter(start=point_pair[0], end=point_pair[1])
             image[row, col] = 0
@@ -425,68 +397,6 @@ class BBox:
         yrange = [xy1[1], xy2[1]] if xy2[1] > xy1[1] else [xy2[1], xy1[1]]
         bbox = BBox(xy_ranges=[xrange, yrange])
         return bbox
-
-    def contains_point(self, point):
-        """does point lie within xy_ranges inclusive
-        :param point: 2D numeric array [x, y]
-        :return: False if point is None or self is invalid or point lies outside
-        """
-        if not BBox.validate_point(point) or not self.is_valid():
-            return False
-        if point[0] < self.xy_ranges[0][0] or point[0] > self.xy_ranges[0][1]:
-            return False
-        if point[1] < self.xy_ranges[1][0] or point[1] > self.xy_ranges[1][1]:
-            return False
-        return True
-
-    @classmethod
-    def validate_point(cls, point):
-        if point is None or len(point) != 2:
-            return False
-        return AmiUtil.is_number(point[0]) and AmiUtil.is_number(point[1])
-
-    @classmethod
-    def _find_low_low_high_high(cls, points_list, sign, tolerance=0.001):
-        """
-        :param points_list: list of 4 points [x,y]
-        :param sign: 1 for high_high or -1 for low_low
-        :param tolerance: default 0.001
-        :return: point with lowestx, lowesty (sign=-1) or highest, higest (sign=1)
-        """
-        point = None
-        if points_list and len(points_list) == 4:
-            for p in points_list:
-                if point is None:
-                    point = p
-                else:
-                    if cls._is_movable(p[0], point[0], tolerance, sign) and cls._is_movable(p[1], point[1], tolerance,
-                                                                                            sign):
-                        point = p
-        return point
-
-    @classmethod
-    def _is_movable(cls, coord_new, coord_old, tolerance, sign):
-        if abs(coord_new - coord_old) < tolerance:
-            return True
-        if math.copysign(1, coord_new - coord_old) == sign:
-            return True
-
-    @classmethod
-    def assert_xy_ranges(cls, bbox, target_ranges):
-        """asserts that bbox has given xy_ranges (main equality test)
-        :param bbox: Bbox
-        :param target_ranges: 2-D array of floats [[x0,x1], y0,y1]]
-        :except: throws variaous exceptions
-        """
-        if not bbox:
-            if not target_ranges:
-                # expected None
-                return
-            else:
-                raise ValueError("parameter/s are None")
-        if not bbox.is_valid():
-            raise ValueError("Bad bbox {bbox}")
-        assert bbox.xy_ranges == target_ranges, f"bbox_xy_ranges {bbox.xy_ranges}, target_ranges {target_ranges}"
 
 
 """If you looking for the overlap between two real-valued bounded intervals, then this is quite nice:

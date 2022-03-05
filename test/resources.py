@@ -233,3 +233,8 @@ class Resources:
         image_dto.hocr_html_element = TesseractOCR.parse_hocr_string(image_dto.hocr)
 
         return image_dto
+
+
+
+
+

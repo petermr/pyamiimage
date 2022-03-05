@@ -1,15 +1,13 @@
 # from ..pyimage import tesseract_hocr
 
-import logging
-import unittest
-from pathlib import Path
-
-import numpy as np
-from lxml import etree as ET
-from matplotlib import pyplot as plt
-from skan.pre import threshold
 from skimage import io
-
+from matplotlib import pyplot as plt
+from pathlib import Path
+import numpy as np
+from skan.pre import threshold
+import unittest
+from lxml import etree as ET
+import logging
 # local
 from ..pyimage.tesseract_hocr import TesseractOCR
 from ..test.resources import Resources
@@ -38,6 +36,14 @@ class TestTesseractHOCR:
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
         """
+        self.biosynth1 = Resources.BIOSYNTH1_RAW
+        self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(self.biosynth1)
+        self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
+
+        self.biosynth2 = Resources.BIOSYNTH2_RAW
+        self.biosynth2_hocr = TesseractOCR.hocr_from_image_path(self.biosynth2)
+        self.biosynth2_elem = TesseractOCR.parse_hocr_string(self.biosynth2_hocr)
+
         self.biosynth3 = Resources.BIOSYNTH3_RAW
         self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(self.biosynth3)
         self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
@@ -45,6 +51,10 @@ class TestTesseractHOCR:
     def teardown_method(self, method):
         """teardown any state that was previously setup with a setup_method
         call."""
+        self.biosynth1 = None
+        self.biosynth1_hocr = None
+        self.biosynth1_elem = None
+
         self.biosynth3 = None
         self.biosynth3_hocr = None
         self.biosynth3_elem = None
@@ -69,14 +79,12 @@ class TestTesseractHOCR:
         assert ndark == 28888
         nlight = np.sum(image > 127)
         assert nlight == 962552
-        print(
-            f"\nnpix {npix}, nwhite {nwhite}, nblack {nblack}  nother {npix - nwhite - nblack}, ndark {ndark}, "
-            f"nlight {nlight}"
-        )
+        print(f"\nnpix {npix}, nwhite {nwhite}, nblack {nblack}  nother {npix - nwhite - nblack}, ndark {ndark}, "
+              f"nlight {nlight}")
         # images are not shown in tests, I think
         fig, ax = plt.subplots()
         if self.interactive:
-            ax.imshow(image, cmap="gray")
+            ax.imshow(image, cmap='gray')
 
         binary = threshold(image)
         assert binary.shape == (972, 1020)
@@ -97,7 +105,6 @@ class TestTesseractHOCR:
 
         return
 
-    @unittest.skip("smoke test")
     def test_pretty_print_html(self):
         TesseractOCR.pretty_print_hocr(self.biosynth3_elem)
 
@@ -119,6 +126,51 @@ class TestTesseractHOCR:
         assert len(bboxes) == 29
         assert bboxes[0] == [201, 45, 830, 68]
         assert phrases[0] == "Straight chain ester biosynthesis from fatty acids"
+
+    def test_find_text_group_biosynth2(self):
+        biosynth2_img = io.imread(self.biosynth2)
+
+        word_bboxes, words = TesseractOCR.extract_bbox_from_hocr(self.biosynth2_elem)
+        raw_tesseract = TesseractOCR.draw_bbox_around_words(image=biosynth2_img, bbox_coordinates=word_bboxes)
+
+        io.imshow(raw_tesseract)
+        io.show()
+
+        phrases, phrases_bboxes = TesseractOCR.find_phrases(self.biosynth2_elem)
+        phrases_tess = TesseractOCR.draw_bbox_around_words(image=biosynth2_img, bbox_coordinates=phrases_bboxes)
+        io.imshow(phrases_tess)
+        io.show()
+
+    @unittest.skip("TesseractOCR is deprecated")
+    def test_find_text_group(self):
+        biosynth1_img = io.imread(self.biosynth1)
+
+        word_bboxes, words = TesseractOCR.extract_bbox_from_hocr(self.biosynth1_elem)
+        raw_tesseract = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=word_bboxes)
+
+        # io.imshow(raw_tesseract)
+        # io.show()
+
+        phrases, phrase_bboxes = TesseractOCR.find_phrases(self.biosynth1_elem)
+        groups_bboxes = TesseractOCR.find_word_groups(bbox_of_phrases=phrase_bboxes)
+        grouped_text = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=groups_bboxes)
+
+        io.imshow(grouped_text)
+        io.show()
+        # f, ax = plt.subplots(1, 2)
+        # ax[0].imshow(raw_tesseract)
+        # ax[1].imshow(grouped_text)
+
+        # plt.show()
+
+    def test_cropped_test_group(self):
+        biosynth2_img = io.imread(self.biosynth2)
+        tiles, limits = TesseractOCR.split_image_into_snippets(biosynth2_img)
+        assert limits is not None
+        for tile in tiles:
+            io.imshow(tile)
+            io.show()
+
 
     @unittest.skipIf(skip_long_tests, "wikidata lookup")
     def test_phrase_wikidata_search(self):
@@ -161,3 +213,12 @@ class TestTesseractHOCR:
             == '<svg:rect xmlns:svg="http://www.w3.org/2000/svg" x="10" width="10" '
             'y="30" height="20" stroke-width="1.0" stroke="red" fill="none"/>'
         )
+
+    @unittest.skip("TesseractOCR is deprecated")
+    def test_envelope(self):
+        phrases, bboxes = TesseractOCR.find_phrases(self.biosynth1_elem)
+        full_box = TesseractOCR.envelop(bboxes)
+        biosynth1_img = io.imread(self.biosynth1)
+        boxed = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=[full_box])
+        io.imshow(boxed)
+        io.show()

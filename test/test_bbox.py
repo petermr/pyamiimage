@@ -77,6 +77,15 @@ class TestBBox:
         bbox02 = bbox0.intersect(bbox2)
         assert bbox02.xy_ranges == [None, [30, 40]]
 
+    def test_get_unions(self):
+        bbox0 = BBox([[10, 20], [30, 40]])
+        bbox1 = BBox([[13, 28], [27, 38]])
+        bbox01 = bbox0.union(bbox1)
+        assert bbox01.xy_ranges == [[10, 28], [27, 40]]
+        bbox2 = BBox([[21, 24], [15, 58]])
+        bbox02 = bbox0.union(bbox2)
+        assert bbox02.xy_ranges == [[10, 24], [15, 58]]
+ 
     def test_add_points(self):
         bbox = BBox()
         assert bbox.xy_ranges == [[], []]
