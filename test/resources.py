@@ -22,8 +22,8 @@ class Resources:
 
 # biosynth1
     BIOSYNTH1_DIR = Path(TEST_RESOURCE_DIR, "biosynth_path_1")
-    BIOSYNTH1_PNG = Path(BIOSYNTH1_DIR, "raw.png")
-    assert BIOSYNTH1_PNG.exists(), f"file exists {BIOSYNTH1_PNG}"
+    BIOSYNTH1_RAW = Path(BIOSYNTH1_DIR, "raw.png")
+    assert BIOSYNTH1_RAW.exists(), f"file exists {BIOSYNTH1_RAW}"
     BIOSYNTH1_HOCR = Path(BIOSYNTH1_DIR, "hocr.html")
     assert BIOSYNTH1_HOCR.exists(), f"file exists {BIOSYNTH1_HOCR}"
 
@@ -139,16 +139,16 @@ class Resources:
             )
 
             # biosynth1 has solid arrowheads and (unfortunately) some primitives overlap
-            self.biosynth1 = io.imread(Resources.BIOSYNTH1_PNG)
+            self.biosynth1 = io.imread(Resources.BIOSYNTH1_RAW)
             assert self.biosynth1.shape == (1167, 1515)
             self.biosynth1_binary = np.where(self.biosynth1 < 127, 0, 255)
             self.nx_graph_biosynth1 = (
-                AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_PNG)
+                AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_RAW)
             )
-            self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH1_PNG)
+            self.biosynth1_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH1_RAW)
             self.biosynth1_elem = TesseractOCR.parse_hocr_string(self.biosynth1_hocr)
             self.biosynth1_ami_graph = (
-                AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_PNG)
+                AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_RAW)
             )
 
             prisma = io.imread(Resources.PRISMA_RAW)
@@ -182,7 +182,7 @@ class Resources:
             # DTO approach
             if not self.biosynth1_dto:
                 self.biosynth1_dto = self.get_image_dto(
-                    raw_image_file=Resources.BIOSYNTH1_PNG,
+                    raw_image_file=Resources.BIOSYNTH1_RAW,
                     raw_image_shape=(1167, 1515),
                     threshold=127,
                 )

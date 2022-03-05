@@ -191,14 +191,14 @@ plt.show()"""
 
         :return:
         """
-        skel_path = Resources.BIOSYNTH1_ARROWS
+        skel_path = Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         assert isinstance(skel_path, PurePath)
 
         skeleton_array = AmiImage.create_white_skeleton_from_file(skel_path)
         AmiUtil.check_type_and_existence(skeleton_array, np.ndarray)
 
         # nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)
-        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         AmiUtil.check_type_and_existence(nx_graph, nx.classes.multigraph.MultiGraph)
 
         assert list(nx_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
@@ -238,7 +238,7 @@ plt.show()"""
     def test_ami_edges(self):
         """wrappers for nx_graph
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         print("------------------")
         ami_edges = ami_graph.get_or_create_all_ami_edges()
         assert len(ami_edges) == 23, f"found {len(ami_edges)}"
@@ -255,7 +255,7 @@ plt.show()"""
         Note: double backslash is an escape, not meaningful
         :return:
         """
-        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
 
         """
         {0, 1, 2, 3, 4, 5, 6, 7},  # double arrow
@@ -285,10 +285,10 @@ plt.show()"""
                                    [89, 856],
                                    [91, 857]])
         assert type(expected_numpy[0]) is np.ndarray
-        assert type(expected_numpy[0][0]) is np.int32
+        assert type(expected_numpy[0][0]) is np.int64
         assert np.array_equal(points0_2, expected_numpy), f"found {points0_2}"
 
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         ami_edges = ami_graph.get_or_create_all_ami_edges()
         assert len(ami_edges) == 23
         for ami_edge in ami_edges:
@@ -374,7 +374,7 @@ plt.show()"""
         Tests
         :return:
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         xy = ami_graph.get_or_create_centroid_xy(0)
         assert xy == [844.0, 82.0]
 
@@ -617,7 +617,6 @@ plt.show()"""
         TestAmiGraph.display_erode_dilate(self.battery1_image, nx_graph)
 
     @unittest.skip("Moved to AmiOCR, NYI")
-    def test_find_bboxes_with_text(self):
     def test_find_bboxes_with_text(self, interact=interactive):
         """find text boxes and remove those with more than one character
         so the remaining lines can be analyses
@@ -922,9 +921,7 @@ plt.show()"""
 
     def test_island_sizes(self):
         """uses mindim, maxdim, to filter in/out islands. etc."""
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.YW5003_5_RAW
-        )
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         # all islands
         islands = ami_graph.get_or_create_ami_islands()
         assert len(islands) == 227, f"expected total islands {len(islands)}"
@@ -953,9 +950,7 @@ plt.show()"""
         """
         # NOTE these tests seem correct but pixel-fragile
 
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-            Resources.YW5003_5_RAW
-        )
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         # second largest island is a boxed plot
         # all islands
         islands = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)
@@ -1036,7 +1031,7 @@ plt.show()"""
 
     def test_enumerate_unique_edges(self):
         """separates 3- connected nodes into separate lines """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island_0 = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         triply_connected_ids = AmiGraph.get_node_ids_from_graph_with_degree(small_plot_island_0.island_nx_graph, 3)
         assert len(triply_connected_ids) == 30, f"found {len(triply_connected_ids)}"
@@ -1047,7 +1042,7 @@ plt.show()"""
     def test_analyze_topology(self):
         """merges short horizontal and verstical lines from sknw
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         node_ids = small_plot_island.node_ids
         ami_edges, multibranches = ami_graph.get_unique_ami_edges_and_multibranches(node_ids)
@@ -1064,7 +1059,7 @@ plt.show()"""
     def test_create_straight_edges(self):
         """tests straightness between nodes (horiz and vert)
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         node_ids = small_plot_island.node_ids
         pixel_error = 2
@@ -1080,7 +1075,7 @@ plt.show()"""
     def test_create_line_segments(self):
         """segments the edge into straight-lines (AmiLine) and finds axially aligned corners
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
         assert len(ami_edges) == 48, f"found {len(ami_edges)}"
@@ -1096,7 +1091,7 @@ plt.show()"""
     def test_filter_line_segments(self):
         """filters segments the edge into straight-lines (AmiLine) and finds axially aligned corners
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
 
@@ -1144,7 +1139,7 @@ plt.show()"""
 
         :return:
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
         assert len(ami_edges) == 48, f"found {len(ami_edges)}"
@@ -1165,7 +1160,7 @@ plt.show()"""
 
         :return:
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5)
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
 
