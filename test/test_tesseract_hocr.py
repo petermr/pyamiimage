@@ -163,6 +163,7 @@ class TestTesseractHOCR:
 
         # plt.show()
 
+    @unittest.skip("split_image_into_snippets() NYI")
     def test_cropped_test_group(self):
         biosynth2_img = io.imread(self.biosynth2)
         tiles, limits = TesseractOCR.split_image_into_snippets(biosynth2_img)
