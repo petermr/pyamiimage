@@ -25,8 +25,8 @@ The ImageLib module has been included in this repository for testing and referen
 # setting a sample image for default path
 DEFAULT_PATH = "assets/purple_ocimum_basilicum.png"
 TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
-# BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")
-BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
+# BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "raw.png")
+BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "text_removed.png")
 
 
 class ImageProcessor:
@@ -100,8 +100,8 @@ class ImageProcessor:
     def example1(self):
         TEST_RESOURCES_DIR = Path(Path(__file__).parent.parent, "test/resources")
         assert TEST_RESOURCES_DIR.isdir(), f"{TEST_RESOURCES_DIR} must be existing directory"
-        # BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1.png")
-        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "biosynth_path_1_cropped_text_removed.png")
+        # BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "raw.png")
+        BIOSYNTH_PATH_IMAGE = Path(TEST_RESOURCES_DIR, "text_removed.png")
         print(BIOSYNTH_PATH_IMAGE)
         self.load_image(BIOSYNTH_PATH_IMAGE)
         # print(self.image)
@@ -121,7 +121,7 @@ class ImageProcessor:
 
     def example_skeletonize_extract_subgraphs(self):
         resources_dir = Path(Path(__file__).parent.parent, "test/resources")
-        image = Path(resources_dir, "biosynth_path_1_cropped_text_removed.png")
+        image = Path(resources_dir, "text_removed.png")
         self.load_image(image)
         skeleton1 = self.invert_threshold_skeletonize()
         skeleton = skeleton1

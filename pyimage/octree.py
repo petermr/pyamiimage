@@ -5,6 +5,7 @@
 # library
 from pathlib import Path
 from PIL import Image
+
 # local
 from ..pyimage.old_code.ColorModule import Color
 

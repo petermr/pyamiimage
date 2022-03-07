@@ -6,7 +6,7 @@ from pyimage.old_code.preprocessing import ImageProcessor
 def example_extract_bbox_for_image_without_arrows():
     ocr = TesseractOCR()
     resources_dir = Path(Path(__file__).parent.parent, "test/resources")
-    image_path = Path(resources_dir, "biosynth_path_1_cropped_arrows_removed.png")
+    image_path = Path(resources_dir, "arrows_removed.png")
     bbox_coordinates = ocr.extract_bbox_from_image(image_path)
     print("bbox coordinates: ", bbox_coordinates)
 
@@ -23,8 +23,8 @@ def example_extract_bbox_from_hocr_file():
 def example_fill_bbox_in_image():
     ocr = TesseractOCR()
     resources_dir = Path(Path(__file__).parent.parent, "test/resources")
-    image_path = Path(resources_dir, "biosynth_path_1_cropped_arrows_removed.png")
-    # image_path = Path(resources_dir, "biosynth_path_1_cropped.png")
+    image_path = Path(resources_dir, "arrows_removed.png")
+    # image_path = Path(resources_dir, "raw.png")
     image_processor = ImageProcessor()
     
     image = image_processor.load_image(image_path)
@@ -37,8 +37,8 @@ def example_fill_bbox_in_image():
 def example_2_fill_bbox_in_image():
     ocr = TesseractOCR()
     resources_dir = Path(Path(__file__).parent.parent, "test/resources")
-    image_path = Path(resources_dir, "biosynth_path_3.png")
-    # image_path = Path(resources_dir, "biosynth_path_1_cropped.png")
+    image_path = Path(resources_dir, "raw.png")
+    # image_path = Path(resources_dir, "raw.png")
     image_processor = ImageProcessor()
     
     image = image_processor.load_image(image_path)
@@ -50,8 +50,8 @@ def example_2_fill_bbox_in_image():
 
 def example_2_fill_bbox_for_phrases():
     resources_dir = Path(Path(__file__).parent.parent, "test/resources")
-    image_path = Path(resources_dir, "biosynth_path_3.png")
-    # image_path = Path(resources_dir, "biosynth_path_1_cropped.png")
+    image_path = Path(resources_dir, "raw.png")
+    # image_path = Path(resources_dir, "raw.png")
     image_processor = ImageProcessor()
     
     ocr = TesseractOCR()

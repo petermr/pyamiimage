@@ -233,7 +233,7 @@ class PmrSknw:
         # draw edges by pts
         for (s, e) in self.graph.nx_edges():
             ps = self.graph[s][e]['pts']
-            plt.plot(ps[:, 1], ps[:, 0], 'green')
+            plt.plot(ps[:, 1], ps[:, 0], 'green_old')
 
     # def example1(self):
     #     self.read_thinned_image_calculate_graph_and_plot(img)
@@ -255,7 +255,7 @@ class PmrSknw:
         # draw edges by pts
         for (s, e) in graph.edges():
             ps = graph[s][e]['pts']
-            plt.plot(ps[:, 1], ps[:, 0], 'green')
+            plt.plot(ps[:, 1], ps[:, 0], 'green_old')
 
         # draw node by o
         nodes = graph.nodes()
@@ -272,7 +272,7 @@ class PmrSknw:
         return  # so we can display in debug mode!
 
     def example4(self):
-        img = Path(Path(__file__).parent.parent, "test/resources/biosynth_path_3.png")
+        img = Path(Path(__file__).parent.parent, "test/resources/raw.png")
         self.skeleton_and_plot(img)
         return  # so we can display in debug mode!
 

@@ -6,6 +6,8 @@ import numpy as np
 import numpy.linalg as LA
 import math
 
+X = 0
+Y = 1
 
 class AmiUtil:
 
@@ -51,6 +53,59 @@ class AmiUtil:
             return False
 
     @classmethod
+    def int2hex(cls, ii):
+        """convert int (0-255) to 2-character hex string
+        :param ii: integer
+        :return: 2-digit hex string of form 01, 09, 0f, 10, ff , or None if not int 0-125
+        """
+        if ii is None or not type(ii) is int or ii < 0 or ii> 255:
+            return None
+        return ('0' + hex(ii)[2:])[-2:]
+
+    @classmethod
+    def is_white(cls, color, delta=20, sat=255):
+        """is color white within given tolerance
+        255 - color[i] < delta
+         """
+        if color is None or len(color) != 3 or not AmiUtil.is_number(color[0]) \
+                or not AmiUtil.is_number(delta):
+            return False
+        for i in range(3):
+            if sat - color[i] > delta:
+                return False
+        return True
+
+    @classmethod
+    def is_black(cls, color, delta=20):
+        """is color white within given tolerance
+        color[i] < delta
+         """
+        if color is None or len(color) != 3 or not AmiUtil.is_number(color[0]) \
+                or not AmiUtil.is_number(delta):
+            return False
+        for i in range(3):
+            if color[i] > delta:
+                return False
+        return True
+
+
+    @classmethod
+    def is_gray(cls, color, delta=20):
+        """is color gray within given tolerance
+        color is triple of numbers , mean is its mean
+        if abs(color[i] - mean) > delta) return False
+         """
+        if color is None or len(color) != 3 or not AmiUtil.is_number(color[0]) \
+                or not AmiUtil.is_number(delta):
+            return False
+        mean = (color[0] + color[1] + color[2]) / 3
+        for i in range(3):
+            if abs(color[i] - mean) > delta:
+                return False
+        return True
+
+
+    @classmethod
     def get_xy_from_sknw_centroid(cls, yx):
         """
         yx is a 2-array and coords need swapping
@@ -76,11 +131,11 @@ class AmiUtil:
         assert type(numpy_array) is np.ndarray, \
             f"object should be numpy.darray, found {type(numpy_array)} \n {numpy_array}"
         if shape:
-            assert numpy_array.shape == shape, f"shape should be {numpy_array.shape}"
+            assert numpy_array.shape == shape, f"shape was {numpy_array.shape} should be {shape}"
         if maxx:
-            assert np.max(numpy_array) == maxx, f"max should be {np.max(numpy_array)}"
+            assert np.max(numpy_array) == maxx, f"maxx was {np.max(numpy_array)}, shou,d be {maxx}"
         if dtype:
-            assert numpy_array.dtype == dtype, f"dtype should be {numpy_array.dtype}"
+            assert numpy_array.dtype == dtype, f"dtype was {numpy_array.dtype} should be {dtype}"
 
     @classmethod
     def get_angle(cls, p0, p1, p2):
@@ -189,6 +244,41 @@ class AmiUtil:
     @classmethod
     def swap_yx_to_xy(cls, yx):
         return [yx[1], yx[0]]
+
+    @classmethod
+    def are_coincident(cls, point1, point2, tolerance=0.001):
+        """are two points coincident within a tolerance?
+        uses abs(deltax) + abs(deltay) <= tolerance
+        :param point1:
+        :param point2:
+        :param tolerance: default 0.001
+        :return: true if sum of detas within tolerance
+        """
+        if not point1 or not point2:
+            return False
+        if abs(point1[X] - point2[X]) + abs(point1[Y] - point2[Y]) <= tolerance:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def make_unique_points_list(cls, points, tolerance):
+        """merge points which are within tolerance
+        simplistic (probably O(n**2)
+        compares each point with each other
+        :param points: list of points
+        :param tolerance:
+        """
+        new_points = []
+        for point in points:
+            exist = False
+            for new_point in new_points:
+                if AmiUtil.are_coincident(point, new_point, tolerance):
+                    exist = True
+                    break
+            if not exist:
+                new_points.append(point)
+        return new_points
 
 class Vector2:
 

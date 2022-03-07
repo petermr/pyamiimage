@@ -11,7 +11,13 @@ import skimage
 from pathlib import Path
 import os
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from PIL import Image
 
+TEMP_DIR = Path(__file__).parent.parent
+TEMP_DIR = Path(TEMP_DIR, "temp")
+
+print(f"TEMP {TEMP_DIR}")
 
 class AmiImage:
     """
@@ -266,6 +272,45 @@ class AmiImage:
         if path.exists() and overwrite:
             os.remove(path)
         io.imsave(path, image)
+
+    @classmethod
+    def kmeans(cls, raw_image, n_colors, background):
+        """finds kmeans in colour space and projects image into each mean
+        :param raw_image: raw multicolor image, gets reshaped
+        :param n_colors: number of kmeans to extract
+        :param background: to add in extracted images
+        :return: (labels, centers_i, quantized_images) ;
+            labels are per-pixel ints (don't know what)
+            centers_i are RGB values at kmeans-centers,
+            quantized_images are single colour+background
+        :except: may throw "cannot reshape"
+        """
+        print(f"raw {raw_image.shape}")
+        col_layers = raw_image.shape[2]  # find colour layers
+
+        if AmiImage.has_alpha_channel_shape(raw_image):
+            fname = Path(TEMP_DIR, "junk_rgba.png")
+            io.imsave(fname, raw_image)
+            raw_image = AmiImage.create_rgb_from_rgba(raw_image)
+            fname = Path(TEMP_DIR, "junk_rgb.png")
+            # this is awful, don't know why the rgb image can't be analysed
+            # save the image, and then re-read
+            io.imsave(fname, raw_image)
+            raw_image = io.imread(fname)
+        col_layers = raw_image.shape[2]
+        print(f"COLORS: {col_layers} {raw_image.shape}")
+        # this might raise error
+        reshaped_image = raw_image.reshape((-1, col_layers))
+        kmeans = KMeans(n_clusters=n_colors, random_state=42).fit(reshaped_image)
+        labels = kmeans.labels_
+        color_centers = kmeans.cluster_centers_
+        centers_i = [[int(center[0]), int(center[1]), int(center[2])] for center in color_centers]
+        colors_image = color_centers[labels].reshape(raw_image.shape).astype('uint8')
+        quantized_images = []
+        for i, center_i in enumerate(centers_i):
+            quantized_images.append(np.where(colors_image == centers_i[i], [centers_i[i]], background))
+        return (labels, centers_i, quantized_images)
+
 
     @classmethod
     def write_image_group(cls, dir, images, filename="default", mkdir=True, overwrite=True):
