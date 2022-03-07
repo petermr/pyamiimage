@@ -31,3 +31,6 @@ AmiGraph class generate a graph from arrows in a diagram.
 
 ### AmiOCR
 AmiOCR class provides methods to extract words from the iamge. Uses Tesseract.
+
+## Timeline
+merged main into nodes_and_pixels and re-branched 

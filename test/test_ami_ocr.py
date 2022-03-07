@@ -35,7 +35,7 @@ class TestAmiOCR:
 
     def test_words(self):
         words = self.biosynth2_ocr.get_words()
-        assert len(words) == 56, f"words are {len(words)}"
+        assert len(words) == 79, f"words are {len(words)}"
         expected_textbox = TextBox("Glycolysis", [[405, 638], [1, 57]])
         assert words[0] == expected_textbox, f"{expected_textbox} and found: {words[0]}" 
         assert words[0:5] ==[TextBox("Glycolysis", [[405, 638], [1, 57]]), 
@@ -46,11 +46,11 @@ class TestAmiOCR:
 
     def test_phrases(self):
         phrases = self.biosynth2_ocr.get_phrases()
-        assert len(phrases) == 46, f"phrases are {len(phrases)}"
+        assert len(phrases) == 59, f"phrases are {len(phrases)}"
 
     def test_groups(self):
         groups = self.biosynth2_ocr.get_groups()
-        assert len(groups) == 46, f"groups are {len(groups)}"
+        assert len(groups) == 59, f"groups are {len(groups)}"
 
     def test_clean(self):
         pass

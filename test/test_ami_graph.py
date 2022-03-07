@@ -286,7 +286,7 @@ plt.show()"""
                                    [89, 856],
                                    [91, 857]])
         assert type(expected_numpy[0]) is np.ndarray
-        assert type(expected_numpy[0][0]) is np.int32
+        assert type(expected_numpy[0][0]) is np.int64
         assert np.array_equal(points0_2, expected_numpy), f"found {points0_2}"
 
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_ARROWS)
