@@ -3,6 +3,7 @@ from skimage import io
 from ..pyimage.ami_ocr import TextBox, AmiOCR
 from ..test.resources import Resources # Asserting all images take time
 
+Interactive = False
 class TestTextBox:
     def setup_method(self, method):
         self.textbox = TextBox('hello world', [[10, 50], [40, 50]])
@@ -68,6 +69,7 @@ class TestAmiOCR:
     def test_clean(self):
         pass
 
+    @unittest.skipUnless(Interactive, "interactive" )
     def test_plot_bbox_on_image(self):
         words = self.biosynth2_ocr.get_words()
         biosynth2_img_bboxes = AmiOCR.plot_bboxes_on_image(self.biosynth2_img, words)

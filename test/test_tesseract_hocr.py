@@ -27,7 +27,7 @@ we may have to manually rename these to .html
 """
 
 skip_long_tests = True
-
+interactive = False
 
 class TestTesseractHOCR:
     interactive = False
@@ -133,13 +133,15 @@ class TestTesseractHOCR:
         word_bboxes, words = TesseractOCR.extract_bbox_from_hocr(self.biosynth2_elem)
         raw_tesseract = TesseractOCR.draw_bbox_around_words(image=biosynth2_img, bbox_coordinates=word_bboxes)
 
-        io.imshow(raw_tesseract)
-        io.show()
+        if self.interactive:
+            io.imshow(raw_tesseract)
+            io.show()
 
         phrases, phrases_bboxes = TesseractOCR.find_phrases(self.biosynth2_elem)
         phrases_tess = TesseractOCR.draw_bbox_around_words(image=biosynth2_img, bbox_coordinates=phrases_bboxes)
-        io.imshow(phrases_tess)
-        io.show()
+        if self.interactive:
+            io.imshow(phrases_tess)
+            io.show()
 
     @unittest.skip("TesseractOCR is deprecated")
     def test_find_text_group(self):
@@ -155,8 +157,9 @@ class TestTesseractHOCR:
         groups_bboxes = TesseractOCR.find_word_groups(bbox_of_phrases=phrase_bboxes)
         grouped_text = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=groups_bboxes)
 
-        io.imshow(grouped_text)
-        io.show()
+        if self.interactive:
+            io.imshow(grouped_text)
+            io.show()
         # f, ax = plt.subplots(1, 2)
         # ax[0].imshow(raw_tesseract)
         # ax[1].imshow(grouped_text)
@@ -168,9 +171,10 @@ class TestTesseractHOCR:
         biosynth2_img = io.imread(self.biosynth2)
         tiles, limits = TesseractOCR.split_image_into_snippets(biosynth2_img)
         assert limits is not None
-        for tile in tiles:
-            io.imshow(tile)
-            io.show()
+        if self.interactive:
+            for tile in tiles:
+                io.imshow(tile)
+                io.show()
 
 
     @unittest.skipIf(skip_long_tests, "wikidata lookup")
@@ -218,5 +222,6 @@ class TestTesseractHOCR:
         full_box = TesseractOCR.envelop(bboxes)
         biosynth1_img = io.imread(self.biosynth1)
         boxed = TesseractOCR.draw_bbox_around_words(image=biosynth1_img, bbox_coordinates=[full_box])
-        io.imshow(boxed)
-        io.show()
+        if self.interactive:
+            io.imshow(boxed)
+            io.show()
