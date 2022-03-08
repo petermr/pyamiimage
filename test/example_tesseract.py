@@ -1,6 +1,6 @@
-from pyimage.tesseract_hocr import TesseractOCR
+from pyamiimage.tesseract_hocr import TesseractOCR
 from test.resources import Resources
-from pyimage.cleaner import WordCleaner
+from pyamiimage.cleaner import WordCleaner
 
 image_list = [Resources.BIOSYNTH1, Resources.BIOSYNTH2, Resources.BIOSYNTH3, Resources.BIOSYNTH4,
                 Resources.BIOSYNTH5, Resources.BIOSYNTH6, Resources.BIOSYNTH7, Resources.BIOSYNTH8]gi

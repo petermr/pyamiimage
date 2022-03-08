@@ -1,24 +1,20 @@
+from skimage import data
 import os
-from pathlib import Path
-
-import matplotlib.pyplot as plt
-import numpy as np
 from skimage.filters import unsharp_mask
-from skimage.morphology import disk  # noqa
+import matplotlib.pyplot as plt
+from pathlib import Path
 from skimage.morphology import (erosion, dilation, opening, closing,  # noqa
                                 white_tophat)
+from skimage.morphology import disk  # noqa
+import numpy as np
 
 from ..pyamiimage.ami_image import AmiImage
 from ..pyamiimage.ami_util import AmiUtil
 
-interactive = False
+class Exploration:
 
-class TestImageTools:
-
-    """explores erode-dilate and similar tools"""
-
-    def test_sharpen_explore(self, axis=False):
-        gray = TestImageTools.create_gray_network_snippet("snippet_rgba.png")
+    def sharpen_explore(self, axis=False):
+        gray = Exploration.create_gray_network_snippet("snippet_rgba.png")
 
         result_1_1 = unsharp_mask(gray, radius=1, amount=1)
         result_5_2 = unsharp_mask(gray, radius=5, amount=2)
@@ -32,11 +28,11 @@ class TestImageTools:
         ]
         ax, fig = self.create_subplots(plots, nrows=2, ncols=2, figsize=(10, 10))
 
-        TestImageTools.axis_layout(ax, axis, fig)
-        if interactive:
-            plt.show()
+        Exploration.axis_layout(ax, axis, fig)
+        plt.show()
 
-    def test_erode_dilate(self):
+    def explore_erode_dilate(self):
+        from skimage.util import img_as_ubyte
         # orig_phantom = img_as_ubyte(data.shepp_logan_phantom())
         # Exploration.make_numpy_assert(orig_phantom, shape=(400, 400), max=255, dtype=np.uint8)
         # fig, ax = plt.subplots()
@@ -52,16 +48,15 @@ class TestImageTools:
         # plt.show()
         #
 
-        white = TestImageTools.create_white_network_snippet("snippet_rgba.png")
+        white = Exploration.create_white_network_snippet("snippet_rgba.png")
 
         AmiUtil.make_numpy_assert(white, shape=(341, 796), maxx=255, dtype=np.int64)
 
         footprint = disk(1)
         eroded = erosion(white, footprint)
-        TestImageTools.plot_comparison(white, eroded, 'erosion')
+        Exploration.plot_comparison(white, eroded, 'erosion')
 
-        if interactive:
-            plt.show()
+        plt.show()
 
         erode_1 = erosion(white, disk(1))
         erode_2 = erosion(white, disk(2))
@@ -79,12 +74,10 @@ class TestImageTools:
         ]
         ax, fig = self.create_subplots(plots, nrows=3, ncols=2, figsize=(10, 10))
 
-        axis = None
-        TestImageTools.axis_layout(ax, axis, fig)
-        if interactive:
-            plt.show()
+        # Exploration.axis_layout(ax, axis, fig)
+        plt.show()
 
-    # ================= resources =================
+# ================= resources =================
     @classmethod
     def create_gray_network_snippet(cls, png):
         path = Path(Path(__file__).parent.parent, "test", "resources", png)
@@ -154,7 +147,7 @@ class TestImageTools:
                 a.axis('off')
         fig.tight_layout()
 
-    # =========== palettes ============
+# =========== palettes ============
 
     def explore_palette(cls):
         """
@@ -163,15 +156,16 @@ class TestImageTools:
         You can use a combination of a reshape and np.unique to extract the unique RGB values from your color palette image:
         """
         # Load the color palette
+        from skimage import io
         raise NotImplemented("image explore, needs biosynth3??")
         palette = io.imread(os.image.join(os.getcwd(), 'color_palette.png'))
 
         # Use `np.unique` following a reshape to get the RGB values
-        palette = palette.reshape(palette.shape[0] * palette.shape[1], palette.shape[2])
+        palette = palette.reshape(palette.shape[0]*palette.shape[1], palette.shape[2])
         palette_colors = np.unique(palette, axis=0)
         """
         (Note that the axis argument for np.unique was added in numpy version 1.13.0, so you may need to upgrade numpy for this to work.)
-
+        
         Once you have palette_colors, you can pretty much use the code you already have to save the image, except you now add the different RGB values instead of copies of ~img to your img_rgba array.
         """
         img = None  # TODO
@@ -182,13 +176,13 @@ class TestImageTools:
 
             # Fill R, G and B with appropriate colors
             for c in range(3):
-                img_rgba[:, :, c] = img.astype(np.uint8) * palette_colors[p, c]
+                img_rgba[:,:,c] = img.astype(np.uint8) * palette_colors[p,c]
 
             # For alpha just use the image again (makes background transparent)
-            img_rgba[:, :, 3] = img.astype(np.uint8) * 255
+            img_rgba[:,:,3] = img.astype(np.uint8) * 255
 
             # Save image
-            io.imsave('img_col' + str(p) + '.png', img_rgba)
+            io.imsave('img_col'+str(p)+'.png', img_rgba)
 
 # (Note that you need to use np.uint8 as datatype for your image, since binary images obviously cannot represent different colors.)
 

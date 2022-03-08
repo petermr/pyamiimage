@@ -8,9 +8,9 @@ import numpy as np
 from skimage import io
 
 # local
-from ..pyimage.ami_graph_all import AmiGraph
-from ..pyimage.ami_image import AmiImageDTO
-from ..pyimage.tesseract_hocr import TesseractOCR
+from ..pyamiimage.ami_graph_all import AmiGraph
+from ..pyamiimage.ami_image import AmiImageDTO
+from ..pyamiimage.tesseract_hocr import TesseractOCR
 
 logger = logging.getLogger(__name__)
 

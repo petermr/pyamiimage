@@ -1,4 +1,4 @@
-from pyimage.ami_ocr import TextBox, AmiOCR
+from pyamiimage.ami_ocr import TextBox, AmiOCR
 from test.resources import Resources
 from skimage import io
 
