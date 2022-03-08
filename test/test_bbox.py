@@ -1,4 +1,4 @@
-from ..pyimage.svg import (
+from ..pyamiimage.svg import (
     SVGG,
     SVGSVG,
     BBox,

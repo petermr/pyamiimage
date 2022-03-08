@@ -1,6 +1,6 @@
 import unittest
 from skimage import io
-from ..pyimage.ami_ocr import TextBox, AmiOCR
+from ..pyamiimage.ami_ocr import TextBox, AmiOCR
 from ..test.resources import Resources # Asserting all images take time
 
 Interactive = False

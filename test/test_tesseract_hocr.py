@@ -1,4 +1,4 @@
-# from ..pyimage import tesseract_hocr
+# from ..pyamiimage import tesseract_hocr
 
 from skimage import io
 from matplotlib import pyplot as plt
@@ -9,7 +9,7 @@ import unittest
 from lxml import etree as ET
 import logging
 # local
-from ..pyimage.tesseract_hocr import TesseractOCR
+from ..pyamiimage.tesseract_hocr import TesseractOCR
 from ..test.resources import Resources
 
 logger = logging.getLogger(__name__)
