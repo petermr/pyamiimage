@@ -130,7 +130,7 @@ class TestTesseractHOCR:
     def test_find_text_group_biosynth2(self):
         biosynth2_img = io.imread(self.biosynth2)
 
-        self.interactive = True
+        # self.interactive = True
         word_bboxes, words = TesseractOCR.extract_bbox_from_hocr(self.biosynth2_elem)
         raw_tesseract = TesseractOCR.draw_bbox_around_words(image=biosynth2_img, bbox_coordinates=word_bboxes)
 

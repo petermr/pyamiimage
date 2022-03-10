@@ -9,6 +9,7 @@ import math
 X = 0
 Y = 1
 
+
 class AmiUtil:
 
     @classmethod
@@ -36,8 +37,8 @@ class AmiUtil:
         :return: True tuple[1] > tuple[2]
         """
         return limits2 is not None and len(limits2) == 2 \
-               and AmiUtil.is_number(limits2[0]) and AmiUtil.is_number(limits2[1]) \
-               and limits2[1] > limits2[0]
+            and AmiUtil.is_number(limits2[0]) and AmiUtil.is_number(limits2[1]) \
+            and limits2[1] > limits2[0]
 
     @classmethod
     def is_number(cls, s):
@@ -58,7 +59,7 @@ class AmiUtil:
         :param ii: integer
         :return: 2-digit hex string of form 01, 09, 0f, 10, ff , or None if not int 0-125
         """
-        if ii is None or not type(ii) is int or ii < 0 or ii> 255:
+        if ii is None or not type(ii) is int or ii < 0 or ii > 255:
             return None
         return ('0' + hex(ii)[2:])[-2:]
 
@@ -88,7 +89,6 @@ class AmiUtil:
                 return False
         return True
 
-
     @classmethod
     def is_gray(cls, color, delta=20):
         """is color gray within given tolerance
@@ -104,6 +104,35 @@ class AmiUtil:
                 return False
         return True
 
+    @classmethod
+    def rgb2hex(cls, rgb):
+        """convert rgb 3-array to 8 char hex string
+        :param rgb: 3-array of ints
+        :return: "hhhhhh" string does NOT prepend "0x"
+        """
+        assert len(rgb) == 3
+        # assert type(rgb[0]) is int, f"found {type(rgb[0])} {rgb[0]}, in rgb"
+        assert 0 <= rgb[0] <= 255, f"found {rgb[0]}, in rgb"
+        s = ""
+        for r in rgb:
+            h = hex(r)[2:] if r >= 16 else "0" + hex(r)[2:]
+            s += h
+        return s
+
+    @classmethod
+    def hex2rgb(cls, hx):
+        """
+        transform 6-digit hex number into [r,g,b] integers
+        :param hx:
+        :return:
+        """
+        assert len(hx) == 6
+        rgb = []
+        for r in range(3):
+            ss = "0x" + hx[2 * r: 2 * r + 2]
+            rr = int(ss, 16)
+            rgb.append(rr)
+        return rgb
 
     @classmethod
     def get_xy_from_sknw_centroid(cls, yx):
@@ -139,12 +168,12 @@ class AmiUtil:
 
     @classmethod
     def get_angle(cls, p0, p1, p2):
-        '''
+        """
         signed angle p0-p1-p2
         :param p0:
         :param p1: centre point
         :param p2:
-        '''
+        """
         AmiUtil.assert_is_float_array(p0)
         AmiUtil.assert_is_float_array(p1)
         AmiUtil.assert_is_float_array(p2)
@@ -158,8 +187,6 @@ class AmiUtil:
             v1 = np2 - np1
             angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
         else:
-            dx0 = p0[0] - p1[0]
-            dy0 = p0[1] - p1[1]
             v01 = [p0[0] - p1[0], p0[1] - p1[1]]
             v21 = [p2[0] - p1[0], p2[1] - p1[1]]
             ang01 = math.atan2(v01[1], v01[0])
@@ -201,7 +228,6 @@ class AmiUtil:
         dist = math.sqrt(dx0 * dx0 + dy0 * dy0)
 
         return dist
-
 
     @classmethod
     def assert_is_float_array(cls, arr, length=2):
@@ -279,6 +305,7 @@ class AmiUtil:
             if not exist:
                 new_points.append(point)
         return new_points
+
 
 class Vector2:
 

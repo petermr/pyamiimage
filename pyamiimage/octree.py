@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 # local
-# from ..pyamiimage.old_code.ColorModule import Color
+from ..pyamiimage.ami_util import AmiUtil
 
 class OctreeNode(object):
     """
@@ -275,7 +275,7 @@ class Quantizer:
         print(f"colours {len(count_rgb_list)}")  # ca 48 non-zer0
         for count_rgb in count_rgb_list:
             rgb = rgb_palette[count_rgb[1]]
-            hx = rgb2hex(rgb)
+            hx = AmiUtil.rgb2hex(rgb)
             # print(f"{count_rgb[0]} {hx} {rgb}")
             count = count_rgb[0]
             if count != 0:
@@ -288,6 +288,20 @@ class Quantizer:
         single_chan = np.where(rgb_array == old_col, new_col, back_col)
         single_chan = np.multiply(single_chan, 1.0 / 255.)
         return single_chan
+
+    def rgb2hex(rgb):
+        """convert rgb 3-array to 8 char hex string
+        :param rgb: 3-array of ints
+        :return: "hhhhhh" string does NOT prepend "0x"
+        """
+        assert len(rgb) == 3
+        # assert type(rgb[0]) is int, f"found {type(rgb[0])} {rgb[0]}, in rgb"
+        assert 0 <= rgb[0] <= 255, f"found {rgb[0]}, in rgb"
+        s = ""
+        for r in rgb:
+            h = hex(r)[2:] if r >= 16 else "0" + hex(r)[2:]
+            s += h
+        return s
 
     def create_monochrome_images_of_color_streams(self, img_array, out_dir, out_form="png"):
         for palette_index in range(self.num_colors):
@@ -303,13 +317,13 @@ class Quantizer:
         new_array_dict = {}
         print("RGB ", rgb_array.shape)
         for hex_col in self.palette_dict:
-            rgb = hex2rgb(hex_col)
+            rgb = AmiUtil.hex2rgb(hex_col)
             rgbx = [float(rgb[0]), float(rgb[1]), float(rgb[2])]
             new_array = None
             # new_array = np.where(int(rgb_array) == rgb, rgbx, back_col)
             # print("NP COUNT", np.count_nonzero(new_array))
             # print ("rgb shape...", new_array.shape)
-            new_array_dict[rgb2hex(rgb)] = new_array
+            new_array_dict[AmiUtil.rgb2hex(rgb)] = new_array
         return new_array_dict
 
     def extract_color_streams(self):
@@ -331,6 +345,21 @@ class Quantizer:
         if not out_root.exists():
             out_root.mkdir()
         return out_root
+
+    def hex2rgb(hx):
+        """
+        transform 6-digit hex number into [r,g,b] integers
+        :param hx:
+        :return:
+        """
+        assert len(hx) == 6
+        rgb = []
+        for r in range(3):
+            ss = "0x" + hx[2 * r: 2 * r + 2]
+            rr = int(ss, 16)
+            rgb.append(rr)
+        return rgb
+
 
 class Color(object):
     """
