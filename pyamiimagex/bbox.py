@@ -2,8 +2,8 @@
 from skimage import draw
 
 import math
-# from ..pyamiimage.svg import SVGG, SVGRect
-from ..pyamiimage.ami_util import AmiUtil
+# from ..pyamiimagex.svg import SVGG, SVGRect
+from ..pyamiimagex.ami_util import AmiUtil
 
 
 class BBox:

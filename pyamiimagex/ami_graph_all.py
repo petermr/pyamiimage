@@ -15,11 +15,11 @@ from skimage import io
 from skimage.measure import approximate_polygon
 
 # local
-from ..pyamiimage.ami_image import AmiImage
-from ..pyamiimage.ami_plot import AmiLine, X, Y
-from ..pyamiimage.ami_util import AmiUtil
-from ..pyamiimage.svg import BBox
-from ..pyamiimage.text_box import TextBox
+from ..pyamiimagex.ami_image import AmiImage
+from ..pyamiimagex.ami_plot import AmiLine, X, Y
+from ..pyamiimagex.ami_util import AmiUtil
+from ..pyamiimagex.svg import BBox
+from ..pyamiimagex.text_box import TextBox
 
 logger = logging.getLogger(__name__)
 
@@ -644,7 +644,7 @@ class AmiGraph:
         """
         adds rectangle to axis subplot
         :param axis: axis from matplotlib subplots
-        :param bbox: BBox from pyamiimage or its ranges
+        :param bbox: BBox from pyamiimagex or its ranges
         :param linewidth: linewidth of plotted rect (1)
         :param edgecolor: stroke color of line ("red")
         :param facecolor: fill of rect ("none")

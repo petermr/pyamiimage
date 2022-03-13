@@ -8,8 +8,8 @@ from skimage.morphology import (erosion, dilation, opening, closing,  # noqa
 from skimage.morphology import disk  # noqa
 import numpy as np
 
-from ..pyamiimage.ami_image import AmiImage
-from ..pyamiimage.ami_util import AmiUtil
+from ..pyamiimagex.ami_image import AmiImage
+from ..pyamiimagex.ami_util import AmiUtil
 
 class Exploration:
 

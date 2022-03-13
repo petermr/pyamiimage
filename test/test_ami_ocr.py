@@ -1,6 +1,8 @@
 import unittest
 from skimage import io
-from ..pyamiimage.ami_ocr import TextBox, AmiOCR
+from ..pyamiimagex.ami_ocr import TextBox, AmiOCR
+# from .context import pyamiimagex
+# from pyamiimagex.ami_ocr import TextBox, AmiOCR
 from ..test.resources import Resources # Asserting all images take time
 
 Interactive = False
@@ -73,6 +75,7 @@ class TestAmiOCR:
     def test_plot_bbox_on_image(self):
         words = self.biosynth2_ocr.get_words()
         biosynth2_img_bboxes = AmiOCR.plot_bboxes_on_image(self.biosynth2_img, words)
-        io.imshow(biosynth2_img_bboxes)
-        io.show()
+        if self.interactive:
+            io.imshow(biosynth2_img_bboxes)
+            io.show()
 

@@ -1,9 +1,9 @@
 import numpy as np
 from pathlib import Path
 from matplotlib.image import imsave
-from pyamiimage.test.resources import Resources
-from pyamiimage.pyimage.ami_ocr import AmiOCR
-from pyamiimage.pyimage.ami_image import AmiImage
+from pyamiimagex.test.resources import Resources
+from pyamiimagex.pyimage.ami_ocr import AmiOCR
+from pyamiimagex.pyimage.ami_image import AmiImage
 from matplotlib import pyplot as plt
 from skimage import io
 # tess = Resources.TESSERACT1

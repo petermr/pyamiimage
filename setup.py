@@ -15,7 +15,7 @@ Pyamiimage extracts words and line primitives from imaages using pytessearct and
 """
 
 setup(
-    name='pyamiimage',
+    name='pyamiimagex',
     url='https://github.com/petermr/pyamiimage',
     version='0.0.8',
     description='Image analysis for words and graphics.',
@@ -42,7 +42,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'pyamiimage=src.pyamiimage.pyamiimage:main',
+            'pyamiimagex=pyamiimage.pyamiimagex:main',
         ],
     },
 )

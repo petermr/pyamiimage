@@ -1,6 +1,6 @@
 from pathlib import Path
 from tesseract_hocr import TesseractOCR
-from pyamiimage.old_code.preprocessing import ImageProcessor
+from pyamiimagex.old_code.preprocessing import ImageProcessor
 
 
 def example_extract_bbox_for_image_without_arrows():

@@ -3,7 +3,7 @@ from pathlib import Path
 
 from lxml import etree as ET
 
-from ..pyamiimage.svg import (
+from ..pyamiimagex.svg import (
     SVGG,
     SVGSVG,
     BBox,

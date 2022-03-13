@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'pyamiimage'
+project = 'pyamiimagex'
 copyright = '2021, Peter Murray-Rust'
 author = 'Peter Murray-Rust'
 

@@ -1,6 +1,8 @@
 import pytest
 
-from ..pyamiimage.ami_util import Vector2
+from .context import pyamiimagex
+
+from ami_util import Vector2
 
 
 class TestAmiUtil:

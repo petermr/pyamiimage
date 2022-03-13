@@ -12,12 +12,12 @@ import matplotlib.pyplot as plt
 from skimage import io
 import logging
 # local
-from ..pyamiimage.ami_image import AmiImage
-from ..pyamiimage.ami_util import AmiUtil
+from ..pyamiimagex.ami_image import AmiImage
+from ..pyamiimagex.ami_util import AmiUtil
 
-from ..pyamiimage.bbox import BBox
-from ..pyamiimage.flood_fill import FloodFill
-from ..pyamiimage.ami_graph_all import AmiGraph
+from ..pyamiimagex.bbox import BBox
+from ..pyamiimagex.flood_fill import FloodFill
+from ..pyamiimagex.ami_graph_all import AmiGraph
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +157,7 @@ graph.edge(id1, id2)['weight']: float, length of this edge        """
         return node_xy, edge_xy_list
 
     def extract_bbox_for_nodes_ISLAND(self, ami_island):
-        from pyamiimage import AmiIsland
+        from pyamiimagex import AmiIsland
         """
         gets bounding box for a list of nodes in
 

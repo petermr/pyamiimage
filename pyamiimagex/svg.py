@@ -6,9 +6,9 @@ from pathlib import Path
 import logging
 # local
 try:
-    from ..pyamiimage.bbox import BBox
+    from ..pyamiimagex.bbox import BBox
 except:
-    from pyamiimage.bbox import BBox
+    from pyamiimagex.bbox import BBox
 
 logger = logging.getLogger(__name__)
 

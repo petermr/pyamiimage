@@ -13,11 +13,11 @@ from sklearn.metrics import pairwise_distances_argmin
 from sklearn.utils import shuffle
 
 # local imports
-from ..pyamiimage import octree
-from ..pyamiimage.octree import Quantizer
+from ..pyamiimagex import octree
+from ..pyamiimagex.octree import Quantizer
 from ..test.resources import Resources
-from ..pyamiimage.ami_image import AmiImage
-from ..pyamiimage.ami_util import AmiUtil
+from ..pyamiimagex.ami_image import AmiImage
+from ..pyamiimagex.ami_util import AmiUtil
 
 interactive = False
 #interactive = True
