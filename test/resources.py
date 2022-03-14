@@ -112,8 +112,8 @@ class Resources:
     def __init__(self):
         self.cached = False
 
-        self.arrows1_image = None
-        self.nx_graph_arrows1 = None
+        self.arrows1_image_file = None
+        self.arrows1_nx_graph = None
 
         # DTO approach
         self.biosynth1_dto = None
@@ -126,17 +126,12 @@ class Resources:
         if not self.cached:
             logger.warning(f"{__name__} setting up Resources")
             self.cached = True
+            self.arrows1_image_file = Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
             self.arrows1_image = io.imread(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
             assert self.arrows1_image.shape == (315, 1512)
-            self.arrows1_image = np.where(self.arrows1_image < 127, 0, 255)
-            self.nx_graph_arrows1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(
-                Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-            )
-            self.arrows1_ami_graph = (
-                AmiGraph.create_ami_graph_from_arbitrary_image_file(
-                    Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-                )
-            )
+            self.arrows1_binary = np.where(self.arrows1_image < 127, 0, 255)
+            self.arrows1_nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
+            self.arrows1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
 
             # biosynth1 has solid arrowheads and (unfortunately) some primitives overlap
             self.biosynth1 = io.imread(Resources.BIOSYNTH1_RAW)
