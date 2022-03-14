@@ -921,7 +921,8 @@ plt.show()"""
 
     def test_island_sizes(self):
         """uses mindim, maxdim, to filter in/out islands. etc."""
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        ami_graph = self.resources.yw5003_ami_graph
         # all islands
         islands = ami_graph.get_or_create_ami_islands()
         assert len(islands) == 227, f"expected total islands {len(islands)}"
@@ -950,7 +951,8 @@ plt.show()"""
         """
         # NOTE these tests seem correct but pixel-fragile
 
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        ami_graph = self.resources.yw5003_ami_graph
         # second largest island is a boxed plot
         # all islands
         islands = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)
@@ -1031,7 +1033,8 @@ plt.show()"""
 
     def test_enumerate_unique_edges(self):
         """separates 3- connected nodes into separate lines """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        ami_graph = self.resources.yw5003_ami_graph
         small_plot_island_0 = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         triply_connected_ids = AmiGraph.get_node_ids_from_graph_with_degree(small_plot_island_0.island_nx_graph, 3)
         assert len(triply_connected_ids) == 30, f"found {len(triply_connected_ids)}"
@@ -1042,7 +1045,8 @@ plt.show()"""
     def test_analyze_topology(self):
         """merges short horizontal and verstical lines from sknw
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        ami_graph = self.resources.yw5003_ami_graph
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         node_ids = small_plot_island.node_ids
         ami_edges, multibranches = ami_graph.get_unique_ami_edges_and_multibranches(node_ids)
@@ -1059,7 +1063,8 @@ plt.show()"""
     def test_create_straight_edges(self):
         """tests straightness between nodes (horiz and vert)
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        ami_graph = self.resources.yw5003_ami_graph
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         node_ids = small_plot_island.node_ids
         pixel_error = 2
@@ -1075,7 +1080,8 @@ plt.show()"""
     def test_create_line_segments(self):
         """segments the edge into straight-lines (AmiLine) and finds axially aligned corners
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        ami_graph = self.resources.yw5003_ami_graph
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
         assert len(ami_edges) == 48, f"found {len(ami_edges)}"
@@ -1091,7 +1097,8 @@ plt.show()"""
     def test_filter_line_segments(self):
         """filters segments the edge into straight-lines (AmiLine) and finds axially aligned corners
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        ami_graph = self.resources.yw5003_ami_graph
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
 
@@ -1139,7 +1146,8 @@ plt.show()"""
 
         :return:
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        ami_graph = self.resources.yw5003_ami_graph
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
         assert len(ami_edges) == 48, f"found {len(ami_edges)}"
@@ -1160,7 +1168,8 @@ plt.show()"""
 
         :return:
         """
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+        ami_graph = self.resources.yw5003_ami_graph
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
 

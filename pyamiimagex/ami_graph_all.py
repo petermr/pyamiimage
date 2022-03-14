@@ -20,7 +20,7 @@ from pyamiimagex.ami_plot import AmiLine, X, Y
 from pyamiimagex.ami_util import AmiUtil
 from pyamiimagex.svg import BBox
 from pyamiimagex.text_box import TextBox
-from pyamiimagex.sknw import *
+import pyamiimagex.sknw as sknw
 
 logger = logging.getLogger(__name__)
 

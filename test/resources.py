@@ -200,6 +200,8 @@ class Resources:
                 threshold=127,
             )
 
+            self.yw5003_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+
             return self
 
     def get_image_dto(
