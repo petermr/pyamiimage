@@ -15,7 +15,7 @@ from sklearn.utils import shuffle
 # local imports
 import context
 from pyamiimage import octree
-from pyamiimage.old_code.image_lib import Quantizer
+from pyamiimage._old_image_lib import Quantizer
 from pyamiimage.ami_image import AmiImage
 from pyamiimage.ami_util import AmiUtil
 

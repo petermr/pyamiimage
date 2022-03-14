@@ -17,7 +17,7 @@ Pyamiimage extracts words and line primitives from imaages using pytessearct and
 setup(
     name='pyamiimage',
     url='https://github.com/petermr/pyamiimage',
-    version='0.0.10',
+    version='0.0.11',
     description='Image analysis for words and graphics.',
     long_description_content_type='text/markdown',
     long_description=readme,
