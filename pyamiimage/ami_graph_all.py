@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 # library
 import numpy as np
-import sknw  # must pip install sknw
+
 from networkx.algorithms import tree
 from skimage import io
 from skimage.measure import approximate_polygon
@@ -20,6 +20,8 @@ from pyamiimage.ami_plot import AmiLine, X, Y
 from pyamiimage.ami_util import AmiUtil
 from pyamiimage.svg import BBox
 from pyamiimage.text_box import TextBox
+# copied from sknw of yxdragram because PyPI package is not updated
+import pyamiimage.sknw as sknw
 
 logger = logging.getLogger(__name__)
 

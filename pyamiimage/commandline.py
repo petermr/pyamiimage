@@ -1,6 +1,6 @@
 import argparse
 import sys
-import context
+
 from pyamiimage.ami_ocr import AmiOCR
 
 
@@ -48,6 +48,3 @@ def main():
     """Runs the CLI"""
     pyamiimage = Pyamiimage()
     pyamiimage.handlecli()
-
-if __name__ == "__main__":
-    main()
