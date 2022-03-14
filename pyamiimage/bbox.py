@@ -3,7 +3,7 @@ from skimage import draw
 
 import math
 # from pyamiimagex.svg import SVGG, SVGRect
-from pyamiimagex.ami_util import AmiUtil
+from pyamiimage.ami_util import AmiUtil
 
 
 class BBox:

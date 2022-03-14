@@ -5,12 +5,8 @@ import logging
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-try:
-    from pyamiimagex.bbox import BBox
-    from pyamiimagex.tesseract_hocr import TesseractOCR
-except:
-    from pyamiimagex.bbox import BBox
-    from pyamiimagex.tesseract_hocr import TesseractOCR
+from pyamiimage.bbox import BBox
+from pyamiimage.tesseract_hocr import TesseractOCR
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

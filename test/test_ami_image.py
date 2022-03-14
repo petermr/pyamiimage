@@ -9,8 +9,9 @@ import numpy as np
 from skimage import data, io, morphology
 from skimage.filters import unsharp_mask
 
-from pyamiimagex.ami_image import AmiImage
-from ..test.resources import Resources
+import context
+from pyamiimage.ami_image import AmiImage
+from resources import Resources
 
 RESOURCE_DIR = Path(Path(__file__).parent, "resources")
 COMPARE_DIR = Path(Path(__file__).parent, "comparison_images")

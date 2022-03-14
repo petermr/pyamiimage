@@ -1,5 +1,5 @@
-from pyamiimagex.ami_ocr import TextBox, AmiOCR
-from test.resources import Resources
+from pyamiimage.ami_ocr import TextBox, AmiOCR
+from resources import Resources
 from skimage import io
 
 biosynth2 = Resources.BIOSYNTH2

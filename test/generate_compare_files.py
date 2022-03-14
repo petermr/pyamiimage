@@ -3,7 +3,8 @@ from pathlib import Path
 
 from skimage import io
 
-from pyamiimagex.ami_image import AmiImage
+import context
+from pyamiimage.ami_image import AmiImage
 
 RESOURCE_DIR = Path(Path(__file__).parent, "resources")
 COMPARE_DIR = Path(Path(__file__).parent, "comparison_images")

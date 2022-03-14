@@ -3,10 +3,10 @@ import math
 from lxml import etree
 from lxml.builder import ElementMaker
 # local
-from pyamiimagex.ami_graph_all import AmiNode, AmiEdge
-from pyamiimagex.ami_util import AmiUtil
-from pyamiimagex.svg import SVGArrow, ns_xpath, SVG_NS, GPML_NS
-from pyamiimagex.bbox import BBox
+from pyamiimage.ami_graph_all import AmiNode, AmiEdge
+from pyamiimage.ami_util import AmiUtil
+from pyamiimage.svg import SVGArrow, ns_xpath, SVG_NS, GPML_NS
+from pyamiimage.bbox import BBox
 
 logger = logging.getLogger(__name__)
 

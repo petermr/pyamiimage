@@ -1,4 +1,5 @@
-from pyamiimagex.svg import (
+import context
+from pyamiimage.svg import (
     SVGG,
     SVGSVG,
     BBox,

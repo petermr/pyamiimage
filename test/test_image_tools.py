@@ -7,9 +7,9 @@ from skimage.filters import unsharp_mask
 from skimage.morphology import disk  # noqa
 from skimage.morphology import (erosion, dilation, opening, closing,  # noqa
                                 white_tophat)
-
-from pyamiimagex.ami_image import AmiImage
-from pyamiimagex.ami_util import AmiUtil
+import context
+from pyamiimage.ami_image import AmiImage
+from pyamiimage.ami_util import AmiUtil
 
 interactive = False
 

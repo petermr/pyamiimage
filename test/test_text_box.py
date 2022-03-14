@@ -1,9 +1,11 @@
 from skimage import io
 import unittest
-from ..test.resources import Resources
-from pyamiimagex.tesseract_hocr import TesseractOCR
-from pyamiimagex.text_box import TextBox
+import context
 
+from pyamiimage.tesseract_hocr import TesseractOCR
+from pyamiimage.text_box import TextBox
+
+from resources import Resources
 class TestTextBox:
     def setup_method(self, method):
         self.cropped1_hocr = TesseractOCR.hocr_from_image_path(

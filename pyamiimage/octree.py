@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 # local
-from pyamiimagex.ami_util import AmiUtil
+from pyamiimage.ami_util import AmiUtil
 
 class OctreeNode(object):
     """

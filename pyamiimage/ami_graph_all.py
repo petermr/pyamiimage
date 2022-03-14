@@ -9,17 +9,19 @@ import matplotlib.pyplot as plt
 import networkx as nx
 # library
 import numpy as np
-import sknw  # must pip install sknw
+
 from networkx.algorithms import tree
 from skimage import io
 from skimage.measure import approximate_polygon
 
 # local
-from pyamiimagex.ami_image import AmiImage
-from pyamiimagex.ami_plot import AmiLine, X, Y
-from pyamiimagex.ami_util import AmiUtil
-from pyamiimagex.svg import BBox
-from pyamiimagex.text_box import TextBox
+from pyamiimage.ami_image import AmiImage
+from pyamiimage.ami_plot import AmiLine, X, Y
+from pyamiimage.ami_util import AmiUtil
+from pyamiimage.svg import BBox
+from pyamiimage.text_box import TextBox
+import pyamiimage.sknw as sknw
+# copied from sknw by yxdragon, because sknw package in PyPI was not updated
 
 logger = logging.getLogger(__name__)
 
