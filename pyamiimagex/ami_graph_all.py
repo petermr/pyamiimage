@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 # library
 import numpy as np
-import sknw  # must pip install sknw
+# import sknw  # must pip install sknw
 from networkx.algorithms import tree
 from skimage import io
 from skimage.measure import approximate_polygon
@@ -20,6 +20,7 @@ from pyamiimagex.ami_plot import AmiLine, X, Y
 from pyamiimagex.ami_util import AmiUtil
 from pyamiimagex.svg import BBox
 from pyamiimagex.text_box import TextBox
+from pyamiimagex.sknw import *
 
 logger = logging.getLogger(__name__)
 
