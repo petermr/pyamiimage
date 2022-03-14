@@ -1,16 +1,18 @@
 from skimage import io
 import unittest
 from ..test.resources import Resources
-from ..pyimage.tesseract_hocr import TesseractOCR
-from ..pyimage.text_box import TextBox
+from ..pyamiimage.tesseract_hocr import TesseractOCR
+from ..pyamiimage.text_box import TextBox
 
 class TestTextBox:
     def setup_method(self, method):
-        self.cropped1_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH1_CROPPED)
+        self.cropped1_hocr = TesseractOCR.hocr_from_image_path(
+            Resources.BIOSYNTH1_CROPPED_PNG
+        )
         self.cropped1_elem = TesseractOCR.parse_hocr_string(self.cropped1_hocr)
-        self.biosynth2_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH2)
+        self.biosynth2_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH2_RAW)
         self.biosynth2_elem = TesseractOCR.parse_hocr_string(self.biosynth2_hocr)
-        self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH3)
+        self.biosynth3_hocr = TesseractOCR.hocr_from_image_path(Resources.BIOSYNTH3_RAW)
         self.biosynth3_elem = TesseractOCR.parse_hocr_string(self.biosynth3_hocr)
 
     def test_extract_phrases_boxes0(self):
@@ -35,9 +37,7 @@ class TestTextBox:
 
     def test_extract_text_path2(self):
         text_boxes = TextBox.find_text_boxes(self.biosynth2_elem)
-        assert len(text_boxes) == 67
+        assert len(text_boxes) == 65
         for text_box in text_boxes:
             # print(text_box.text, text_box.bbox)
             pass
-
-

@@ -1,6 +1,7 @@
-from collections import defaultdict
-import pprint
 import json
+import pprint
+from collections import defaultdict
+
 taxonomy = None
 
 
@@ -12,9 +13,9 @@ def test_colours():
     print("colours")
 
     tt = tree()
-    tt['house']['car']['red']['hubcap'] = 1950
+    tt["house"]["car"]["red"]["hubcap"] = 1950
 
-    s = [('red', 1), ('blue', 2), ('red', 3), ('blue', 4), ('red', 1), ('blue', 4)]
+    s = [("red", 1), ("blue", 2), ("red", 3), ("blue", 4), ("red", 1), ("blue", 4)]
     d = defaultdict(set)
     for k, v in s:
         d[k].add(v)
@@ -25,15 +26,19 @@ def test_colours():
 # https://gist.github.com/hrldcpr/2012250
 def make_taxonomy():
     taxonomy = tree()
-    taxonomy['Animalia']['Chordata']['Mammalia']['Carnivora']['Felidae']['Felis']['cat']
-    taxonomy['Animalia']['Chordata']['Mammalia']['Carnivora']['Felidae']['Panthera']['lion']
-    taxonomy['Animalia']['Chordata']['Mammalia']['Carnivora']['Canidae']['Canis']['dog']
-    taxonomy['Animalia']['Chordata']['Mammalia']['Carnivora']['Canidae']['Canis']['coyote']
-    taxonomy['Plantae']['Solanales']['Solanaceae']['Solanum']['tomato']
-    taxonomy['Plantae']['Solanales']['Solanaceae']['Solanum']['potato']
-    taxonomy['Plantae']['Solanales']['Convolvulaceae']['Ipomoea']['sweet potato']
+    taxonomy["Animalia"]["Chordata"]["Mammalia"]["Carnivora"]["Felidae"]["Felis"]["cat"]
+    taxonomy["Animalia"]["Chordata"]["Mammalia"]["Carnivora"]["Felidae"]["Panthera"][
+        "lion"
+    ]
+    taxonomy["Animalia"]["Chordata"]["Mammalia"]["Carnivora"]["Canidae"]["Canis"]["dog"]
+    taxonomy["Animalia"]["Chordata"]["Mammalia"]["Carnivora"]["Canidae"]["Canis"][
+        "coyote"
+    ]
+    taxonomy["Plantae"]["Solanales"]["Solanaceae"]["Solanum"]["tomato"]
+    taxonomy["Plantae"]["Solanales"]["Solanaceae"]["Solanum"]["potato"]
+    taxonomy["Plantae"]["Solanales"]["Convolvulaceae"]["Ipomoea"]["sweet potato"]
     print(json.dumps(taxonomy, indent=4))
-    del(taxonomy['Animalia'])
+    del taxonomy["Animalia"]
     print("del:", json.dumps(taxonomy, indent=4))
     return taxonomy
 
@@ -59,8 +64,12 @@ def test_taxonomy():
 def test_taxonomy1():
     taxonomy = make_taxonomy()
     print("\n>taxonomy1>\n", taxonomy)
-    tax1 = addx(taxonomy,
-                'Animalia>Chordata>Mammalia>Cetacea>Balaenopteridae>Balaenoptera>blue whale'.split('>'))
+    tax1 = addx(
+        taxonomy,
+        "Animalia>Chordata>Mammalia>Cetacea>Balaenopteridae>Balaenoptera>blue whale".split(
+            ">"
+        ),
+    )
     print("\n>tax1>\n....", tax1, "\n>taxonomy2>\n", taxonomy)
     taxonomy["test"] = "test"
     print("\n>taxonomy4>\n", taxonomy["test"])
