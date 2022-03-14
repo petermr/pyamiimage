@@ -7,11 +7,6 @@ from lxml import etree
 
 from pyamiimage.svg import XMLNamespaces
 
-try:
-    from pyami.py4ami import wikimedia
-except ImportError:
-    print("Cannot load pyami wikimedia")
-
 """
 This file is to play with the output of hocr
 """
@@ -205,9 +200,11 @@ class TesseractOCR:
         :param phrases: to lookup
         :return: tuple (list of qitem ids, list of descriptions
         """
-        lookup = wikimedia.WikidataLookup()
-        qitems, desc = lookup.lookup_items(phrases)
-        return qitems, desc
+        # TODO add wikidata lookup via pyami
+        # lookup = wikimedia.WikidataLookup()
+        # qitems, desc = lookup.lookup_items(phrases)
+        # return qitems, desc
+        pass
 
     @classmethod
     def output_phrases_to_file(cls, phrase_list, output_file):

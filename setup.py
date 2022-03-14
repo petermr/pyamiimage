@@ -29,7 +29,7 @@ setup(
     zip_safe=False,
     keywords='text and image mining',
     package_dir={'pyamiimage': 'pyamiimage'},
-    packages=[setuptools.find_packages(where="pyamiimage")],
+    packages=setuptools.find_packages(where="pyamiimage"),
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
