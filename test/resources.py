@@ -8,9 +8,10 @@ import numpy as np
 from skimage import io
 
 # local
-from ..pyamiimage.ami_graph_all import AmiGraph
-from ..pyamiimage.ami_image import AmiImageDTO
-from ..pyamiimage.tesseract_hocr import TesseractOCR
+import context
+from pyamiimage.ami_graph_all import AmiGraph
+from pyamiimage.ami_image import AmiImageDTO
+from pyamiimage.tesseract_hocr import TesseractOCR
 
 logger = logging.getLogger(__name__)
 
@@ -80,48 +81,6 @@ class Resources:
     BIOSYNTH8_HOCR = Path(TEST_RESOURCE_DIR, "biosynth_path_8", "hocr.html")
     assert BIOSYNTH8_HOCR.exists(), f"file exists {BIOSYNTH8_HOCR}"
 
-<<<<<<< HEAD
-    ISLANDS_5_SKEL = Path(TEST_RESOURCE_DIR, "islands_5.png")
-    assert ISLANDS_5_SKEL.exists(), f"file exists {ISLANDS_5_SKEL}"
-
-    PRISMA = Path(TEST_RESOURCE_DIR, "prisma.png")
-    assert PRISMA.exists(), f"file exists {PRISMA}"
-
-    BATTERY1 = Path(TEST_RESOURCE_DIR, "green.png")
-    assert BATTERY1.exists(), f"file exists {BATTERY1}"
-    BATTERY1BSQUARE = Path(TEST_RESOURCE_DIR, "battery1bsquare.png")
-    assert BATTERY1BSQUARE.exists(), f"file exists {BATTERY1BSQUARE}"
-    PRIMITIVES = Path(TEST_RESOURCE_DIR, "primitives.png")
-    assert PRIMITIVES.exists(), f"file exists {PRIMITIVES}"
-    TESSERACT1 = Path(TEST_RESOURCE_DIR, "tesseract_test.png")
-    assert TESSERACT1.exists(), f"file exists {TESSERACT1}"
-    TESSERACT_BENG = Path(TEST_RESOURCE_DIR, "tesseract_beng.jpg")
-    assert TESSERACT_BENG.exists(), f"file doesn't exist {TESSERACT_BENG}"
-    TESSERACT_GER = Path(TEST_RESOURCE_DIR, "tesseract_ger.jpg")
-    assert TESSERACT_GER.exists(), f"file doesn't exist {TESSERACT_GER}"
-    TESSERACT_GER2 = Path(TEST_RESOURCE_DIR, "tesseract_ger2.png")
-    assert TESSERACT_GER2.exists(), f"file doesn't exist {TESSERACT_GER2}"
-    TESSERACT_ITA = Path(TEST_RESOURCE_DIR, "tesseract_ita.png")
-    assert TESSERACT_ITA.exists(), f"file doesn't exist {TESSERACT_ITA}"
-    MED_XRD = Path(TEST_RESOURCE_DIR, "MED_34909142_3.jpeg")
-    assert MED_XRD.exists(), f"file doesn't exist {MED_XRD}"
-    MED_XRD_FIG_A = Path(TEST_RESOURCE_DIR, "MED_34909142_3_figA.jpeg")
-    assert MED_XRD_FIG_A.exists(), f"file doesn't exist {MED_XRD_FIG_A}"
-    MED_XRD_FIG_A_LABELS = Path(TEST_RESOURCE_DIR, "MED_34909142_3_figA_labels.jpg")
-    assert MED_XRD_FIG_A_LABELS.exists(), f"file doesn't exist {MED_XRD_FIG_A_LABELS}"
-
-    # TODO add files to fix these imports
-    # MED_XRD_FIG_A_YTICKS = Path(TEST_RESOURCE_DIR, "MED_34909142_3_figA_vert_label_num.png")
-    # assert MED_XRD_FIG_A_YTICKS.exists(), f"file doesn't exist {MED_XRD_FIG_A_YTICKS}"
-    # SHAPES_1 = Path(TEST_RESOURCE_DIR, "test_img_shapes.png")
-    # assert SHAPES_1.exists(), f"file doesn't exist {SHAPES_1}"
-    
-
-    YW5003_5 = Path(TEST_RESOURCE_DIR, "iucr_yw5003_fig5.png")
-    assert YW5003_5.exists(), f"file exists {YW5003_5}"
-
-# =====================
-=======
     ISLANDS_5_SKEL_RAW = Path(TEST_RESOURCE_DIR, "islands_5.png")
     assert ISLANDS_5_SKEL_RAW.exists(), f"file exists {ISLANDS_5_SKEL_RAW}"
 
@@ -131,6 +90,8 @@ class Resources:
     # https://europepmc.org/article/MED/34909142#figures-and-tables
     MED_34909142_3_RAW = Path(TEST_RESOURCE_DIR, "MED_34909142_3.jpeg")
     assert MED_34909142_3_RAW.exists(), f"file exists {MED_34909142_3_RAW}"
+    MED_XRD_FIG_A_RAW = Path(TEST_RESOURCE_DIR, "MED_34909142_3_figA.jpeg")
+    assert MED_XRD_FIG_A_RAW.exists(), f"file {MED_XRD_FIG_A_RAW} doesn't exist"
 
     BATTERY_DIR = Path(TEST_RESOURCE_DIR, "battery")
     BATTERY1_RAW = Path(BATTERY_DIR, "capacity_r_g_b.png")
@@ -146,8 +107,10 @@ class Resources:
     YW5003_5_RAW = Path(TEST_RESOURCE_DIR, "iucr_yw5003_fig5.png")
     assert YW5003_5_RAW.exists(), f"file exists {YW5003_5_RAW}"
 
+    SHAPES_1_RAW = Path(TEST_RESOURCE_DIR, "test_img_shapes.png")
+    assert SHAPES_1_RAW.exists(), f"file {SHAPES_1_RAW} doesn't exist"
+
     # =====================
->>>>>>> main
 
     TEMP_DIR = Path(TEST_RESOURCE_DIR.parent.parent, "temp")
     assert TEMP_DIR.is_dir(), f"file exists {TEMP_DIR}"

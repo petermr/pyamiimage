@@ -1,7 +1,7 @@
 import argparse
 import sys
-
-from ami_ocr import AmiOCR
+import context
+from pyamiimage.ami_ocr import AmiOCR
 
 
 class Pyamiimage:

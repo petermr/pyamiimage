@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 import pytest
 from lxml import etree
 
-from ..pyamiimage.ami_arrow import AmiArrow, AmiNetwork
-from ..pyamiimage.ami_graph_all import AmiGraph, AmiIsland
-from ..pyamiimage.bbox import BBox
-from ..pyamiimage.svg import SVG_NS, SVGG, SVGSVG, SVGArrow, SVGRect, ns_xpath
-from ..test.resources import Resources
+import context
+from pyamiimage.ami_arrow import AmiArrow, AmiNetwork
+from pyamiimage.ami_graph_all import AmiGraph, AmiIsland
+from pyamiimage.bbox import BBox
+from pyamiimage.svg import SVG_NS, SVGG, SVGSVG, SVGArrow, SVGRect, ns_xpath
+from resources import Resources
 
 logger = logging.getLogger(__name__)
 

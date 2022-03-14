@@ -2,7 +2,6 @@ from os import path
 from pathlib import Path
 from tkinter import BASELINE
 import numpy as np
-import codecs
 import pytesseract
 from lxml import etree as et
 from PIL import Image
@@ -10,16 +9,9 @@ import scipy.ndimage as ndimage
 from skimage import io
 from matplotlib import pyplot as plt
 
-
-
-try:
-    from bbox import BBox
-    from cleaner import WordCleaner
-    from ami_image import AmiImage
-except: 
-    from ..pyamiimage.bbox import BBox
-    from ..pyamiimage.cleaner import WordCleaner
-    from ..pyamiimage.ami_image import AmiImage
+from pyamiimage.bbox import BBox
+from pyamiimage.cleaner import WordCleaner
+from pyamiimage.ami_image import AmiImage
 
 class TextBox():
     # TextBox inherits BBox
@@ -457,8 +449,6 @@ class AmiOCR:
         :returns: AmiOCR object for the whole plot
         """
         new_img = BBox.plot_bbox_on(image, plot_area_bbox)
-        io.imshow(new_img)
-        io.show()
         label_bboxes = AmiOCR.label_bboxes_from_plot_bbox(image, plot_area_bbox)
         # # x_label = AmiOCR.copy_bbox_from_img(image, label_bboxes['x'])
         # # y_label = AmiOCR.copy_bbox_from_img(image, label_bboxes['y'])

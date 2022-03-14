@@ -1,8 +1,9 @@
 from skimage import io
 import unittest
-from ..test.resources import Resources
-from ..pyamiimage.tesseract_hocr import TesseractOCR
-from ..pyamiimage.text_box import TextBox
+from resources import Resources
+import context
+from pyamiimage.tesseract_hocr import TesseractOCR
+from pyamiimage.text_box import TextBox
 
 class TestTextBox:
     def setup_method(self, method):
@@ -37,7 +38,7 @@ class TestTextBox:
 
     def test_extract_text_path2(self):
         text_boxes = TextBox.find_text_boxes(self.biosynth2_elem)
-        assert len(text_boxes) == 65
+        assert len(text_boxes) == 67
         for text_box in text_boxes:
             # print(text_box.text, text_box.bbox)
             pass

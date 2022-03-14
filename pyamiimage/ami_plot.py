@@ -1,8 +1,8 @@
 import logging
 from collections import Counter
 # local
-from ..pyamiimage.ami_util import AmiUtil
-from ..pyamiimage.bbox import BBox
+from pyamiimage.ami_util import AmiUtil
+from pyamiimage.bbox import BBox
 
 logger = logging.getLogger(__name__)
 

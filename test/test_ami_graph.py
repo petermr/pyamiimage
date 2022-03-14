@@ -18,14 +18,15 @@ from skimage.measure import approximate_polygon, subdivide_polygon
 from skimage.morphology import skeletonize
 
 # local
-from ..pyamiimage.ami_edge_manager import AmiEdgeAnalyzer, X, Y
-from ..pyamiimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
-from ..pyamiimage.ami_image import AmiImage
-from ..pyamiimage.ami_plot import AmiEdgeTool, AmiLine
-from ..pyamiimage.ami_util import AmiUtil
-from ..pyamiimage.bbox import BBox
-from ..pyamiimage.text_box import TextBox, TextUtil
-from ..test.resources import Resources
+import context 
+from pyamiimage.ami_edge_manager import AmiEdgeAnalyzer, X, Y
+from pyamiimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
+from pyamiimage.ami_image import AmiImage
+from pyamiimage.ami_plot import AmiEdgeTool, AmiLine
+from pyamiimage.ami_util import AmiUtil
+from pyamiimage.bbox import BBox
+from pyamiimage.text_box import TextBox, TextUtil
+from resources import Resources
 
 logger = logging.getLogger(__name__)
 

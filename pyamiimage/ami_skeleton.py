@@ -12,12 +12,12 @@ import matplotlib.pyplot as plt
 from skimage import io
 import logging
 # local
-from ..pyamiimage.ami_image import AmiImage
-from ..pyamiimage.ami_util import AmiUtil
+from pyamiimage.ami_image import AmiImage
+from pyamiimage.ami_util import AmiUtil
 
-from ..pyamiimage.bbox import BBox
-from ..pyamiimage.flood_fill import FloodFill
-from ..pyamiimage.ami_graph_all import AmiGraph
+from pyamiimage.bbox import BBox
+from pyamiimage.flood_fill import FloodFill
+from pyamiimage.ami_graph_all import AmiGraph
 
 logger = logging.getLogger(__name__)
 

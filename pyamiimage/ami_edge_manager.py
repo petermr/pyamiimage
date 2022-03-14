@@ -1,12 +1,10 @@
 import logging
 import pprint
 # local
-from ..pyamiimage.ami_plot import AmiLine, AmiPolyline
-from ..pyamiimage.ami_plot import POLYLINE
-from ..pyamiimage.ami_plot import AmiLineTool
-from ..pyamiimage.ami_graph_all import AmiEdge
-from ..pyamiimage.ami_util import AmiUtil
-from ..pyamiimage.bbox import BBox
+from pyamiimage.ami_plot import AmiLine, AmiPolyline, AmiLineTool, POLYLINE
+from pyamiimage.ami_graph_all import AmiEdge
+from pyamiimage.ami_util import AmiUtil
+from pyamiimage.bbox import BBox
 
 logger = logging.getLogger(__name__)
 

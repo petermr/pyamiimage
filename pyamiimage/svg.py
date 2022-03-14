@@ -5,10 +5,7 @@ from abc import ABC
 from pathlib import Path
 import logging
 # local
-try:
-    from ..pyamiimage.bbox import BBox
-except:
-    from pyamiimage.bbox import BBox
+from pyamiimage.bbox import BBox
 
 logger = logging.getLogger(__name__)
 

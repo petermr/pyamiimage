@@ -9,8 +9,9 @@ import unittest
 from lxml import etree as ET
 import logging
 # local
-from ..pyamiimage.tesseract_hocr import TesseractOCR
-from ..test.resources import Resources
+import context
+from pyamiimage.tesseract_hocr import TesseractOCR
+from resources import Resources
 
 logger = logging.getLogger(__name__)
 

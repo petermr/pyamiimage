@@ -7,7 +7,7 @@ from pathlib import Path
 from PIL import Image
 
 # local
-from ..pyamiimage.old_code.ColorModule import Color
+from pyamiimage.old_code.ColorModule import Color
 
 class OctreeNode(object):
     """

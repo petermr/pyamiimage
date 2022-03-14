@@ -1,16 +1,16 @@
 import unittest
-from ..pyimage.bbox import BBox
 from skimage import io
-<<<<<<< HEAD
 
-from ..pyimage.ami_image import AmiImage
-from ..pyimage.ami_ocr import TextBox, AmiOCR
-=======
-from ..pyamiimage.ami_ocr import TextBox, AmiOCR
->>>>>>> main
-from ..test.resources import Resources # Asserting all images take time
+from resources import Resources # Asserting all images take time
+
+import context
+from pyamiimage.bbox import BBox
+from pyamiimage.ami_ocr import TextBox, AmiOCR
+from pyamiimage.ami_image import AmiImage
+
 
 Interactive = False
+
 class TestTextBox:
     def setup_method(self, method):
         self.textbox = TextBox('hello world', [[10, 50], [40, 50]])
@@ -37,7 +37,7 @@ class TestAmiOCR:
         self.biosynth2_img = io.imread(self.biosynth2)
         self.biosynth2_ocr = AmiOCR(self.biosynth2)
 
-        self.med_xrd = Resources.MED_XRD_FIG_A
+        self.med_xrd = Resources.MED_XRD_FIG_A_RAW
         self.med_xrd_img = io.imread(self.med_xrd)
 
     def teardown_method(self, method):
@@ -86,6 +86,7 @@ class TestAmiOCR:
         io.imshow(biosynth2_img_bboxes)
         io.show()
     
+    @unittest.skipUnless(Interactive, "interactive" )
     def test_bbox_fill(self):
         """tests filling background in a given bbox in an image"""
         box = BBox([[82, 389], [28, 386]])
@@ -93,39 +94,36 @@ class TestAmiOCR:
         io.imshow(test_img)
         io.show()
 
+    @unittest.skipUnless(Interactive, "interactive" )
     def test_extract_labels_from_plot(self):
         """test that labels are correctly OCRd in a plot"""
         box = BBox([[82, 389], [28, 386]])
-        AmiOCR.extract_labels_from_plot(self.med_xrd_img, box)
+        labels = AmiOCR.extract_labels_from_plot(self.med_xrd_img, box)
 
+    @unittest.skipUnless(Interactive, "interactive" )
     def test_plot_pixel_stats(self):
         """tests that plots the pixel stats in an image"""
         AmiOCR.plot_image_pixel_stats(self.med_xrd_img, 255, axis=1)
 
+    @unittest.skipUnless(Interactive, "interactive" )
     def test_img_rotation(self):
         """tests if an image can be rotated"""
         med_xrd_img_45 = AmiOCR.image_rotate(self.med_xrd_img, 45)
         io.imshow(med_xrd_img_45)
         io.show()
 
+    @unittest.skipUnless(Interactive, "interactive" )
     def test_rotated_image_pixel_stats(self):
         """test to check if pixel statistics work on rotated image"""
         med_xrd_img_45 = AmiOCR.image_rotate(self.med_xrd_img, 45)
         AmiOCR.plot_image_pixel_stats(med_xrd_img_45, 255, axis=1)
 
+    @unittest.skipUnless(Interactive, "interactive" )
     def test_shapes_pixel_stats(self):
         """pixel statistics of common shapes"""
-        shapes1 = Resources.SHAPES_1
+        shapes1 = Resources.SHAPES_1_RAW
         shapes1_img = io.imread(shapes1)
         shapes1_img_bin = AmiImage.create_white_binary_from_image(shapes1_img)
-        io.imshow(shapes1_img)
-        io.show()
-        signal = AmiOCR.image_pixel_stats(shapes1_img_bin, 255, axis=1)
-        from matplotlib import pyplot as plt
-        import numpy as np
-        row = np.arange(0, len(signal))
-        plt.imshow(shapes1_img)
-        plt.plot(row, signal, color='red')
-        plt.show()
+        AmiOCR.plot_image_pixel_stats(shapes1_img_bin, 255, axis=1)
 
     
