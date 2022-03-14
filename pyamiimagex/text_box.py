@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 try:
-    from ..pyamiimagex.bbox import BBox
-    from ..pyamiimagex.tesseract_hocr import TesseractOCR
+    from pyamiimagex.bbox import BBox
+    from pyamiimagex.tesseract_hocr import TesseractOCR
 except:
     from pyamiimagex.bbox import BBox
     from pyamiimagex.tesseract_hocr import TesseractOCR

@@ -15,11 +15,11 @@ from skimage import io
 from skimage.measure import approximate_polygon
 
 # local
-from ..pyamiimagex.ami_image import AmiImage
-from ..pyamiimagex.ami_plot import AmiLine, X, Y
-from ..pyamiimagex.ami_util import AmiUtil
-from ..pyamiimagex.svg import BBox
-from ..pyamiimagex.text_box import TextBox
+from pyamiimagex.ami_image import AmiImage
+from pyamiimagex.ami_plot import AmiLine, X, Y
+from pyamiimagex.ami_util import AmiUtil
+from pyamiimagex.svg import BBox
+from pyamiimagex.text_box import TextBox
 
 logger = logging.getLogger(__name__)
 

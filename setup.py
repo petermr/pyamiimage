@@ -28,8 +28,8 @@ setup(
     include_package_data=True,
     zip_safe=False,
     keywords='text and image mining',
-    package_dir={'': 'src'},
-    packages=setuptools.find_packages(where="src"),
+    package_dir={'pyamiimage': 'pyamiimagex'},
+    packages=["pyamiimagex"],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from ..pyamiimagex.ami_ocr import AmiOCR
+from pyamiimagex.ami_ocr import AmiOCR
 
 class CommandLine:
     """[summary]"""

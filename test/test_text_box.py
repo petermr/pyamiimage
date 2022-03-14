@@ -1,8 +1,8 @@
 from skimage import io
 import unittest
 from ..test.resources import Resources
-from ..pyamiimagex.tesseract_hocr import TesseractOCR
-from ..pyamiimagex.text_box import TextBox
+from pyamiimagex.tesseract_hocr import TesseractOCR
+from pyamiimagex.text_box import TextBox
 
 class TestTextBox:
     def setup_method(self, method):

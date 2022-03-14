@@ -17,9 +17,9 @@ try:
     from cleaner import WordCleaner
     from ami_image import AmiImage
 except: 
-    from ..pyamiimagex.bbox import BBox
-    from ..pyamiimagex.cleaner import WordCleaner
-    from ..pyamiimagex.ami_image import AmiImage
+    from pyamiimagex.bbox import BBox
+    from pyamiimagex.cleaner import WordCleaner
+    from pyamiimagex.ami_image import AmiImage
 
 class TextBox():
     # TextBox inherits BBox

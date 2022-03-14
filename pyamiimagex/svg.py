@@ -6,7 +6,7 @@ from pathlib import Path
 import logging
 # local
 try:
-    from ..pyamiimagex.bbox import BBox
+    from pyamiimagex.bbox import BBox
 except:
     from pyamiimagex.bbox import BBox
 

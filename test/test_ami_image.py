@@ -9,7 +9,7 @@ import numpy as np
 from skimage import data, io, morphology
 from skimage.filters import unsharp_mask
 
-from ..pyamiimagex.ami_image import AmiImage
+from pyamiimagex.ami_image import AmiImage
 from ..test.resources import Resources
 
 RESOURCE_DIR = Path(Path(__file__).parent, "resources")

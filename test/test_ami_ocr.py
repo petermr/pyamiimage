@@ -1,6 +1,6 @@
 import unittest
 from skimage import io
-from ..pyamiimagex.ami_ocr import TextBox, AmiOCR
+from pyamiimagex.ami_ocr import TextBox, AmiOCR
 # from .context import pyamiimagex
 # from pyamiimagex.ami_ocr import TextBox, AmiOCR
 from ..test.resources import Resources # Asserting all images take time

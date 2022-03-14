@@ -10,10 +10,10 @@ from skan.pre import threshold
 # library
 from skimage import io
 
-from ..pyamiimagex.ami_graph_all import AmiGraph
-from ..pyamiimagex.ami_image import AmiImage
-from ..pyamiimagex.ami_skeleton import AmiSkeleton
-from ..pyamiimagex.ami_util import AmiUtil
+from pyamiimagex.ami_graph_all import AmiGraph
+from pyamiimagex.ami_image import AmiImage
+from pyamiimagex.ami_skeleton import AmiSkeleton
+from pyamiimagex.ami_util import AmiUtil
 
 # local
 from ..test.resources import Resources
