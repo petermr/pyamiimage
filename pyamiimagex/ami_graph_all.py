@@ -20,7 +20,7 @@ from pyamiimagex.ami_plot import AmiLine, X, Y
 from pyamiimagex.ami_util import AmiUtil
 from pyamiimagex.svg import BBox
 from pyamiimagex.text_box import TextBox
-import pyamiimagex.sknw as sknw
+from pyamiimagex.sknw_clone import build_sknw
 
 logger = logging.getLogger(__name__)
 
@@ -487,7 +487,8 @@ class AmiGraph:
         """
         AmiUtil.check_type_and_existence(skeleton_image, np.ndarray)
 
-        nx_graph = sknw.build_sknw(skeleton_image, multi=True, iso=True, ring=True, full=True)
+        # nx_graph = sknw.build_sknw(skeleton_image, multi=True, iso=True, ring=True, full=True)
+        nx_graph = build_sknw(skeleton_image, multi=True, iso=True, ring=True, full=True)
         return nx_graph
 
     def get_ami_islands_from_nx_graph(self):

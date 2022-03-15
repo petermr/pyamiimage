@@ -12,7 +12,6 @@ import networkx as nx
 import numpy
 import numpy as np
 import pytest
-import sknw
 from skimage import data, morphology
 from skimage.measure import approximate_polygon, subdivide_polygon
 from skimage.morphology import skeletonize
@@ -65,125 +64,125 @@ class TestAmiGraph:
         return self
 
     @unittest.skip("background")
-    def test_sknw_example(self, interact=interactive):
-        """
-        From the SKNW docs
-        not really a test, more a debug
-        :return:
-        """
-        """
-        from https://github.com/Image-Py/sknw
-        Skeleton Network
-build net work from nd skeleton image
+#     def test_sknw_example(self, interact=interactive):
+#         """
+#         From the SKNW docs
+#         not really a test, more a debug
+#         :return:
+#         """
+#         """
+#         from https://github.com/Image-Py/sknw
+#         Skeleton Network
+# build net work from nd skeleton image
+#
+# graph = sknw.build_sknw(ske， multi=False)
+# ske: should be a nd skeleton image
+# multi: if True，a multigraph is retured, which allows more than one edge between
+# two nodes and self-self edge. default is False.
+#
+# return: is a networkx Graph object
+#
+# graph detail:
+# graph.nodes[id]['pts'] : Numpy(x, n), coordinates of nodes points
+# graph.nodes[id]['o']: Numpy(n), centried of the node
+# graph.edges(id1, id2)['pts']: Numpy(x, n), sequence of the edge point
+# graph.edges(id1, id2)['weight']: float, length of this edge
+#
+# if it's a multigraph, you must add a index after two node id to get the edge,
+# like: graph.edge(id1, id2)[0].
+#
+# build Graph by Skeleton, then plot as a vector Graph in matplotlib.
+#
+# from skimage.morphology import skeletonize
+# from skimage import data
+# import sknw
+#
+# # open and skeletonize
+# img = data.horse()
+# ske = skeletonize(~img).astype(np.uint16)  # the tilde (~) inverts the binary image
+#
+# # build graph from skeleton
+# graph = sknw.build_sknw(ske)
+# plt.imshow(img, cmap='gray')
+#
+# # draw edges by pts
+# for (s,e) in graph.edges():
+#     ps = graph[s][e]['pts']
+#     plt.plot(ps[:,1], ps[:,0], 'green')
+#
+# # draw node by o
+# nodes = graph.nodes()
+# ps = np.array([nodes[i]['o'] for i in nodes])
+# plt.plot(ps[:,1], ps[:,0], 'r.')
+#
+# # title and show
+# plt.title('Build Graph')
+# plt.show()"""
+#
+#         # open and skeletonize
+#         multi = False  # edge/node access needs an array for True
+#         img = data.horse()
+#         ske = skeletonize(~img).astype(np.uint16)
+#
+#         graph = sknw.build_sknw(ske, multi=multi)
+#         assert graph.number_of_nodes() == 22 and graph.number_of_edges() == 22
+#         # theres a cycle 9, 13, 14
+#
+#         # draw image
+#         if interactive:
+#             plt.imshow(img, cmap='gray')
+#
+#         assert str(graph.nodes[0].keys()) == "dict_keys([AmiEdge.PTS, 'o'])", \
+#             "nodes have 'pts' and 'o "
+#         # this is a 2-array with ["pts", "weights'] Not sure what th structure is
+#         # this is an edges generator, so may need wrapping in a list
+#         edges_gen = graph[0][2]  # plural because there may be multiple edges between nodes
+#         assert f"{list(edges_gen)[:1]}" == "[AmiEdge.PTS]"  # pts are connected points in an edge
+#         assert len(edges_gen[AmiEdge.PTS]) == 18
+#         assert str(edges_gen.keys()) == "dict_keys([AmiEdge.PTS, 'weight'])"
+#
+#         print(f"\n=========nodes=========")
+#         prnt = True
+#         nprint = 3  # print first nprint
+#         for i, (s, e) in enumerate(graph.edges()):
+#             edge = graph[s][e]
+#             if i < nprint and prnt:
+#                 print(f"{s} {e} {edge.keys()}")
+#             points = edge[AmiEdge.PTS]
+#             plt.plot(points[:, 1], points[:, 0], 'green')
+#
+#         # draw node by o
+#         print(f"=========neighbours=========")
+#         nodes = graph.nodes()
+#         # print neighbours
+#         for node in graph.nodes():
+#             print(f"neighbours {node} {list(graph.neighbors(node))}")
+#
+#         # coordinates are arranged y-array, x-array
+#         points = np.array([nodes[i][AmiNode.CENTROID] for i in nodes])
+#         plt.plot(points[:, 1], points[:, 0], 'r.')
+#
+#         # title and show
+#         plt.title('Build Graph')
+#         if interactive:
+#             plt.show()
+#
+#         print("================")
+#         print(f"edge02 {list(graph.edges[(0, 2)])}")
+#         print("=======0=========")
+#         edges_ = list(graph.edges[(0, 2)])[0]
+#         print(f"edge02b {type(edges_)} {edges_}")
+#         print("=======2=========")
+#         print(f"edge02c {graph.edges[(0, 2)]}")
+#         print("=======3=========")
+#
+#         # this is a tree so only got one component
+#         assert nx.algorithms.components.number_connected_components(graph) == 1
+#         connected_components = list(nx.algorithms.components.connected_components(graph))
+#         assert connected_components == [{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}]
+#         assert connected_components[0] == {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}
 
-graph = sknw.build_sknw(ske， multi=False)
-ske: should be a nd skeleton image
-multi: if True，a multigraph is retured, which allows more than one edge between 
-two nodes and self-self edge. default is False.
-
-return: is a networkx Graph object
-
-graph detail:
-graph.nodes[id]['pts'] : Numpy(x, n), coordinates of nodes points
-graph.nodes[id]['o']: Numpy(n), centried of the node
-graph.edges(id1, id2)['pts']: Numpy(x, n), sequence of the edge point
-graph.edges(id1, id2)['weight']: float, length of this edge
-
-if it's a multigraph, you must add a index after two node id to get the edge, 
-like: graph.edge(id1, id2)[0].
-
-build Graph by Skeleton, then plot as a vector Graph in matplotlib.
-
-from skimage.morphology import skeletonize
-from skimage import data
-import sknw
-
-# open and skeletonize
-img = data.horse()
-ske = skeletonize(~img).astype(np.uint16)  # the tilde (~) inverts the binary image
-
-# build graph from skeleton
-graph = sknw.build_sknw(ske)
-plt.imshow(img, cmap='gray')
-
-# draw edges by pts
-for (s,e) in graph.edges():
-    ps = graph[s][e]['pts']
-    plt.plot(ps[:,1], ps[:,0], 'green')
-
-# draw node by o
-nodes = graph.nodes()
-ps = np.array([nodes[i]['o'] for i in nodes])
-plt.plot(ps[:,1], ps[:,0], 'r.')
-
-# title and show
-plt.title('Build Graph')
-plt.show()"""
-
-        # open and skeletonize
-        multi = False  # edge/node access needs an array for True
-        img = data.horse()
-        ske = skeletonize(~img).astype(np.uint16)
-
-        graph = sknw.build_sknw(ske, multi=multi)
-        assert graph.number_of_nodes() == 22 and graph.number_of_edges() == 22
-        # theres a cycle 9, 13, 14
-
-        # draw image
-        if interactive:
-            plt.imshow(img, cmap='gray')
-
-        assert str(graph.nodes[0].keys()) == "dict_keys([AmiEdge.PTS, 'o'])", \
-            "nodes have 'pts' and 'o "
-        # this is a 2-array with ["pts", "weights'] Not sure what th structure is
-        # this is an edges generator, so may need wrapping in a list
-        edges_gen = graph[0][2]  # plural because there may be multiple edges between nodes
-        assert f"{list(edges_gen)[:1]}" == "[AmiEdge.PTS]"  # pts are connected points in an edge
-        assert len(edges_gen[AmiEdge.PTS]) == 18
-        assert str(edges_gen.keys()) == "dict_keys([AmiEdge.PTS, 'weight'])"
-
-        print(f"\n=========nodes=========")
-        prnt = True
-        nprint = 3  # print first nprint
-        for i, (s, e) in enumerate(graph.edges()):
-            edge = graph[s][e]
-            if i < nprint and prnt:
-                print(f"{s} {e} {edge.keys()}")
-            points = edge[AmiEdge.PTS]
-            plt.plot(points[:, 1], points[:, 0], 'green')
-
-        # draw node by o
-        print(f"=========neighbours=========")
-        nodes = graph.nodes()
-        # print neighbours
-        for node in graph.nodes():
-            print(f"neighbours {node} {list(graph.neighbors(node))}")
-
-        # coordinates are arranged y-array, x-array
-        points = np.array([nodes[i][AmiNode.CENTROID] for i in nodes])
-        plt.plot(points[:, 1], points[:, 0], 'r.')
-
-        # title and show
-        plt.title('Build Graph')
-        if interactive:
-            plt.show()
-
-        print("================")
-        print(f"edge02 {list(graph.edges[(0, 2)])}")
-        print("=======0=========")
-        edges_ = list(graph.edges[(0, 2)])[0]
-        print(f"edge02b {type(edges_)} {edges_}")
-        print("=======2=========")
-        print(f"edge02c {graph.edges[(0, 2)]}")
-        print("=======3=========")
-
-        # this is a tree so only got one component
-        assert nx.algorithms.components.number_connected_components(graph) == 1
-        connected_components = list(nx.algorithms.components.connected_components(graph))
-        assert connected_components == [{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}]
-        assert connected_components[0] == {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}
-
-    # @unittest.skip("exploration")
+    @unittest.skip("exploration")
     def test_sknw_5_islands(self):
         """
         This checks all the fields that sknw returns
