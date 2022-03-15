@@ -12,19 +12,21 @@ import networkx as nx
 import numpy
 import numpy as np
 import pytest
+import sknw
 from skimage import data, morphology
 from skimage.measure import approximate_polygon, subdivide_polygon
 from skimage.morphology import skeletonize
 
 # local
-from pyamiimagex.ami_edge_manager import AmiEdgeAnalyzer, X, Y
-from pyamiimagex.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
-from pyamiimagex.ami_image import AmiImage
-from pyamiimagex.ami_plot import AmiEdgeTool, AmiLine
-from pyamiimagex.ami_util import AmiUtil
-from pyamiimagex.bbox import BBox
-from pyamiimagex.text_box import TextBox, TextUtil
-from ..test.resources import Resources
+import context 
+from pyamiimage.ami_edge_manager import AmiEdgeAnalyzer, X, Y
+from pyamiimage.ami_graph_all import AmiNode, AmiIsland, AmiGraph, AmiEdge
+from pyamiimage.ami_image import AmiImage
+from pyamiimage.ami_plot import AmiEdgeTool, AmiLine
+from pyamiimage.ami_util import AmiUtil
+from pyamiimage.bbox import BBox
+from pyamiimage.text_box import TextBox, TextUtil
+from resources import Resources
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +50,8 @@ class TestAmiGraph:
 
     def setup_method(self, method):
 
-        self.arrows1 = self.resources.arrows1_image_file
-        self.nx_graph_arrows1 = self.resources.arrows1_nx_graph
+        self.arrows1 = self.resources.arrows1_image
+        self.nx_graph_arrows1 = self.resources.nx_graph_arrows1
 
         self.biosynth1_binary = self.resources.biosynth1_binary
         self.biosynth1_elem = self.resources.biosynth1_elem
@@ -64,125 +66,125 @@ class TestAmiGraph:
         return self
 
     @unittest.skip("background")
-#     def test_sknw_example(self, interact=interactive):
-#         """
-#         From the SKNW docs
-#         not really a test, more a debug
-#         :return:
-#         """
-#         """
-#         from https://github.com/Image-Py/sknw
-#         Skeleton Network
-# build net work from nd skeleton image
-#
-# graph = sknw.build_sknw(ske， multi=False)
-# ske: should be a nd skeleton image
-# multi: if True，a multigraph is retured, which allows more than one edge between
-# two nodes and self-self edge. default is False.
-#
-# return: is a networkx Graph object
-#
-# graph detail:
-# graph.nodes[id]['pts'] : Numpy(x, n), coordinates of nodes points
-# graph.nodes[id]['o']: Numpy(n), centried of the node
-# graph.edges(id1, id2)['pts']: Numpy(x, n), sequence of the edge point
-# graph.edges(id1, id2)['weight']: float, length of this edge
-#
-# if it's a multigraph, you must add a index after two node id to get the edge,
-# like: graph.edge(id1, id2)[0].
-#
-# build Graph by Skeleton, then plot as a vector Graph in matplotlib.
-#
-# from skimage.morphology import skeletonize
-# from skimage import data
-# import sknw
-#
-# # open and skeletonize
-# img = data.horse()
-# ske = skeletonize(~img).astype(np.uint16)  # the tilde (~) inverts the binary image
-#
-# # build graph from skeleton
-# graph = sknw.build_sknw(ske)
-# plt.imshow(img, cmap='gray')
-#
-# # draw edges by pts
-# for (s,e) in graph.edges():
-#     ps = graph[s][e]['pts']
-#     plt.plot(ps[:,1], ps[:,0], 'green')
-#
-# # draw node by o
-# nodes = graph.nodes()
-# ps = np.array([nodes[i]['o'] for i in nodes])
-# plt.plot(ps[:,1], ps[:,0], 'r.')
-#
-# # title and show
-# plt.title('Build Graph')
-# plt.show()"""
-#
-#         # open and skeletonize
-#         multi = False  # edge/node access needs an array for True
-#         img = data.horse()
-#         ske = skeletonize(~img).astype(np.uint16)
-#
-#         graph = sknw.build_sknw(ske, multi=multi)
-#         assert graph.number_of_nodes() == 22 and graph.number_of_edges() == 22
-#         # theres a cycle 9, 13, 14
-#
-#         # draw image
-#         if interactive:
-#             plt.imshow(img, cmap='gray')
-#
-#         assert str(graph.nodes[0].keys()) == "dict_keys([AmiEdge.PTS, 'o'])", \
-#             "nodes have 'pts' and 'o "
-#         # this is a 2-array with ["pts", "weights'] Not sure what th structure is
-#         # this is an edges generator, so may need wrapping in a list
-#         edges_gen = graph[0][2]  # plural because there may be multiple edges between nodes
-#         assert f"{list(edges_gen)[:1]}" == "[AmiEdge.PTS]"  # pts are connected points in an edge
-#         assert len(edges_gen[AmiEdge.PTS]) == 18
-#         assert str(edges_gen.keys()) == "dict_keys([AmiEdge.PTS, 'weight'])"
-#
-#         print(f"\n=========nodes=========")
-#         prnt = True
-#         nprint = 3  # print first nprint
-#         for i, (s, e) in enumerate(graph.edges()):
-#             edge = graph[s][e]
-#             if i < nprint and prnt:
-#                 print(f"{s} {e} {edge.keys()}")
-#             points = edge[AmiEdge.PTS]
-#             plt.plot(points[:, 1], points[:, 0], 'green')
-#
-#         # draw node by o
-#         print(f"=========neighbours=========")
-#         nodes = graph.nodes()
-#         # print neighbours
-#         for node in graph.nodes():
-#             print(f"neighbours {node} {list(graph.neighbors(node))}")
-#
-#         # coordinates are arranged y-array, x-array
-#         points = np.array([nodes[i][AmiNode.CENTROID] for i in nodes])
-#         plt.plot(points[:, 1], points[:, 0], 'r.')
-#
-#         # title and show
-#         plt.title('Build Graph')
-#         if interactive:
-#             plt.show()
-#
-#         print("================")
-#         print(f"edge02 {list(graph.edges[(0, 2)])}")
-#         print("=======0=========")
-#         edges_ = list(graph.edges[(0, 2)])[0]
-#         print(f"edge02b {type(edges_)} {edges_}")
-#         print("=======2=========")
-#         print(f"edge02c {graph.edges[(0, 2)]}")
-#         print("=======3=========")
-#
-#         # this is a tree so only got one component
-#         assert nx.algorithms.components.number_connected_components(graph) == 1
-#         connected_components = list(nx.algorithms.components.connected_components(graph))
-#         assert connected_components == [{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}]
-#         assert connected_components[0] == {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}
+    def test_sknw_example(self, interact=interactive):
+        """
+        From the SKNW docs
+        not really a test, more a debug
+        :return:
+        """
+        """
+        from https://github.com/Image-Py/sknw
+        Skeleton Network
+build net work from nd skeleton image
 
-    @unittest.skip("exploration")
+graph = sknw.build_sknw(ske， multi=False)
+ske: should be a nd skeleton image
+multi: if True，a multigraph is retured, which allows more than one edge between 
+two nodes and self-self edge. default is False.
+
+return: is a networkx Graph object
+
+graph detail:
+graph.nodes[id]['pts'] : Numpy(x, n), coordinates of nodes points
+graph.nodes[id]['o']: Numpy(n), centried of the node
+graph.edges(id1, id2)['pts']: Numpy(x, n), sequence of the edge point
+graph.edges(id1, id2)['weight']: float, length of this edge
+
+if it's a multigraph, you must add a index after two node id to get the edge, 
+like: graph.edge(id1, id2)[0].
+
+build Graph by Skeleton, then plot as a vector Graph in matplotlib.
+
+from skimage.morphology import skeletonize
+from skimage import data
+import sknw
+
+# open and skeletonize
+img = data.horse()
+ske = skeletonize(~img).astype(np.uint16)  # the tilde (~) inverts the binary image
+
+# build graph from skeleton
+graph = sknw.build_sknw(ske)
+plt.imshow(img, cmap='gray')
+
+# draw edges by pts
+for (s,e) in graph.edges():
+    ps = graph[s][e]['pts']
+    plt.plot(ps[:,1], ps[:,0], 'green')
+
+# draw node by o
+nodes = graph.nodes()
+ps = np.array([nodes[i]['o'] for i in nodes])
+plt.plot(ps[:,1], ps[:,0], 'r.')
+
+# title and show
+plt.title('Build Graph')
+plt.show()"""
+
+        # open and skeletonize
+        multi = False  # edge/node access needs an array for True
+        img = data.horse()
+        ske = skeletonize(~img).astype(np.uint16)
+
+        graph = sknw.build_sknw(ske, multi=multi)
+        assert graph.number_of_nodes() == 22 and graph.number_of_edges() == 22
+        # theres a cycle 9, 13, 14
+
+        # draw image
+        if interactive:
+            plt.imshow(img, cmap='gray')
+
+        assert str(graph.nodes[0].keys()) == "dict_keys([AmiEdge.PTS, 'o'])", \
+            "nodes have 'pts' and 'o "
+        # this is a 2-array with ["pts", "weights'] Not sure what th structure is
+        # this is an edges generator, so may need wrapping in a list
+        edges_gen = graph[0][2]  # plural because there may be multiple edges between nodes
+        assert f"{list(edges_gen)[:1]}" == "[AmiEdge.PTS]"  # pts are connected points in an edge
+        assert len(edges_gen[AmiEdge.PTS]) == 18
+        assert str(edges_gen.keys()) == "dict_keys([AmiEdge.PTS, 'weight'])"
+
+        print(f"\n=========nodes=========")
+        prnt = True
+        nprint = 3  # print first nprint
+        for i, (s, e) in enumerate(graph.edges()):
+            edge = graph[s][e]
+            if i < nprint and prnt:
+                print(f"{s} {e} {edge.keys()}")
+            points = edge[AmiEdge.PTS]
+            plt.plot(points[:, 1], points[:, 0], 'green')
+
+        # draw node by o
+        print(f"=========neighbours=========")
+        nodes = graph.nodes()
+        # print neighbours
+        for node in graph.nodes():
+            print(f"neighbours {node} {list(graph.neighbors(node))}")
+
+        # coordinates are arranged y-array, x-array
+        points = np.array([nodes[i][AmiNode.CENTROID] for i in nodes])
+        plt.plot(points[:, 1], points[:, 0], 'r.')
+
+        # title and show
+        plt.title('Build Graph')
+        if interactive:
+            plt.show()
+
+        print("================")
+        print(f"edge02 {list(graph.edges[(0, 2)])}")
+        print("=======0=========")
+        edges_ = list(graph.edges[(0, 2)])[0]
+        print(f"edge02b {type(edges_)} {edges_}")
+        print("=======2=========")
+        print(f"edge02c {graph.edges[(0, 2)]}")
+        print("=======3=========")
+
+        # this is a tree so only got one component
+        assert nx.algorithms.components.number_connected_components(graph) == 1
+        connected_components = list(nx.algorithms.components.connected_components(graph))
+        assert connected_components == [{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}]
+        assert connected_components[0] == {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}
+
+    # @unittest.skip("exploration")
     def test_sknw_5_islands(self):
         """
         This checks all the fields that sknw returns
@@ -197,8 +199,7 @@ class TestAmiGraph:
         AmiUtil.check_type_and_existence(skeleton_array, np.ndarray)
 
         # nx_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton_array)
-        # nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(R esources.BIOSYNTH1_CROPPED_ARROWS_RAW)
-        nx_graph = self.resources.arrows1_nx_graph
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         AmiUtil.check_type_and_existence(nx_graph, nx.classes.multigraph.MultiGraph)
 
         assert list(nx_graph.nodes) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
@@ -238,8 +239,7 @@ class TestAmiGraph:
     def test_ami_edges(self):
         """wrappers for nx_graph
         """
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
-        ami_graph = self.resources.arrows1_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         print("------------------")
         ami_edges = ami_graph.get_or_create_all_ami_edges()
         assert len(ami_edges) == 23, f"found {len(ami_edges)}"
@@ -256,8 +256,7 @@ class TestAmiGraph:
         Note: double backslash is an escape, not meaningful
         :return:
         """
-        # nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
-        nx_graph = self.resources.arrows1_nx_graph
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
 
         """
         {0, 1, 2, 3, 4, 5, 6, 7},  # double arrow
@@ -290,9 +289,7 @@ class TestAmiGraph:
         assert type(expected_numpy[0][0]) is np.int64
         assert np.array_equal(points0_2, expected_numpy), f"found {points0_2}"
 
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
-        ami_graph = self.resources.arrows1_ami_graph
-
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         ami_edges = ami_graph.get_or_create_all_ami_edges()
         assert len(ami_edges) == 23
         for ami_edge in ami_edges:
@@ -332,7 +329,6 @@ class TestAmiGraph:
 
         return
 
-    @unittest.skip("no actiom")
     def test_arrows(self):
         """
         looks for arrowheads, three types
@@ -348,10 +344,9 @@ class TestAmiGraph:
         Create island_node_id_sets using sknw/NetworkX and check basic properties
         :return:
         """
-        # nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(
-        #     Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-        # )
-        nx_graph = self.resources.arrows1_nx_graph
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
+        )
 
         connected_components = list(nx.algorithms.components.connected_components(nx_graph))
         assert nx.algorithms.components.number_connected_components(nx_graph) == 4
@@ -385,19 +380,17 @@ class TestAmiGraph:
         assert xy == [844.0, 82.0]
 
     def test_get_nx_edge_list_for_node(self):
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-        #     Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-        # )
-        ami_graph = self.resources.arrows1_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
+        )
         edges = ami_graph.get_nx_edge_list_for_node(24)
         assert edges == [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)], \
             f"found {edges} expected {[(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)]}"
 
     def test_get_nx_edge_lengths_for_node(self):
-        # ami_graph = self.create_ami_graph_from_arbitrary_image_file(
-        #     Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-        # )
-        ami_graph = self.resources.arrows1_ami_graph
+        ami_graph = self.create_ami_graph_from_arbitrary_image_file(
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
+        )
         lengths = ami_graph.get_nx_edge_lengths_by_edge_list_for_node(24)
         print(f"lengths {lengths}")
         lengthsx = [length for length in lengths.values()]
@@ -411,20 +404,18 @@ class TestAmiGraph:
         uses get_nodes_with_degree on each node to create lists
         :return:
         """
-        # ami_graph = self.create_ami_graph_from_arbitrary_image_file(
-        #     Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-        # )
-        ami_graph = self.resources.arrows1_ami_graph
+        ami_graph = self.create_ami_graph_from_arbitrary_image_file(
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
+        )
         self.assert_degrees(ami_graph, 4, [2, 4, 13, 18, 24])
         self.assert_degrees(ami_graph, 3, [12, 19])
         self.assert_degrees(ami_graph, 2, [])
         self.assert_degrees(ami_graph, 1, [0, 1, 3, 5, 6, 7, 8, 9, 10, 11, 14, 15, 16, 17, 20, 21, 22, 23, 25, 26])
 
     def test_distal_node(self):
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-        #     Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-        # )
-        ami_graph = self.resources.arrows1_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
+        )
         edge = ami_graph.get_nx_edge_list_for_node(1)[0]
         ami_edge0 = ami_graph.get_or_create_ami_edge_from_ids(edge[0], edge[1], edge[2])
         assert ami_edge0.start_id == 1
@@ -434,10 +425,9 @@ class TestAmiGraph:
         assert ami_edge0.remote_node_id(3) is None
 
     def test_get_neighbours(self):
-        # ami_graph = self.create_ami_graph_from_arbitrary_image_file(
-        #     Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-        # )
-        ami_graph = self.resources.arrows1_ami_graph
+        ami_graph = self.create_ami_graph_from_arbitrary_image_file(
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
+        )
         assert [2] == ami_graph.get_or_create_ami_node(0).get_neighbour_ids()
         assert [4] == ami_graph.get_or_create_ami_node(1).get_neighbour_ids()
         assert [0, 4, 3, 7] == ami_graph.get_or_create_ami_node(2).get_neighbour_ids()
@@ -454,10 +444,9 @@ class TestAmiGraph:
         return ami_graph
 
     def test_get_angles_of_edges_node(self):
-        # ami_graph = self.create_ami_graph_from_arbitrary_image_file(
-        #     Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-        # )
-        ami_graph = self.resources.arrows1_ami_graph
+        ami_graph = self.create_ami_graph_from_arbitrary_image_file(
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
+        )
         edge_ids = ami_graph.get_nx_edge_list_for_node(24)
         assert edge_ids == [(24, 21, 0), (24, 22, 0), (24, 23, 0), (24, 25, 0)]
         angles = []
@@ -490,10 +479,9 @@ class TestAmiGraph:
         Create bounding boxes for islands
         :return:
         """
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-        #     Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-        # )
-        ami_graph = self.resources.arrows1_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
+        )
         islands = ami_graph.get_or_create_ami_islands()
         assert len(islands) == 4, "arrows"
         bbox_list = []
@@ -614,9 +602,8 @@ class TestAmiGraph:
                 big_islands.append(island)
         assert len(big_islands) == 6
 
-    @unittest.skip("May have broken this")
     def test_extract_raw_image(self):
-        """extract the raw pixels (not the skeleton) underlying the extracted lines
+        """extract the raw pixels (not the skeletonm) underlying the extracted lines
         plot boxes
         erode and dilate
         """
@@ -657,10 +644,9 @@ class TestAmiGraph:
         asserts lengths of edges to node
         :return:
         """
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-        #     Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-        # )
-        ami_graph = self.resources.arrows1_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
+        )
         edge_length_by_nx_edge = ami_graph.get_nx_edge_lengths_by_edge_list_for_node(24)
         assert {"a": 2.000001} == pytest.approx({"a": 2})
         assert {"a": 2.01} == pytest.approx({"a": 2}, 0.1)
@@ -771,10 +757,9 @@ class TestAmiGraph:
 
     def test_create_ami_nodes_from_ids(self):
         """wrap node_ids in AmiNodes"""
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
-        #     Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-        # )
-        ami_graph = self.resources.arrows1_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(
+            Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
+        )
         node_ids = [0, 1, 2, 3, 4, 5, 6, 7]
         ami_node_list = ami_graph.create_ami_nodes_from_ids(node_ids)
         assert 8 == len(ami_node_list)
@@ -937,8 +922,7 @@ class TestAmiGraph:
 
     def test_island_sizes(self):
         """uses mindim, maxdim, to filter in/out islands. etc."""
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
-        ami_graph = self.resources.yw5003_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         # all islands
         islands = ami_graph.get_or_create_ami_islands()
         assert len(islands) == 227, f"expected total islands {len(islands)}"
@@ -967,8 +951,7 @@ class TestAmiGraph:
         """
         # NOTE these tests seem correct but pixel-fragile
 
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
-        ami_graph = self.resources.yw5003_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         # second largest island is a boxed plot
         # all islands
         islands = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)
@@ -1049,8 +1032,7 @@ class TestAmiGraph:
 
     def test_enumerate_unique_edges(self):
         """separates 3- connected nodes into separate lines """
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
-        ami_graph = self.resources.yw5003_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island_0 = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         triply_connected_ids = AmiGraph.get_node_ids_from_graph_with_degree(small_plot_island_0.island_nx_graph, 3)
         assert len(triply_connected_ids) == 30, f"found {len(triply_connected_ids)}"
@@ -1061,8 +1043,7 @@ class TestAmiGraph:
     def test_analyze_topology(self):
         """merges short horizontal and verstical lines from sknw
         """
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
-        ami_graph = self.resources.yw5003_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         node_ids = small_plot_island.node_ids
         ami_edges, multibranches = ami_graph.get_unique_ami_edges_and_multibranches(node_ids)
@@ -1079,8 +1060,7 @@ class TestAmiGraph:
     def test_create_straight_edges(self):
         """tests straightness between nodes (horiz and vert)
         """
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
-        ami_graph = self.resources.yw5003_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         node_ids = small_plot_island.node_ids
         pixel_error = 2
@@ -1096,8 +1076,7 @@ class TestAmiGraph:
     def test_create_line_segments(self):
         """segments the edge into straight-lines (AmiLine) and finds axially aligned corners
         """
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
-        ami_graph = self.resources.yw5003_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
         assert len(ami_edges) == 48, f"found {len(ami_edges)}"
@@ -1113,8 +1092,7 @@ class TestAmiGraph:
     def test_filter_line_segments(self):
         """filters segments the edge into straight-lines (AmiLine) and finds axially aligned corners
         """
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
-        ami_graph = self.resources.yw5003_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
 
@@ -1162,8 +1140,7 @@ class TestAmiGraph:
 
         :return:
         """
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
-        ami_graph = self.resources.yw5003_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
         assert len(ami_edges) == 48, f"found {len(ami_edges)}"
@@ -1184,8 +1161,7 @@ class TestAmiGraph:
 
         :return:
         """
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
-        ami_graph = self.resources.yw5003_ami_graph
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
         small_plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         ami_edges = small_plot_island.get_or_create_ami_edges()
 

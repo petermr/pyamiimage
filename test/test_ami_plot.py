@@ -1,6 +1,7 @@
 import unittest
 
-from pyamiimagex.ami_plot import POLYGON, POLYLINE, AmiLine, AmiLineTool, X, Y
+import context
+from pyamiimage.ami_plot import POLYGON, POLYLINE, AmiLine, AmiLineTool, X, Y
 
 
 class TestAmiLineTool:

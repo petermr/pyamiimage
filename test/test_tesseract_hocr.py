@@ -1,4 +1,4 @@
-# from pyamiimagex import tesseract_hocr
+# from ..pyamiimage import tesseract_hocr
 
 from skimage import io
 from matplotlib import pyplot as plt
@@ -9,8 +9,9 @@ import unittest
 from lxml import etree as ET
 import logging
 # local
-from pyamiimagex.tesseract_hocr import TesseractOCR
-from ..test.resources import Resources
+import context
+from pyamiimage.tesseract_hocr import TesseractOCR
+from resources import Resources
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +131,6 @@ class TestTesseractHOCR:
     def test_find_text_group_biosynth2(self):
         biosynth2_img = io.imread(self.biosynth2)
 
-        # self.interactive = True
         word_bboxes, words = TesseractOCR.extract_bbox_from_hocr(self.biosynth2_elem)
         raw_tesseract = TesseractOCR.draw_bbox_around_words(image=biosynth2_img, bbox_coordinates=word_bboxes)
 

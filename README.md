@@ -16,14 +16,19 @@ pip install pyamiimage
 ```
 ## Usage
 
+`pyamiimage` is a command-line tool and can be accessed via the terminal or command prompt. To bring up the help run:
+```
+pyamiimage --help
+```
+
+You can also include pyamiimage in your program using the provided classes.
+
 ### AmiImage
 AmiImage class provides methods for image manipulation. 
 ```
-from test.resources import Resources
 from pyamiimage.ami_image import AmiImage
 
-biosynth2_path = Resources.BIOSYNTH_2
-gray = AmiImage.create_grayscale_from_file(biosynth2_path)
+gray = AmiImage.create_grayscale_from_file(image_file_path)
 ```
 
 ### AmiGraph

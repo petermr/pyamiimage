@@ -1,8 +1,8 @@
 import pytest
 
-from .context import pyamiimagex
+import context
+from pyamiimage.ami_util import Vector2
 
-from pyamiimagex.ami_util import Vector2
 
 class TestAmiUtil:
     def test_angle(self):

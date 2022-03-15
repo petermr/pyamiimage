@@ -9,18 +9,19 @@ import matplotlib.pyplot as plt
 import networkx as nx
 # library
 import numpy as np
-# import sknw  # must pip install sknw
+
 from networkx.algorithms import tree
 from skimage import io
 from skimage.measure import approximate_polygon
 
 # local
-from pyamiimagex.ami_image import AmiImage
-from pyamiimagex.ami_plot import AmiLine, X, Y
-from pyamiimagex.ami_util import AmiUtil
-from pyamiimagex.svg import BBox
-from pyamiimagex.text_box import TextBox
-from pyamiimagex.sknw_clone import build_sknw
+from pyamiimage.ami_image import AmiImage
+from pyamiimage.ami_plot import AmiLine, X, Y
+from pyamiimage.ami_util import AmiUtil
+from pyamiimage.svg import BBox
+from pyamiimage.text_box import TextBox
+# copied from sknw of yxdragram because PyPI package is not updated
+import pyamiimage.sknw as sknw
 
 logger = logging.getLogger(__name__)
 
@@ -487,8 +488,7 @@ class AmiGraph:
         """
         AmiUtil.check_type_and_existence(skeleton_image, np.ndarray)
 
-        # nx_graph = sknw.build_sknw(skeleton_image, multi=True, iso=True, ring=True, full=True)
-        nx_graph = build_sknw(skeleton_image, multi=True, iso=True, ring=True, full=True)
+        nx_graph = sknw.build_sknw(skeleton_image, multi=True, iso=True, ring=True, full=True)
         return nx_graph
 
     def get_ami_islands_from_nx_graph(self):
@@ -646,7 +646,7 @@ class AmiGraph:
         """
         adds rectangle to axis subplot
         :param axis: axis from matplotlib subplots
-        :param bbox: BBox from pyamiimagex or its ranges
+        :param bbox: BBox from pyamiimage or its ranges
         :param linewidth: linewidth of plotted rect (1)
         :param edgecolor: stroke color of line ("red")
         :param facecolor: fill of rect ("none")

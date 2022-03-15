@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 import pytest
 from lxml import etree
 
-from pyamiimagex.ami_arrow import AmiArrow, AmiNetwork
-from pyamiimagex.ami_graph_all import AmiGraph, AmiIsland
-from pyamiimagex.bbox import BBox
-from pyamiimagex.svg import SVG_NS, SVGG, SVGSVG, SVGArrow, SVGRect, ns_xpath
-from ..test.resources import Resources
+import context
+from pyamiimage.ami_arrow import AmiArrow, AmiNetwork
+from pyamiimage.ami_graph_all import AmiGraph, AmiIsland
+from pyamiimage.bbox import BBox
+from pyamiimage.svg import SVG_NS, SVGG, SVGSVG, SVGArrow, SVGRect, ns_xpath
+from resources import Resources
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,6 @@ class TestArrow:
             self.resources.biosynth6_compounds_dto.ami_graph
         )
 
-    def test_extract_single_arrow(self):
         ami_graph = self.one_head_island.ami_graph
         assert (
             len(self.one_head_island.node_ids) == 5

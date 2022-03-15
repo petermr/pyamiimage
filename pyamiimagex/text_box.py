@@ -5,12 +5,8 @@ import logging
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-try:
-    from pyamiimagex.bbox import BBox
-    from pyamiimagex.tesseract_hocr import TesseractOCR
-except:
-    from pyamiimagex.bbox import BBox
-    from pyamiimagex.tesseract_hocr import TesseractOCR
+from pyamiimage.bbox import BBox
+from pyamiimage.tesseract_hocr import TesseractOCR
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -170,7 +166,7 @@ class TextBox:
         """
         adds rectangle to axis subplot
         :param axis: axis from matplotlib subplots
-        :param bbox: BBox from pyamiimagex or its ranges
+        :param bbox: BBox from pyamiimage or its ranges
         :param linewidth: linewidth of plotted rect (1)
         :param edgecolor: stroke color of line ("red")
         :param facecolor: fill of rect ("none")

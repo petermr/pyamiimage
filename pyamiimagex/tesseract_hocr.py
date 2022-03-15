@@ -5,12 +5,7 @@ import numpy as np
 from lxml.etree import Element, QName
 from lxml import etree
 
-from pyamiimagex.svg import XMLNamespaces
-
-try:
-    from pyami.py4ami import wikimedia
-except ImportError:
-    print("Cannot load pyami wikimedia")
+from pyamiimage.svg import XMLNamespaces
 
 """
 This file is to play with the output of hocr
@@ -37,6 +32,15 @@ XHTML_OCRX_WORD = "//{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']"
 
 TEXT_BOX_STROKE = "blue"
 TEXT_BOX_FONT = "sans-serif"
+
+
+
+class AmiHOCR:
+    """parses HOCR to create accessible datastructure"""
+    def __init__(self) -> None:
+        pass
+
+    
 
 
 class TesseractOCR:
@@ -133,8 +137,8 @@ class TesseractOCR:
             if child.attrib['class'] == 'ocrx_word':
                 # coordinates for bbox has the following format: 'bbox 333 74 471 102; x_wconf 76'
                 # we are only interested in the coordinates, so we split at ; and append the first part
-                bboxes.append(child.attrib['title'].split(';')[0])
-                words.append(child.text)
+                    bboxes.append(child.attrib['title'].split(';')[0])
+                    words.append(child.text)
 
         # now we have a list with string elenments like 'bbox 333 74 471 102'
         # first we convert each string into a list, and then remove 'bbox', leaving just the coordinate
@@ -196,9 +200,11 @@ class TesseractOCR:
         :param phrases: to lookup
         :return: tuple (list of qitem ids, list of descriptions
         """
-        lookup = wikimedia.WikidataLookup()
-        qitems, desc = lookup.lookup_items(phrases)
-        return qitems, desc
+        # TODO add wikidata lookup via pyami
+        # lookup = wikimedia.WikidataLookup()
+        # qitems, desc = lookup.lookup_items(phrases)
+        # return qitems, desc
+        pass
 
     @classmethod
     def output_phrases_to_file(cls, phrase_list, output_file):
