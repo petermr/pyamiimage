@@ -8,10 +8,9 @@ import numpy as np
 from skimage import io
 
 # local
-import context
-from pyamiimage.ami_graph_all import AmiGraph
-from pyamiimage.ami_image import AmiImageDTO
-from pyamiimage.tesseract_hocr import TesseractOCR
+from pyamiimagex.ami_graph_all import AmiGraph
+from pyamiimagex.ami_image import AmiImageDTO
+from pyamiimagex.tesseract_hocr import TesseractOCR
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +89,6 @@ class Resources:
     # https://europepmc.org/article/MED/34909142#figures-and-tables
     MED_34909142_3_RAW = Path(TEST_RESOURCE_DIR, "MED_34909142_3.jpeg")
     assert MED_34909142_3_RAW.exists(), f"file exists {MED_34909142_3_RAW}"
-    MED_XRD_FIG_A_RAW = Path(TEST_RESOURCE_DIR, "MED_34909142_3_figA.jpeg")
-    assert MED_XRD_FIG_A_RAW.exists(), f"file {MED_XRD_FIG_A_RAW} doesn't exist"
 
     BATTERY_DIR = Path(TEST_RESOURCE_DIR, "battery")
     BATTERY1_RAW = Path(BATTERY_DIR, "capacity_r_g_b.png")
@@ -107,9 +104,6 @@ class Resources:
     YW5003_5_RAW = Path(TEST_RESOURCE_DIR, "iucr_yw5003_fig5.png")
     assert YW5003_5_RAW.exists(), f"file exists {YW5003_5_RAW}"
 
-    SHAPES_1_RAW = Path(TEST_RESOURCE_DIR, "test_img_shapes.png")
-    assert SHAPES_1_RAW.exists(), f"file {SHAPES_1_RAW} doesn't exist"
-
     # =====================
 
     TEMP_DIR = Path(TEST_RESOURCE_DIR.parent.parent, "temp")
@@ -118,8 +112,8 @@ class Resources:
     def __init__(self):
         self.cached = False
 
-        self.arrows1_image = None
-        self.nx_graph_arrows1 = None
+        self.arrows1_image_file = None
+        self.arrows1_nx_graph = None
 
         # DTO approach
         self.biosynth1_dto = None
@@ -132,17 +126,12 @@ class Resources:
         if not self.cached:
             logger.warning(f"{__name__} setting up Resources")
             self.cached = True
+            self.arrows1_image_file = Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
             self.arrows1_image = io.imread(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
             assert self.arrows1_image.shape == (315, 1512)
-            self.arrows1_image = np.where(self.arrows1_image < 127, 0, 255)
-            self.nx_graph_arrows1 = AmiGraph.create_nx_graph_from_arbitrary_image_file(
-                Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-            )
-            self.arrows1_ami_graph = (
-                AmiGraph.create_ami_graph_from_arbitrary_image_file(
-                    Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
-                )
-            )
+            self.arrows1_binary = np.where(self.arrows1_image < 127, 0, 255)
+            self.arrows1_nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
+            self.arrows1_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
 
             # biosynth1 has solid arrowheads and (unfortunately) some primitives overlap
             self.biosynth1 = io.imread(Resources.BIOSYNTH1_RAW)
@@ -205,6 +194,8 @@ class Resources:
                 raw_image_shape=(967, 367, 3),
                 threshold=127,
             )
+
+            self.yw5003_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
 
             return self
 
