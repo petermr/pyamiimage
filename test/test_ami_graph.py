@@ -12,7 +12,6 @@ import networkx as nx
 import numpy
 import numpy as np
 import pytest
-import sknw
 from skimage import data, morphology
 from skimage.measure import approximate_polygon, subdivide_polygon
 from skimage.morphology import skeletonize
