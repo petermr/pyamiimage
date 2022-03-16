@@ -37,6 +37,11 @@ class AmiImage:
 
 # ========== legacy methods that need integrating
 
+    @classmethod
+    def show(cls, image):
+        io.imshow(image)
+        io.show()
+    
     def read_file(self, file):
         assert file, "file should not be None"
         assert file.exists(), "{file} must exist"

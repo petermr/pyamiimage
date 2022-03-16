@@ -429,13 +429,19 @@ class AmiOCR:
         return cleaned
 
     @classmethod
-    def set_bbox_to_bg(cls, image, bbox):
+    def remove_textboxes_from_image(cls, image, textboxes):
+        """Given an image and a list of textboxes, sets the bounding boxes to bg value"""
+        for textbox in textboxes:
+            # bg = AmiOCR.find_bg() #TBI
+            image = cls.set_bbox_to_bg(image, textbox.bbox)
+        return image
+
+    @classmethod
+    def set_bbox_to_bg(cls, image, bbox, bg = 255):
         """given a bounding box set the value in the bounding box in the image to bg color"""
-        bg = 255
-        # bg = AmiOCR.find_bg() #TBI
-        y_range = bbox.get_yrange()
-        x_range = bbox.get_xrange()
-        image[x_range[0]: x_range[1]+1, y_range[0] : y_range[1]+1] = bg
+        row_range = bbox.get_yrange()
+        column_range = bbox.get_xrange()
+        image[row_range[0] : row_range[1]+1, column_range[0]: column_range[1]+1] = bg
         return image
 
     @classmethod
