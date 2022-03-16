@@ -7,11 +7,13 @@ import easyocr
 file = 'config.ini'
 image_num = 3
 file_format = 'png'
-image_file = f'test/resources/biosynth_path_{image_num}/raw.{file_format}'
+# image_file = f'test/resources/biosynth_path_{image_num}/raw.{file_format}'
+image_file = "test/resources/Signal_transduction_pathways_wp.png"
 config = ConfigParser()
 config.read(file)
 print(config.sections())
 print(config['ocr']['backend'])
+reader = easyocr.Reader(['en'])
 
 def create_xy_range_from_bbox(bbox):
     """bbox is in format [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]"""
@@ -19,7 +21,6 @@ def create_xy_range_from_bbox(bbox):
     return xy_range
 
 def get_words():
-    reader = easyocr.Reader(['en'])
     data = reader.readtext(image_file)
     words = []
     for text in data:
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     image = AmiImage.create_grayscale_from_file(image_file)
     for item in words:
         print(item)
-    # bboxed_image = AmiOCR.plot_bboxes_on_image(image, words)
-    # AmiImage.show(bboxed_image)
+    bboxed_image = AmiOCR.plot_bboxes_on_image(image, words)
+    AmiImage.show(bboxed_image)
     patched_image = AmiOCR.remove_textboxes_from_image(image, words)
     AmiImage.show(patched_image)
