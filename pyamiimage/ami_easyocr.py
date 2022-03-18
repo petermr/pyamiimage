@@ -1,18 +1,19 @@
 import context
 from configparser import ConfigParser
-from pyamiimage.ami_ocr import AmiOCR, TextBox
+from pyamiimage._old_ami_ocr import AmiOCR, TextBox
 from pyamiimage.ami_image import AmiImage
+from skimage import io
 import easyocr
 
-file = 'config.ini'
 image_num = 3
 file_format = 'png'
 # image_file = f'test/resources/biosynth_path_{image_num}/raw.{file_format}'
 image_file = "test/resources/Signal_transduction_pathways_wp.png"
-config = ConfigParser()
-config.read(file)
-print(config.sections())
-print(config['ocr']['backend'])
+# image_file = "test/alex_pico/emss-81481-f001.png"
+# image_file = "test/alex_pico/13068_2019_1355_Fig4_HTML.jpeg"
+# image_file = "test/resources/red_black_cv.png"
+# image_file= "test/resources/iucr_yw5003_fig5.png"
+# image_file= "test/resources/med_35283698.png"
 reader = easyocr.Reader(['en'])
 
 def create_xy_range_from_bbox(bbox):
@@ -31,7 +32,7 @@ def get_words():
 
 if __name__ == '__main__':
     words = get_words()
-    image = AmiImage.create_grayscale_from_file(image_file)
+    image = AmiImage.read(image_file)
     for item in words:
         print(item)
     bboxed_image = AmiOCR.plot_bboxes_on_image(image, words)

@@ -131,6 +131,7 @@ class BBox:
             else:
                 raise ValueError(f"ranges must be increasing {val0} !<= {val1}")
         self.xy_ranges[index] = [val0, val1]
+        self.xy_ranges[index] = [val0, val1]
 
     def __str__(self):
         return str(self.xy_ranges)
@@ -382,11 +383,11 @@ class BBox:
 
         try:
             row, col = draw.rectangle_perimeter(start=point_pair[0], end=point_pair[1])
-            image[row, col] = 0
+            image[row, col] = 50
         except IndexError as e:
             point_pair = BBox.fit_point_pair_within_image(image, point_pair)
             row, col = draw.rectangle_perimeter(start=point_pair[0], end=point_pair[1])
-            image[row, col] = 0
+            image[row, col] = 50
 
         return image
 

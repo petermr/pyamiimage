@@ -41,6 +41,11 @@ class AmiImage:
     def show(cls, image):
         io.imshow(image)
         io.show()
+
+    @classmethod
+    def read(cls, path):
+        image = io.imread(path)
+        return image
     
     def read_file(self, file):
         assert file, "file should not be None"
