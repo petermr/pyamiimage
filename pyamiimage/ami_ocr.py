@@ -53,9 +53,20 @@ class TextBox():
         self.bbox = bbox
 
 class AmiOCR:
-
+    '''
+    Defines an AmiOCR object. The pupose of this object is to run, refine and store the output of ocr on an image.
+    This uses TextBox objects to store the location and values of text in an image.
+    '''
     def __init__(self, image=None) -> None:
-        '''Creates an OCR object from path and images, if both path and images are given, path takes precendence'''
+        '''
+        Creates an AmiOCR object from an image or path. To get ocr output use get_textboxes().
+
+            Parameters:
+                image (numpy array or path): Image or Image Path to run OCR on
+            
+            Returns:
+                None
+        '''
         self.image = None
         self.textboxes = []
         if image is not None:
@@ -72,6 +83,9 @@ class AmiOCR:
         
             Parameters:
                 image (Path or numpy.ndarray): Image or Path to run AmiOCR on
+            
+            Returns:
+                None
         '''
         if is_valid_image(image):
             self.image = image
@@ -81,6 +95,15 @@ class AmiOCR:
             raise TypeError('Only image (numpy.ndarray), path (str) or Path (pathlib.Path) allowed.')
     
     def get_textboxes(self, use_cache=True):
+        '''
+        Returns textboxes cached in the object, or runs ocr on the image, if cache is empty
+        
+            Parameters:
+                use_cache (bool): Set to False if you don't want to use cache
+            
+            Returns:
+                self.textboxes (list): list of TextBox objects
+        '''
         if self.textboxes == [] or not use_cache:
             if self.image is not None:
                 self.textboxes = AmiOCR.run_ocr_on_image(self.image)
@@ -100,10 +123,22 @@ class AmiOCR:
             Returns:
                 textboxes (list): List of TextBox objects
         '''
-        logging.info('Running OCR on image, please wait...')
+        logging.info('Running OCR on image. May take some time. Please wait...')
         textboxes = AmiOCR._generate_textboxes(ocr_wrapper.readtext(image))
-        logging.info('Done')
         return textboxes
+
+    @classmethod
+    def write_text_to_file(cls, textboxes, path):
+        '''
+        Given a list of textboxes, writes text to file
+        
+            Parameters:
+                textboxes (list): A list of TextBox objects
+                path (str): path of output file
+        '''
+        with open(path, 'w') as f:
+            for textbox in textboxes:
+                f.write(textbox.text + "\n")
 
     
     def _generate_textboxes(ocr_wrapper_output):

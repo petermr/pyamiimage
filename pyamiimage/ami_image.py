@@ -4,7 +4,6 @@ mainly classmathods, but may need some objects to preserve statementfor expensiv
 TODO authors Anuv Chakroborty and Peter Murray-Rust, 2021
 Apache2 Open Source licence
 """
-from distutils import extension
 import numpy as np
 from skimage import io, color, morphology
 import skimage
@@ -12,7 +11,6 @@ from pathlib import Path
 import os
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
-from PIL import Image
 
 TEMP_DIR = Path(__file__).parent.parent
 TEMP_DIR = Path(TEMP_DIR, "temp")

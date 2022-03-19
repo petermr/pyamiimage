@@ -15,9 +15,8 @@ class Pyamiimage:
     def execute(self, args):
         if args.text:
             ocr = AmiOCR(args.infile.name)
-            words = ocr.get_words()
-            words = ocr.clean_all(words)
-            ocr.write_list_to_file(words, args.outfile.name)
+            textboxes = ocr.get_textboxes()
+            AmiOCR.write_text_to_file(textboxes, args.outfile.name)
 
     def handlecli(self):
         """Handles the command line interface using argpase"""
@@ -41,7 +40,6 @@ class Pyamiimage:
             help="Run AmiOCR on a given Image"
         )
         args = parser.parse_args()
-        print(args)
         self.execute(args)
 
 def main():
