@@ -8,10 +8,18 @@ from skan.pre import threshold
 import unittest
 from lxml import etree as ET
 import logging
+import os
+import glob
+import imageio
+#local
+from pyamiimage.ami_util import AmiUtil
+
 # local
-import context
 from pyamiimage.tesseract_hocr import TesseractOCR
+from pyamiimage.ami_graph_all import AmiGraph, AmiIsland
 from resources import Resources
+from pyamiimage.image_exploration import Exploration
+from test_ami_skeleton import TestAmiSkeleton
 
 logger = logging.getLogger(__name__)
 
@@ -202,7 +210,82 @@ class TestTesseractHOCR:
     def test_extract_bbox_from_hocr3(self):
         root = TesseractOCR.read_hocr_file(Resources.BIOSYNTH3_HOCR)
         bboxes, words = TesseractOCR.extract_bbox_from_hocr(root)
+        print(f"words {words}")
         assert len(bboxes) == 60
+
+    def test_extract_bbox_from_hocr_satish_005B(self):
+        raw_file = Resources.SATISH_005B_RAW
+        bboxes, words = TesseractOCR.extract_bbox_from_image(raw_file)
+        img = io.imread(raw_file)
+
+        print(f"words {words}")
+        assert len(bboxes) == 20
+        # phrases, phrase_bboxes = TesseractOCR.find_phrases(raw_file)
+        # groups_bboxes = TesseractOCR.find_word_groups(bbox_of_phrases=phrase_bboxes)
+        # grouped_text = TesseractOCR.draw_bbox_around_words(image=img, bbox_coordinates=groups_bboxes)
+        #
+        # if self.interactive or True:
+        #     io.imshow(grouped_text)
+        #     io.show()
+
+    def test_extract_bbox_from_hocr_satish_all(self):
+        img_dir = Resources.SATISH_DIR
+        path = Path(img_dir)
+        os.chdir(path)
+        # path = Path(img_dir, "*.png")
+
+        img_files = glob.glob("*.png")
+        assert len(img_files) > 0
+        for img_file in img_files:
+            bboxes, words = TesseractOCR.extract_bbox_from_image(img_file)
+            print(f"{img_file} words {words}")
+
+    def test_satish_erode_dilate(self):
+        img_dir = Resources.SATISH_DIR
+        os.chdir(img_dir)
+        img_files = glob.glob("*.png")
+        assert len(img_files) > 0
+        MIN_EDGE_LEN = 200
+
+        for img_file in sorted(img_files):
+            img_path = Path(img_file)
+            Exploration().explore_dilate_1(img_path)
+            img = TestAmiSkeleton.create_skeleton_from_file(img_path)
+            out_path = Path(Resources.TEMP_DIR, img_path.stem+".png")
+            imageio.imwrite(out_path, img)
+            print(f"writing {type(img)} {out_path} {img.shape}")
+            ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(img_path)
+            ami_islands = ami_graph.get_or_create_ami_islands(mindim=50)
+            for island in ami_islands:
+                plot_edge = None
+                print(f"{island.get_or_create_bbox()} n, {len(island.get_ami_nodes())} "
+                      f"e {len(island.get_or_create_ami_edges())} coords {len(island.get_or_create_coords())}")
+                if len(island.get_ami_nodes()) <= 2:
+                    print(f"edge?")
+                    print(f"{[(edge.first_point, edge.last_point) for edge in island.get_or_create_ami_edges()]}")
+                    plot_edge = island.get_or_create_ami_edges()[0]
+                elif len(ami_islands) == 1: # (higher numbers means the edge has been identified elsewhere
+                    print("box?")
+                    for edge in island.get_or_create_ami_edges():
+                        pixlen = edge.pixel_length()
+                        if pixlen < MIN_EDGE_LEN:
+                            continue;
+                        start_node = edge.get_start_ami_node()
+                        end_node = edge.get_end_ami_node()
+                        if not start_node or not end_node:
+                            print(f"cannot find nodes for long edge")
+                            continue
+                        print(f"{edge} {pixlen} {start_node} {end_node}")
+                        print(f"start {len(start_node.get_or_create_ami_edges())} end {len(end_node.get_or_create_ami_edges())}")
+                        if len(start_node.get_or_create_ami_edges()) == 1 or len(end_node.get_or_create_ami_edges()) == 1:
+                            plot_edge = edge
+                            break
+                if plot_edge:
+                    xy_array = plot_edge.points_xy
+                    csv_path = Path(Resources.TEMP_DIR, img_path.stem + ".csv")
+                    AmiUtil.write_xy_to_csv(xy_array, csv_path)
+
+
 
     def test_extract_bboxes_from_image(self):
         bboxes, words = TesseractOCR.extract_bbox_from_image(Resources.BIOSYNTH3_RAW)

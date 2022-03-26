@@ -954,6 +954,12 @@ class AmiEdge:
         """
         return f"{self.start_id}_{self.end_id}_{self.branch_id}"
 
+    def get_start_ami_node(self):
+        return None if not self.ami_graph or not self.start_id else self.ami_graph.get_or_create_ami_node(self.start_id)
+
+    def get_end_ami_node(self):
+        return None if not self.ami_graph or not self.end_id else self.ami_graph.get_or_create_ami_node(self.end_id)
+
     def _extract_points_from_nx(self):
         """extract points from self.PTS and create self.points_xy
         """

@@ -107,6 +107,13 @@ class Resources:
     YW5003_5_RAW = Path(TEST_RESOURCE_DIR, "iucr_yw5003_fig5.png")
     assert YW5003_5_RAW.exists(), f"file exists {YW5003_5_RAW}"
 
+# Satish
+    SATISH_DIR = Path(TEST_RESOURCE_DIR, "satish")
+    assert SATISH_DIR.exists(), f"file exists {SATISH_DIR}"
+    SATISH_005B_RAW = Path(TEST_RESOURCE_DIR, "005B", "raw.png")
+    assert SATISH_005B_RAW.exists(), f"file exists {SATISH_005B_RAW}"
+
+
     # =====================
 
     TEMP_DIR = Path(TEST_RESOURCE_DIR.parent.parent, "temp")

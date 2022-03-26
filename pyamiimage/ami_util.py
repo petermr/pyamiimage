@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import numpy.linalg as LA
 import math
+import csv
 
 X = 0
 Y = 1
@@ -212,7 +213,18 @@ class AmiUtil:
         :return:
         """
         assert arr is not None
-        assert len(arr) == length and type(arr[0]) is float, f"arr must be 2-vector float {arr}"
+        assert (len(arr) == length) and AmiUtil.is_number(arr[0]), f"arr must be numeric {arr} {len(arr)}"
+
+    @classmethod
+    def assert_is_coord_array(cls, arr, length=2):
+        """
+        assert arr[0] is float and has given length
+        :param arr:
+        :param length:
+        :return:
+        """
+        assert arr is not None and len(arr) > 0
+        AmiUtil.assert_is_float_array(arr[0], length=2), f"arr must be numeric width 2 {arr[0]}"
 
     @classmethod
     def float_list(cls, int_lst):
@@ -279,6 +291,17 @@ class AmiUtil:
             if not exist:
                 new_points.append(point)
         return new_points
+
+    @classmethod
+    def write_xy_to_csv(cls, xy_array, path, header=None):
+
+        AmiUtil.assert_is_coord_array(xy_array)
+        assert path is not None, "no path given"
+        with open(path, "w", encoding="UTF-8", newline='') as f:
+            writer = csv.writer(f)
+            if header:
+                writer.writerow(header)
+            writer.writerows(xy_array)
 
 class Vector2:
 
