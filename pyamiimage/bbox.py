@@ -248,7 +248,8 @@ class BBox:
     def change_range(self, index, margin):
         """
         change range by margin
-        :param index:
+
+        :param index: 0 for X 1 for Y
         :param margin:
         :return:
         """
@@ -314,6 +315,11 @@ class BBox:
     @classmethod
     def fits_within(cls, bbox, bbox_gauge):
         """
+        does bbox fit within self (relative coordinates)
+
+        Will this parcel fir the letter box?
+
+
         TODO MOVED
 
         :param bbox: tuple of tuples ((x0,x1), (y0,y1))
@@ -403,17 +409,6 @@ class BBox:
         point_pair[1] = (bbox_row, bbox_col)
         return point_pair
 
-    # RECURSIVE imports...
-    # def create_svg(self):
-    #     """creates SVG (a <g> with a <rect>
-    #     :return: <g role="bbox"><rect .../></g>
-    #     """
-    #     g = SVGG()
-    #     g.set_attribute("role", "bbox")
-    #     svg_rect = SVGRect(self)
-    #     g.append(svg_rect)
-    #     return g
-
     @classmethod
     def create_from_corners(cls, xy1, xy2):
         if xy1 is None or xy2 is None:
@@ -437,6 +432,23 @@ class BBox:
         if point[1] < self.xy_ranges[1][0] or point[1] > self.xy_ranges[1][1]:
             return False
         return True
+
+    def contains_bbox(self, bbox):
+        """does bbox fit within self (inclusive coords)
+
+        :param bbox: bbox xyranges should fit within self.xy_ranges; None returns False
+        """
+
+        assert bbox, "must have bbox"
+        contains = False
+        if bbox and bbox.xy_ranges:
+            if (bbox.get_xrange()[0] >= self.get_xrange()[0] and
+                bbox.get_xrange()[1] <= self.get_xrange()[1] and
+                bbox.get_yrange()[0] >= self.get_yrange()[0] and
+                bbox.get_yrange()[1] <= self.get_yrange()[1]):
+                return True
+        return False
+
 
     @classmethod
     def validate_point(cls, point):

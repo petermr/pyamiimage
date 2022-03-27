@@ -112,6 +112,8 @@ class Resources:
     assert SATISH_DIR.exists(), f"file exists {SATISH_DIR}"
     SATISH_005B_RAW = Path(TEST_RESOURCE_DIR, "005B", "raw.png")
     assert SATISH_005B_RAW.exists(), f"file exists {SATISH_005B_RAW}"
+    SATISH_047Q_RAW = Path(TEST_RESOURCE_DIR, "047Q", "raw.png")
+    assert SATISH_047Q_RAW.exists(), f"file exists {SATISH_047Q_RAW}"
 
 
     # =====================
@@ -206,6 +208,7 @@ class Resources:
             )
 
             self.yw5003_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
+            self.satish_047q_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.SATISH_047Q_RAW)
 
             return self
 

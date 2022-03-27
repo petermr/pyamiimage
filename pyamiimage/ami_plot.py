@@ -20,9 +20,51 @@ X = 0
 Y = 1
 
 
-class AmiPlot:
-    pass
+class PlotSide:
+    LEFT = "LEFT"
+    RIGHT = "RIGHT"
+    TOP = "TOP"
+    BOTTOM = "BOTTOM"
+    SIDES = [LEFT, TOP, RIGHT, BOTTOM]
 
+class AmiPlot:
+
+    def __init__(self, bbox=None):
+        self.bbox = bbox
+        self.axial_box_by_side = dict()
+
+    def get_axial_box(self, side=PlotSide.LEFT, low_margin=10, high_margin=10):
+        """
+        create a box for the axial spine and optional margins
+
+        if margins are zero this is a zero-width box exactly covering the axial spine
+        It may be advisable to expand the box along the spine to catch ticks with same
+        coordinate as spine ends
+
+        :param side: side of box (see PlotSide)
+        :param low_margin: decrease lowvalue of non-side range
+        :param high_margin: increase highvalue of non-side range
+        """
+        assert side in PlotSide.SIDES
+        axial_bbox = self.axial_box_by_side.get(side)
+        if self.bbox and not axial_bbox:
+            xrange = self.bbox.get_xrange()
+            yrange = self.bbox.get_yrange()
+            if side == PlotSide.LEFT:
+                xy_ranges = [[xrange[0] - low_margin, xrange[0] + high_margin], yrange]
+            elif side == PlotSide.RIGHT:
+                xy_ranges = [[xrange[1] -low_margin, xrange[1] + high_margin], yrange]
+            elif side == PlotSide.TOP:
+                xy_ranges = [xrange, [yrange[0] - low_margin, yrange[0] + high_margin]]
+            elif side == PlotSide.BOTTOM:
+                xy_ranges = [xrange, [yrange[1] - low_margin, yrange[1] + high_margin]]
+
+            axial_bbox = BBox(xy_ranges=xy_ranges)
+            self.axial_box_by_side[side] = axial_bbox
+        return axial_bbox
+
+    def clear_axial_boxes(self):
+        self.axial_box_by_side = dict()
 
 class AmiLine:
     """This will probably include a third-party tool supporting geometry for lines
@@ -41,6 +83,7 @@ class AmiLine:
                 raise ValueError(f"bad xy pair for line {xy12}")
             self.xy1 = [xy12[0][X], xy12[0][Y]]
             self.xy2 = [xy12[1][X], xy12[1][Y]]
+        self._bbox = None
         # ami_nodes = []
 
     def __repr__(self):
@@ -69,6 +112,15 @@ class AmiLine:
             return [(self.xy1[X] + self.xy2[X]) / 2, (self.xy1[Y] + self.xy2[Y]) // 2]
         return None
 
+    @property
+    def bbox(self):
+        """get bbox for line
+        """
+        if not self._bbox and self.xy1 and self.xy2:
+            self._bbox = BBox([[self.xy1[X], self.xy2[X]], [self.xy1[Y], self.xy2[Y]]])
+
+        return self._bbox
+
     def is_horizontal(self, tolerance=1) -> int:
         return abs(self.vector[Y]) <= tolerance < abs(self.vector[X])
 
@@ -96,6 +148,26 @@ class AmiLine:
 
     def get_max(self, xy_flag):
         return None if xy_flag is None else max(self.xy1[xy_flag], self.xy2[xy_flag])
+
+    @classmethod
+    def get_tick_coords(cls, ami_lines, box, axis):
+        """
+        get changing tick coordinates for lines
+
+        :param ami_lines: horizontal or vertical lines
+        :param box: box which must totally include tick marks
+        :param axis: X or Y
+        """
+        assert ami_lines is not None and len(ami_lines) >= 1, f"must have at least one tick"
+        assert box is not None
+        assert axis == X or axis == Y, f"must have X or Y axis"
+        tick_lines = []
+        for ami_line in ami_lines:
+            if box.contains_bbox(ami_line.bbox):
+                tick_lines.append(ami_line)
+        tick_coords = sorted([line.bbox.get_ranges()[axis][0] for line in tick_lines])
+        return tick_coords
+
 
 class AmiPolyline:
     """polyline. can represent solid or dashed (NYI) lines. contains attachment points
