@@ -27,6 +27,12 @@ class BBox:
             self.set_ranges(xy_ranges)
 
     @classmethod
+    def create_from_numpy_array(cls, nparray):
+        coords = nparray.tolist()
+        bbox = BBox(xy_ranges=[[coords[0],coords[2]], [coords[1], coords[3]]])
+        return bbox
+
+    @classmethod
     def create_from_xy_w_h(cls, xy, width, height):
         """
         create from xy, width height
