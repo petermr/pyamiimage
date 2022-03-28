@@ -99,10 +99,12 @@ class AmiOCR:
         Returns textboxes cached in the object, or runs ocr on the image, if cache is empty
         
             Parameters:
-                use_cache (bool): Set to False if you don't want to use cache
+            ----------
+            use_cache (bool): Set to False if you don't want to use cache
             
             Returns:
-                self.textboxes (list): list of TextBox objects
+            --------
+            self.textboxes (list): list of TextBox objects
         '''
         if self.textboxes == [] or not use_cache:
             if self.image is not None:
@@ -111,6 +113,34 @@ class AmiOCR:
                 logging.error('No image to ocr, run set_image().')
                 
         return self.textboxes
+
+    def rescan_subimage(self, subimage_bbox):
+        '''
+        Given a bounding box, it rescans the area within the bounding box
+
+            Parameters:
+                subimage_bbox (BBox or list): 
+        '''
+        # Create snippet of self.image from subimage_bbox
+        snippet = None #TBI
+        # Send snippet to run_ocr_on_image()
+        textboxes = AmiOCR.run_ocr_on_image(snippet)
+        # Translate textboxes to the original image
+        for textbox in textboxes:
+            pass
+            # TBI
+            # Translate each textbox 
+            # Check their quality compared to previous textbox in the same location
+            # Replace with better quality textbox
+
+    def show_textboxes(self):
+        """
+        Displays text bounding boxes on the image
+        """
+        textboxes = self.get_textboxes()
+        plotted_image = AmiOCR.plot_bboxes_on_image(self.image, textboxes)
+        AmiImage.show(plotted_image)
+            
 
     @classmethod
     def run_ocr_on_image(cls, image):
@@ -126,6 +156,23 @@ class AmiOCR:
         logging.info('Running OCR on image. May take some time. Please wait...')
         textboxes = AmiOCR._generate_textboxes(ocr_wrapper.readtext(image))
         return textboxes
+
+    @classmethod
+    def plot_bboxes_on_image(self, image, textboxes):
+        """draws bboxes on image 
+        :param: image
+        :type: numpy array
+        :textboxes: array of TextBox objects
+        :returns: image
+        """
+        temp = np.copy(image)
+        for textbox in textboxes:
+            try:
+                temp = BBox.plot_bbox_on(temp, textbox.bbox)
+            except IndexError as e:
+                logging.error("BBox index beyond image boundary")
+                continue
+        return temp
 
     @classmethod
     def write_text_to_file(cls, textboxes, path):
