@@ -216,6 +216,8 @@ class TestTesseractHOCR:
         # assert words == ['Hardness', '(Hv)', '250', '200', '150', '100', '50', 'Jominy',
         #                  ' ', ' ', '10', '20', '30', 'Depth', '(mm)', '40', '50', ' ', '—@', '0058']
         assert 20 > len(bboxes) > 15
+        for box, word in zip(bboxes, words):
+            print(f"box {box}, word '{word}'")
 
     def test_extract_bbox_from_hocr_satish_all(self):
         img_dir = Resources.SATISH_DIR

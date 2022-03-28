@@ -1253,10 +1253,40 @@ class AmiEdge:
 
     @classmethod
     def get_non_axial_edges(cls, ami_edges, tolerance=1):
+        """edges other than horizontal or vertical
+        can be slanted straight lines or curves
+        :param ami_edges:
+        :param tolerance: default 1"""
         return list(filter(
             lambda ami_edge:
             not ami_edge.is_horizontal(tolerance=tolerance) and not ami_edge.is_vertical(tolerance=tolerance),
             ami_edges))
+
+    @classmethod
+    def get_vertical_lines(cls, ami_edges, tolerance=2):
+        """
+        get vertical lines from edges
+        :param ami_edges: edges
+        :param tolerance:
+        :return: lines or empty list
+        """
+        vertical_edges = AmiEdge.get_vertical_edges(ami_edges, tolerance=tolerance)
+        vert_ami_lines = AmiEdge.get_single_lines(vertical_edges)
+        return vert_ami_lines
+
+    @classmethod
+    def get_horizontal_lines(self, ami_edges, tolerance=2):
+        """
+        get horizontal lines from edges
+        :param ami_edges: edges
+        :param tolerance:
+        :return: lines or empty list
+        """
+
+        horizontal_edges = AmiEdge.get_horizontal_edges(ami_edges, tolerance=tolerance)
+        horiz_ami_lines = AmiEdge.get_single_lines(horizontal_edges)
+        return horiz_ami_lines
+
 
     def end_point(self, endx):
         """select end 0 (first) or 1 (last)

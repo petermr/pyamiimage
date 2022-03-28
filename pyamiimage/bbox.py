@@ -426,6 +426,13 @@ class BBox:
         bbox = BBox(xy_ranges=[xrange, yrange])
         return bbox
 
+    @property
+    def centroid(self):
+        return [
+            (self.get_xrange()[0] + self.get_xrange()[1]) / 2,
+            (self.get_yrange()[0] + self.get_yrange()[1]) / 2
+        ]
+
     def contains_point(self, point):
         """does point lie within xy_ranges inclusive
         :param point: 2D numeric array [x, y]

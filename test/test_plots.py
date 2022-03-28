@@ -1,5 +1,6 @@
 from collections import Counter
 import glob
+import math
 from pathlib import Path
 import os
 import imageio
@@ -8,7 +9,7 @@ import numpy as np
 # local
 from resources import Resources
 from pyamiimage.ami_graph_all import AmiGraph, AmiEdge, AmiLine
-from pyamiimage.ami_plot import AmiPlot, PlotSide, X, Y
+from pyamiimage.ami_plot import AmiPlot, PlotSide, X, Y, ScaleText, TickMark, MAX_DELTA_TICK
 from pyamiimage.image_exploration import Exploration
 from pyamiimage.ami_util import AmiUtil
 from pyamiimage.tesseract_hocr import TesseractOCR
@@ -39,10 +40,10 @@ class TestPlots:
         img_files = glob.glob("*.png")
         assert len(img_files) > 0
         MIN_EDGE_LEN = 200
-
+        interactive = False
         for img_file in sorted(img_files):
             img_path = Path(img_file)
-            Exploration().explore_dilate_1(img_path)
+            Exploration().explore_dilate_1(img_path, interactive=interactive)
             img = TestAmiSkeleton.create_skeleton_from_file(img_path)
             out_path = Path(Resources.TEMP_DIR, img_path.stem + ".png")
             imageio.imwrite(out_path, img)
@@ -84,36 +85,51 @@ class TestPlots:
         """creates axial box and ticks
         """
         ami_graph = self.satish_047q_ami_graph
+
         plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
-        island_bbox = plot_island.get_or_create_bbox()
-        assert island_bbox.xy_ranges == [[82, 449], [81, 352]]
         ami_edges = plot_island.get_or_create_ami_edges()
 
         horizontal_edges = AmiEdge.get_horizontal_edges(ami_edges, tolerance=2)
-        assert len(horizontal_edges) == 8, f"horizontal edges (3 vertical ticks and 5 x-axis segments)"
         vertical_edges = AmiEdge.get_vertical_edges(ami_edges, tolerance=2)
-        assert len(vertical_edges) == 8, f"vertical edges (5 horizontal ticks and 3 y-axis segments)"
         horiz_ami_lines = AmiEdge.get_single_lines(horizontal_edges)
-        assert len(horiz_ami_lines) == 8
         vert_ami_lines = AmiEdge.get_single_lines(vertical_edges)
+
+        island_bbox = plot_island.get_or_create_bbox()
+        assert island_bbox.xy_ranges == [[82, 449], [81, 352]]
+        assert len(horizontal_edges) == 8, f"horizontal edges (3 vertical ticks and 5 x-axis segments)"
+        assert len(vertical_edges) == 8, f"vertical edges (5 horizontal ticks and 3 y-axis segments)"
+        assert len(horiz_ami_lines) == 8
         assert len(vert_ami_lines) == 8
 
         # ticks
         ami_plot = AmiPlot(bbox=island_bbox)
+
         vert_box = ami_plot.get_axial_box(side=PlotSide.LEFT)
         vert_box.change_range(1, 3)
-        assert vert_box.xy_ranges == [[72, 92], [78, 355]]
-        y_ticks = AmiLine.get_tick_coords(horiz_ami_lines, vert_box, Y)
-        assert y_ticks == [83, 151, 218, 285], f"y ticks"
-        horiz_box = ami_plot.get_axial_box(side=PlotSide.BOTTOM)
-        horiz_box.change_range(1, 3)
-        assert horiz_box.xy_ranges == [[82, 449], [339, 365]]
-        x_ticks = AmiLine.get_tick_coords(vert_ami_lines, horiz_box, X)
-        assert x_ticks == [149, 216, 282, 349, 415], f"x ticks"
+        y_ticks = TickMark.get_tick_marks(horiz_ami_lines, vert_box, Y)
+        # TODO sort this list
 
-        # bottom_box = ami_plot.get_axial_box(side=PlotSide.BOTTOM)
-        # bottom_box.change_range(1, 3)
-        # assert bottom_box.xy_ranges == [[82, 449], [339, 365]]
+        assert vert_box.xy_ranges == [[72, 92], [78, 355]]
+        TickMark.assert_ticks([
+            [[82, 87], [151, 151]],
+            [[82, 87], [285, 285]],
+            [[82, 87], [83, 83]],
+            [[82, 87], [218, 218]],
+        ], y_ticks)  # pick up ticks above and characters below
+
+        horiz_box = ami_plot.get_axial_box(side=PlotSide.BOTTOM, high_margin=25)
+        assert type(horiz_box) is BBox
+        horiz_box.change_range(1, 3)
+        assert horiz_box.xy_ranges == [[82, 449], [339, 380]]
+        x_ticks = TickMark.get_tick_marks(vert_ami_lines, horiz_box, X)
+        x_tick_exp = [
+            [[149, 149], [347, 352]],
+            [[216, 216], [347, 352]],
+            [[282, 282], [347, 352]],
+            [[349, 349], [347, 352]],
+            [[415, 415], [347, 352]],
+        ]
+        TickMark.assert_ticks(x_tick_exp, x_ticks)
 
         # axial polylines
         tolerance = 2
@@ -144,12 +160,10 @@ class TestPlots:
         horiz_dict = AmiLine.get_horiz_vert_counter(horiz_ami_lines, xy_index=1)
         assert horiz_dict == Counter({352: 4, 351: 2, 151: 1, 285: 1, 83: 1, 218: 1, 82: 1}), f"found {horiz_dict}"
 
-# this images doesn't give good words
-        bboxes, words = TesseractOCR.extract_numpy_box_from_image(Resources.SATISH_047Q_RAW)
-        assert len(bboxes) == 14
-        print(words)
+# this image doesn't give good words
+        image_file = Resources.SATISH_047Q_RAW
 
-        expected_boxes = [
+        expected_bboxes = [
             [[34, 45], [203, 261]],
             [[34, 48], [173, 197]],
             [[246, 300], [20, 35]],
@@ -165,62 +179,56 @@ class TestPlots:
             [[461, 491], [91, 102]],
             [[496, 525], [92, 104]]
         ]
-        bboxes = [BBox.create_from_numpy_array(numpy_bbox) for numpy_bbox in bboxes]
-        for i, bbox in enumerate(bboxes):
-            assert bbox.xy_ranges == expected_boxes[i]
-            print(f"{bbox} {words[i]}")
+
+        word_numpys, words = TesseractOCR.extract_numpy_box_from_image(image_file)
+        word_bboxes = [BBox.create_from_numpy_array(word_numpy) for word_numpy in word_numpys]
+        horiz_text2coord_list = self.match_text2coords(word_bboxes, horiz_box, words, x_ticks)
 
         assert words == ['Hardness', '(Hv)', 'Jominy', ' ', ' ', ' ', ' ', '10', '30', 'Depth',
                          '(mm)', '50', 'eo', '0479']
 
-    def test_box_and_ticks_2(self):
+    def test_match_text_ticks_no_test(self):
         """creates axial box and ticks
         """
+        # this image doesn't give good words
+        image_file = Resources.SATISH_047Q_RAW
         ami_graph = self.satish_047q_ami_graph
+
         plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
         island_bbox = plot_island.get_or_create_bbox()
-        assert island_bbox.xy_ranges == [[82, 449], [81, 352]]
+        ami_plot = AmiPlot(bbox=island_bbox)
+
         ami_edges = plot_island.get_or_create_ami_edges()
 
-        horizontal_edges = AmiEdge.get_horizontal_edges(ami_edges, tolerance=2)
-        assert len(horizontal_edges) == 8, f"horizontal edges (3 vertical ticks and 5 x-axis segments)"
-        vertical_edges = AmiEdge.get_vertical_edges(ami_edges, tolerance=2)
-        assert len(vertical_edges) == 8, f"vertical edges (5 horizontal ticks and 3 y-axis segments)"
-        horiz_ami_lines = AmiEdge.get_single_lines(horizontal_edges)
-        assert len(horiz_ami_lines) == 8
-        vert_ami_lines = AmiEdge.get_single_lines(vertical_edges)
-        assert len(vert_ami_lines) == 8
+        horiz_ami_lines = AmiEdge.get_horizontal_lines(ami_edges)
+        vert_ami_lines = AmiEdge.get_vertical_lines(ami_edges)
+
 
         # ticks
-        ami_plot = AmiPlot(bbox=island_bbox)
-        vert_box = ami_plot.get_axial_box(side=PlotSide.LEFT)
+
+        vert_box = ami_plot.get_axial_box(side=PlotSide.LEFT, low_margin=40)
         vert_box.change_range(1, 3)
-        assert vert_box.xy_ranges == [[72, 92], [78, 355]]
-        y_ticks = AmiLine.get_tick_coords(horiz_ami_lines, vert_box, Y)
-        assert y_ticks == [83, 151, 218, 285], f"y ticks"
-        horiz_box = ami_plot.get_axial_box(side=PlotSide.BOTTOM)
+        y_ticks = TickMark.get_tick_marks(horiz_ami_lines, vert_box, Y)
+
+        horiz_box = ami_plot.get_axial_box(side=PlotSide.BOTTOM, high_margin=25)
         horiz_box.change_range(1, 3)
-        assert horiz_box.xy_ranges == [[82, 449], [339, 365]]
-        x_ticks = AmiLine.get_tick_coords(vert_ami_lines, horiz_box, X)
-        assert x_ticks == [149, 216, 282, 349, 415], f"x ticks"
+        x_ticks = TickMark.get_tick_marks(vert_ami_lines, horiz_box, X)
 
-        # bottom_box = ami_plot.get_axial_box(side=PlotSide.BOTTOM)
-        # bottom_box.change_range(1, 3)
-        # assert bottom_box.xy_ranges == [[82, 449], [339, 365]]
+        # axial polylines can be L- or U-shaped
+        self.add_axial_polylines_to_ami_lines(ami_edges, horiz_ami_lines, vert_ami_lines)
 
-        # axial polylines
-        tolerance = 2
+        vert_dict = AmiLine.get_horiz_vert_counter(vert_ami_lines, xy_index=0)
+        horiz_dict = AmiLine.get_horiz_vert_counter(horiz_ami_lines, xy_index=1)
+
+
+        word_numpys, words = TesseractOCR.extract_numpy_box_from_image(image_file)
+        word_bboxes = [BBox.create_from_numpy_array(word_numpy) for word_numpy in word_numpys]
+
+        horiz_text2coord_list = self.match_text2coords(word_bboxes, horiz_box, words, x_ticks)
+        print(f"horiz {horiz_text2coord_list}")
+
+    def add_axial_polylines_to_ami_lines(self, ami_edges, horiz_ami_lines, vert_ami_lines, tolerance=2):
         axial_polylines = AmiEdge.get_axial_polylines(ami_edges, tolerance=tolerance)
-        assert len(axial_polylines) == 2, f"axial polylines {len(axial_polylines)}"
-        assert type(axial_polylines) is list
-        assert type(axial_polylines[0]) is list
-        assert type(axial_polylines[0][0]) is AmiLine
-        assert len(axial_polylines[0]) == 2
-        assert len(axial_polylines[1]) == 3
-        # I don't like the str(...) but how to compare lists of coords? probably need a polyline class
-        assert str(axial_polylines[0][0]) == str([[82, 285], [82, 351]])
-        assert str(axial_polylines[0]) == str([[[82, 285], [82, 351]], [[82, 351], [149, 352]]])
-
         for axial_polyline in axial_polylines:
             for ami_line in axial_polyline:
                 if ami_line.is_vertical(tolerance=tolerance):
@@ -230,38 +238,31 @@ class TestPlots:
                 else:
                     raise ValueError(f"line {ami_line} must be horizontal or vertical")
 
-        vert_dict = AmiLine.get_horiz_vert_counter(vert_ami_lines, xy_index=0)
-        assert type(vert_dict) is Counter
-        assert vert_dict == Counter({82: 4, 149: 1, 216: 1, 282: 1, 349: 1, 415: 1, 448: 1}), \
-            f"found {vert_dict}"
-        horiz_dict = AmiLine.get_horiz_vert_counter(horiz_ami_lines, xy_index=1)
-        assert horiz_dict == Counter({352: 4, 351: 2, 151: 1, 285: 1, 83: 1, 218: 1, 82: 1}), f"found {horiz_dict}"
-
-# this images doesn't give good words
-        bboxes, words = TesseractOCR.extract_numpy_box_from_image(Resources.SATISH_047Q_RAW)
-        assert len(bboxes) == 14
-        print(words)
-
-        expected_boxes = [
-            [[34, 45], [203, 261]],
-            [[34, 48], [173, 197]],
-            [[246, 300], [20, 35]],
-            [[82, 450], [76, 87]],
-            [[79, 86], [81, 353]],
-            [[446, 453], [80, 353]],
-            [[82, 450], [348, 357]],
-            [[144, 156], [358, 367]],
-            [[276, 289], [358, 367]],
-            [[230, 266], [393, 407]],
-            [[271, 302], [393, 407]],
-            [[409, 422], [358, 367]],
-            [[461, 491], [91, 102]],
-            [[496, 525], [92, 104]]
-        ]
-        bboxes = [BBox.create_from_numpy_array(numpy_bbox) for numpy_bbox in bboxes]
+    def match_text2coords(self, bboxes, containing_box, words, ticks):
+        scale_texts = []
         for i, bbox in enumerate(bboxes):
-            assert bbox.xy_ranges == expected_boxes[i]
-            print(f"{bbox} {words[i]}")
+            if containing_box.contains_bbox(bbox):
+                scale_text = ScaleText(words[i], bbox)
+                scale_texts.append(scale_text)
+        scale_text2tick_list = self.match_ticks_to_text(scale_texts, ticks)
+        return scale_text2tick_list
 
-        assert words == ['Hardness', '(Hv)', 'Jominy', ' ', ' ', ' ', ' ', '10', '30', 'Depth',
-                         '(mm)', '50', 'eo', '0479']
+    def match_ticks_to_text(self, scale_texts, ticks, max_delta=MAX_DELTA_TICK):
+        """
+        matches centroids of ScaleTexts to TickMark coordinates
+
+        :param scale_texts: list of ScaleTexts to match (normally numbers, but not guaranteed)
+        :param ticks: list of TickMarks to match
+        :param max_delta:maximum deviation of coordinates between text and ticks
+        :return: list of (scale_text, tick) tuples (unsorted)
+        """
+        scale_text2tick_list = []
+        for tick in ticks:
+            assert tick.perpendicular == X or tick.perpendicular == Y, f"perp {tick.perpendicular}"
+            for scale_text in scale_texts:
+                scale_coord = scale_text.centroid_coord(tick.perpendicular)
+                if abs(tick.coord - scale_coord) < max_delta:
+                    scale_text2tick_list.append((scale_text.text, tick))
+
+        return scale_text2tick_list
+

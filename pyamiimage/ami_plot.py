@@ -18,6 +18,7 @@ SEGMENT = "segment"
 TAIL = "tail"
 X = 0
 Y = 1
+MAX_DELTA_TICK = 10
 
 
 class PlotSide:
@@ -26,6 +27,104 @@ class PlotSide:
     TOP = "TOP"
     BOTTOM = "BOTTOM"
     SIDES = [LEFT, TOP, RIGHT, BOTTOM]
+
+
+class ScaleText:
+    """holds text and bounding box for a scale value
+
+     """
+
+    def __init__(self, text, bbox):
+        """creates scake text
+
+        :param text: e.g. '20.0'
+        :param bbox: e.g. BBox (xy_ranges = [[20,30], [40, 47]]
+        """
+        self.text = text
+        self.bbox = bbox
+
+    def centroid_coord(self, axis):
+        """
+
+        :param axis: X or Y
+        :return:
+        """
+        assert axis == X or axis == Y
+        return self.bbox.centroid[axis]
+
+
+class TickMark:
+
+    def __init__(self, bbox):
+        """holds a tick mark
+
+        Use a class in case we annotate later (e.g. with Major/Minor)
+        :param bbox: BBox exactly containing the tick mark (may be zero width)
+        """
+        assert bbox is not None, f"must not be None"
+        assert type(bbox) is BBox, f"expected BBox found {bbox}"
+        self.bbox = bbox
+
+    @property
+    def coord(self):
+        """coordinate of line
+
+        :return: coordinate perpendicular to tick mark
+        """
+        return self.centroid[X] if self.orientation is Y else X
+
+    @property
+    def centroid(self):
+        """centroid of bbox
+        :return: centroid of surrounding bbox created from elsewhere (e.g. OCR)
+        """
+        return self.bbox.centroid
+
+    @property
+    def orientation(self):
+        """direction of tick
+
+        X has for horizontal ticks, Y for vertical ticks
+        :return: X if tick line is horizontal else Y
+        """
+        return X if self.bbox.get_width() > self.bbox.get_height() else Y
+
+    @property
+    def perpendicular(self):
+        """direction perpendicular to tick
+
+        Y for horizontal ticks, X for vertical ticks
+        :return: Y if tick line is horizontal else X
+        """
+        return Y if self.bbox.get_width() > self.bbox.get_height() else X
+
+
+    @classmethod
+    def get_tick_marks(cls, ami_lines, including_box, axis):
+        """
+        get changing tick coordinates for lines
+
+        :param ami_lines: horizontal or vertical lines
+        :param including_box: box which must totally include tick marks
+        :param axis: X or Y
+        :return: tick_marks
+        """
+        assert ami_lines is not None and len(ami_lines) >= 1, f"must have at least one tick"
+        assert including_box is not None
+        assert axis == X or axis == Y, f"must have X or Y axis"
+        # tick_marks = []
+        # for ami_line in ami_lines:
+        #     if including_box.contains_bbox(ami_line.bbox):
+        #         tick_marks.append(TickMark(ami_line.bbox))
+        # return tick_marks
+        return [TickMark(line.bbox) for line in ami_lines if including_box.contains_bbox(line.bbox)]
+
+    @classmethod
+    def assert_ticks(cls, tick_exp, x_ticks):
+        for i, x_tick in enumerate(x_ticks):
+            assert x_tick.bbox.xy_ranges == tick_exp[i], f"tick found {x_tick.bbox.xy_ranges} expected {tick_exp[i]}"
+
+
 
 class AmiPlot:
 
@@ -50,21 +149,23 @@ class AmiPlot:
         if self.bbox and not axial_bbox:
             xrange = self.bbox.get_xrange()
             yrange = self.bbox.get_yrange()
+            xy_ranges_ = None
             if side == PlotSide.LEFT:
-                xy_ranges = [[xrange[0] - low_margin, xrange[0] + high_margin], yrange]
+                xy_ranges_ = [[xrange[0] - low_margin, xrange[0] + high_margin], yrange]
             elif side == PlotSide.RIGHT:
-                xy_ranges = [[xrange[1] -low_margin, xrange[1] + high_margin], yrange]
+                xy_ranges_ = [[xrange[1] - low_margin, xrange[1] + high_margin], yrange]
             elif side == PlotSide.TOP:
-                xy_ranges = [xrange, [yrange[0] - low_margin, yrange[0] + high_margin]]
+                xy_ranges_ = [xrange, [yrange[0] - low_margin, yrange[0] + high_margin]]
             elif side == PlotSide.BOTTOM:
-                xy_ranges = [xrange, [yrange[1] - low_margin, yrange[1] + high_margin]]
+                xy_ranges_ = [xrange, [yrange[1] - low_margin, yrange[1] + high_margin]]
 
-            axial_bbox = BBox(xy_ranges=xy_ranges)
+            axial_bbox = BBox(xy_ranges=xy_ranges_)
             self.axial_box_by_side[side] = axial_bbox
         return axial_bbox
 
     def clear_axial_boxes(self):
         self.axial_box_by_side = dict()
+
 
 class AmiLine:
     """This will probably include a third-party tool supporting geometry for lines
@@ -148,25 +249,6 @@ class AmiLine:
 
     def get_max(self, xy_flag):
         return None if xy_flag is None else max(self.xy1[xy_flag], self.xy2[xy_flag])
-
-    @classmethod
-    def get_tick_coords(cls, ami_lines, box, axis):
-        """
-        get changing tick coordinates for lines
-
-        :param ami_lines: horizontal or vertical lines
-        :param box: box which must totally include tick marks
-        :param axis: X or Y
-        """
-        assert ami_lines is not None and len(ami_lines) >= 1, f"must have at least one tick"
-        assert box is not None
-        assert axis == X or axis == Y, f"must have X or Y axis"
-        tick_lines = []
-        for ami_line in ami_lines:
-            if box.contains_bbox(ami_line.bbox):
-                tick_lines.append(ami_line)
-        tick_coords = sorted([line.bbox.get_ranges()[axis][0] for line in tick_lines])
-        return tick_coords
 
 
 class AmiPolyline:
@@ -263,18 +345,20 @@ class AmiPolyline:
         if tolerance is None:
             tolerance = self.tolerance
         if not self.points_list or len(self.points_list) < 2:
-                return None
+            return None
         dx = self.points_list[-1][0] - self.points_list[0][0]
         dy = self.points_list[-1][1] - self.points_list[0][1]
 
         if abs(dx) <= tolerance and abs(dy) <= tolerance:
             return None
         if abs(dx) <= tolerance:
-            l = [self.points_list[-1][1], self.points_list[0][1]] if dy < 0 else [self.points_list[0][1], self.points_list[-1][1]]
-            return l
+            ll = [self.points_list[-1][1], self.points_list[0][1]] if dy < 0 else [self.points_list[0][1],
+                                                                                   self.points_list[-1][1]]
+            return ll
         if abs(dy) <= tolerance:
-            l = [self.points_list[-1][0], self.points_list[0][0]] if dy < 0 else [self.points_list[0][0], self.points_list[-1][0]]
-            return l
+            ll = [self.points_list[-1][0], self.points_list[0][0]] if dy < 0 else [self.points_list[0][0],
+                                                                                   self.points_list[-1][0]]
+            return ll
         return None
         # raise ValueError(f"cannot calculate range {self.points_list}")
 
@@ -286,8 +370,8 @@ class AmiPolyline:
     def get_cartesian_length(self):
         """gets length for axial polylines
         :return: abs distance in axial coordinate else NaN"""
-        range = self.range()
-        return float("NaN") if range is None else abs(range[0] - range[1])
+        range_ = self.range()
+        return float("NaN") if range_ is None else abs(range_[0] - range_[1])
 
     def find_points_in_box(self, bbox):
         """iterates over all points including ends in polyline
@@ -297,7 +381,7 @@ class AmiPolyline:
         size = len(self.points_list)
         for i, point in enumerate(self.points_list):
             if bbox.contains_point(point):
-                points_in_box.append((i, i-size, point))
+                points_in_box.append((i, i - size, point))
         return points_in_box
 
     def number_of_points(self):
@@ -313,14 +397,14 @@ class AmiPolyline:
         :return: two lines, if one is length 0, nul and orginal polyline
         """
         lines = [None, None]
-        l = self.number_of_points()
+        ll = self.number_of_points()
         if point_triple[0] == 0:
             lines[1] = self
         elif point_triple[0] == -1:
             lines[0] = self
         else:
             lines[0] = self.sub_polyline(0, point_triple[0])
-            lines[1] = self.sub_polyline(point_triple[0], l-1)
+            lines[1] = self.sub_polyline(point_triple[0], ll - 1)
 
         return lines
 
@@ -328,7 +412,7 @@ class AmiPolyline:
         """slice line at points , keeping both
         not pythonic
         """
-        polyline = AmiPolyline(self.points_list[index0:index1+1])
+        polyline = AmiPolyline(self.points_list[index0:index1 + 1])
         return polyline
 
 
@@ -438,7 +522,6 @@ class AmiLineTool:
         AmiLineTool._validate_point(point2)
         return AmiUtil.are_coincident(point1, point2, self.tolerance)
 
-
     def _validate_segment(self, segment):
         if type(segment) is list:
             AmiLineTool._validate_point(segment[0])
@@ -480,7 +563,7 @@ class AmiLineTool:
 
         :param polyline_to_add: polyline to add (may be anynumber of points, 1, 2, many
         """
-        if self.line_points_list == []:
+        if not self.line_points_list:
             polylinex = []
             for point in polyline_to_add:
                 polylinex.append([point[0], point[1]])
