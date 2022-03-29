@@ -3,6 +3,7 @@ from collections import Counter
 # local
 from pyamiimage.ami_util import AmiUtil
 from pyamiimage.bbox import BBox
+from pyamiimage.tesseract_hocr import TesseractOCR
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +99,6 @@ class TickMark:
         """
         return Y if self.bbox.get_width() > self.bbox.get_height() else X
 
-
     @classmethod
     def get_tick_marks(cls, ami_lines, including_box, axis):
         """
@@ -124,13 +124,71 @@ class TickMark:
         for i, x_tick in enumerate(x_ticks):
             assert x_tick.bbox.xy_ranges == tick_exp[i], f"tick found {x_tick.bbox.xy_ranges} expected {tick_exp[i]}"
 
+    @classmethod
+    def match_scale_text2ticks(cls, bboxes, containing_box, words, ticks):
+        scale_texts = []
+        for i, bbox in enumerate(bboxes):
+            if containing_box.contains_bbox(bbox):
+                scale_texts.append(ScaleText(words[i], bbox))
+        scale_text2tick_list = cls.match_ticks_to_text(scale_texts, ticks)
+        return scale_text2tick_list
+
+    @classmethod
+    def match_ticks_to_text(cls, scale_texts, ticks, max_delta=MAX_DELTA_TICK):
+        """
+        matches centroids of ScaleTexts to TickMark coordinates
+
+        :param scale_texts: list of ScaleTexts to match (normally numbers, but not guaranteed)
+        :param ticks: list of TickMarks to match
+        :param max_delta:maximum deviation of coordinates between text and ticks
+        :return: list of (scale_text, tick) tuples (unsorted)
+        """
+        scale_text2tick_list = []
+        for tick in ticks:
+            assert tick.perpendicular == X or tick.perpendicular == Y, f"perp {tick.perpendicular}"
+            for scale_text in scale_texts:
+                scale_coord = scale_text.centroid_coord(tick.perpendicular)
+                if abs(tick.coord - scale_coord) < max_delta:
+                    scale_text2tick_list.append((scale_text.text, tick))
+
+        return scale_text2tick_list
 
 
 class AmiPlot:
 
-    def __init__(self, bbox=None):
-        self.bbox = bbox
+    def __init__(self, bbox=None, image_file=None, ami_graph=None):
+        self.bbox = None
+        self.image_file = None
+        self.ami_graph = None
         self.axial_box_by_side = dict()
+        self.plot_island = None
+        # resources
+        self.ami_edges = None
+        self.horiz_ami_lines = None
+        self.vert_ami_lines = None
+        self.words = None
+        self.word_bboxes = None
+        # scales
+        self.bottom_scale = None
+        self.left_scale = None
+        self.top_scale = None
+        self.right_scale = None
+
+        if bbox:
+            self.set_bbox(bbox)
+        if image_file:
+            self.set_image_file(image_file)
+        if ami_graph:
+            self.set_ami_graph(ami_graph)
+
+    def set_bbox(self, bbox):
+        self.bbox = bbox
+
+    def set_image_file(self, image_file):
+        self.image_file = image_file
+
+    def set_ami_graph(self, ami_graph):
+        self.ami_graph = ami_graph
 
     def get_axial_box(self, side=PlotSide.LEFT, low_margin=10, high_margin=10):
         """
@@ -165,6 +223,62 @@ class AmiPlot:
 
     def clear_axial_boxes(self):
         self.axial_box_by_side = dict()
+
+    def add_axial_polylines_to_ami_lines(self, ami_edges, horiz_ami_lines, vert_ami_lines, tolerance=2):
+        # TODO not in right class?
+        from pyamiimage.ami_graph_all import AmiEdge  # horrible TODO have to fix this
+        axial_polylines = AmiEdge.get_axial_polylines(ami_edges, tolerance=tolerance)
+        for axial_polyline in axial_polylines:
+            for ami_line in axial_polyline:
+                if ami_line.is_vertical(tolerance=tolerance):
+                    vert_ami_lines.append(ami_line)
+                elif ami_line.is_horizontal(tolerance=tolerance):
+                    horiz_ami_lines.append(ami_line)
+                else:
+                    raise ValueError(f"line {ami_line} must be horizontal or vertical")
+
+    def create_scaled_plot_box(self, island_index=0, maxmindim=300, mindim=50):
+        from pyamiimage.ami_graph_all import AmiEdge # TODO resolve imports
+
+        plot_islands = self.ami_graph.get_or_create_ami_islands(mindim=mindim, maxmindim=maxmindim)
+        if len(plot_islands) <= island_index:
+            raise ValueError(f"not enough islands {len(plot_islands)}, wanted {island_index}")
+        self.plot_island = plot_islands[island_index]
+        self.bbox = self.plot_island.get_or_create_bbox()
+        self.ami_edges = self.plot_island.get_or_create_ami_edges()
+        self.horiz_ami_lines = AmiEdge.get_horizontal_lines(self.ami_edges)
+        self.vert_ami_lines = AmiEdge.get_vertical_lines(self.ami_edges)
+        self.left_scale = AmiScale()
+        self.left_scale.scale_box = self.get_axial_box(side=PlotSide.LEFT, low_margin=40)
+        self.left_scale.scale_box.change_range(1, 3)
+        self.left_scale.ticks = TickMark.get_tick_marks(self.horiz_ami_lines, self.left_scale.scale_box, Y)
+        self.bottom_scale = AmiScale()
+        self.bottom_scale.scale_box = self.get_axial_box(side=PlotSide.BOTTOM, high_margin=25)
+        self.bottom_scale.scale_box.change_range(1, 3)
+        self.bottom_scale.ticks = TickMark.get_tick_marks(self.vert_ami_lines, self.bottom_scale.scale_box,
+                                                          X)
+        # axial polylines can be L- or U-shaped
+        self.add_axial_polylines_to_ami_lines(self.ami_edges, self.horiz_ami_lines, self.vert_ami_lines)
+        word_numpys, self.words = TesseractOCR.extract_numpy_box_from_image(self.image_file)
+        self.word_bboxes = [BBox.create_from_numpy_array(word_numpy) for word_numpy in word_numpys]
+        self.bottom_scale.text2coord_list = TickMark.match_scale_text2ticks(
+            self.word_bboxes,
+            self.bottom_scale.scale_box,
+            self.words,
+            self.bottom_scale.ticks)
+        print(f"horiz {self.bottom_scale.text2coord_list}")
+        self.left_scale.text2coord_list = TickMark.match_scale_text2ticks(
+            self.word_bboxes,
+            self.left_scale.scale_box,
+            self.words,
+            self.left_scale.ticks)
+        print(f"vert {self.left_scale.text2coord_list}")
+
+
+class AmiScale():
+
+    def __init__(self):
+        pass
 
 
 class AmiLine:
@@ -393,7 +507,6 @@ class AmiPolyline:
     def split_line(self, point_triple):
         """split polyline at point
         :param point_triple: triple created by AmiPolyline.find_points_in_box() (index_left, index_right, coords)
-        :param polyline: to split
         :return: two lines, if one is length 0, nul and orginal polyline
         """
         lines = [None, None]

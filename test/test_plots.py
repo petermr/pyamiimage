@@ -1,19 +1,18 @@
-from collections import Counter
 import glob
-import math
-from pathlib import Path
 import os
-import imageio
-import numpy as np
+from collections import Counter
+from pathlib import Path
 
+import imageio
+
+from pyamiimage.ami_graph_all import AmiGraph, AmiEdge, AmiLine
+from pyamiimage.ami_plot import AmiPlot, PlotSide, X, Y, TickMark
+from pyamiimage.ami_util import AmiUtil
+from pyamiimage.bbox import BBox
+from pyamiimage.image_exploration import Exploration
+from pyamiimage.tesseract_hocr import TesseractOCR
 # local
 from resources import Resources
-from pyamiimage.ami_graph_all import AmiGraph, AmiEdge, AmiLine
-from pyamiimage.ami_plot import AmiPlot, PlotSide, X, Y, ScaleText, TickMark, MAX_DELTA_TICK
-from pyamiimage.image_exploration import Exploration
-from pyamiimage.ami_util import AmiUtil
-from pyamiimage.tesseract_hocr import TesseractOCR
-from pyamiimage.bbox import BBox
 from test_ami_skeleton import TestAmiSkeleton
 
 
@@ -39,7 +38,7 @@ class TestPlots:
         os.chdir(img_dir)
         img_files = glob.glob("*.png")
         assert len(img_files) > 0
-        MIN_EDGE_LEN = 200
+        min_edge_len = 200
         interactive = False
         for img_file in sorted(img_files):
             img_path = Path(img_file)
@@ -62,7 +61,7 @@ class TestPlots:
                     print("box?")
                     for edge in island.get_or_create_ami_edges():
                         pixlen = edge.pixel_length()
-                        if pixlen < MIN_EDGE_LEN:
+                        if pixlen < min_edge_len:
                             continue
                         start_node = edge.get_start_ami_node()
                         end_node = edge.get_end_ami_node()
@@ -182,7 +181,7 @@ class TestPlots:
 
         word_numpys, words = TesseractOCR.extract_numpy_box_from_image(image_file)
         word_bboxes = [BBox.create_from_numpy_array(word_numpy) for word_numpy in word_numpys]
-        horiz_text2coord_list = self.match_text2coords(word_bboxes, horiz_box, words, x_ticks)
+        # horiz_text2coord_list = self.match_scale_text2ticks(word_bboxes, horiz_box, words, x_ticks)
 
         assert words == ['Hardness', '(Hv)', 'Jominy', ' ', ' ', ' ', ' ', '10', '30', 'Depth',
                          '(mm)', '50', 'eo', '0479']
@@ -191,78 +190,6 @@ class TestPlots:
         """creates axial box and ticks
         """
         # this image doesn't give good words
-        image_file = Resources.SATISH_047Q_RAW
-        ami_graph = self.satish_047q_ami_graph
+        ami_plot = AmiPlot(image_file=Resources.SATISH_047Q_RAW, ami_graph=self.satish_047q_ami_graph)
 
-        plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
-        island_bbox = plot_island.get_or_create_bbox()
-        ami_plot = AmiPlot(bbox=island_bbox)
-
-        ami_edges = plot_island.get_or_create_ami_edges()
-
-        horiz_ami_lines = AmiEdge.get_horizontal_lines(ami_edges)
-        vert_ami_lines = AmiEdge.get_vertical_lines(ami_edges)
-
-
-        # ticks
-
-        vert_box = ami_plot.get_axial_box(side=PlotSide.LEFT, low_margin=40)
-        vert_box.change_range(1, 3)
-        y_ticks = TickMark.get_tick_marks(horiz_ami_lines, vert_box, Y)
-
-        horiz_box = ami_plot.get_axial_box(side=PlotSide.BOTTOM, high_margin=25)
-        horiz_box.change_range(1, 3)
-        x_ticks = TickMark.get_tick_marks(vert_ami_lines, horiz_box, X)
-
-        # axial polylines can be L- or U-shaped
-        self.add_axial_polylines_to_ami_lines(ami_edges, horiz_ami_lines, vert_ami_lines)
-
-        vert_dict = AmiLine.get_horiz_vert_counter(vert_ami_lines, xy_index=0)
-        horiz_dict = AmiLine.get_horiz_vert_counter(horiz_ami_lines, xy_index=1)
-
-
-        word_numpys, words = TesseractOCR.extract_numpy_box_from_image(image_file)
-        word_bboxes = [BBox.create_from_numpy_array(word_numpy) for word_numpy in word_numpys]
-
-        horiz_text2coord_list = self.match_text2coords(word_bboxes, horiz_box, words, x_ticks)
-        print(f"horiz {horiz_text2coord_list}")
-
-    def add_axial_polylines_to_ami_lines(self, ami_edges, horiz_ami_lines, vert_ami_lines, tolerance=2):
-        axial_polylines = AmiEdge.get_axial_polylines(ami_edges, tolerance=tolerance)
-        for axial_polyline in axial_polylines:
-            for ami_line in axial_polyline:
-                if ami_line.is_vertical(tolerance=tolerance):
-                    vert_ami_lines.append(ami_line)
-                elif ami_line.is_horizontal(tolerance=tolerance):
-                    horiz_ami_lines.append(ami_line)
-                else:
-                    raise ValueError(f"line {ami_line} must be horizontal or vertical")
-
-    def match_text2coords(self, bboxes, containing_box, words, ticks):
-        scale_texts = []
-        for i, bbox in enumerate(bboxes):
-            if containing_box.contains_bbox(bbox):
-                scale_text = ScaleText(words[i], bbox)
-                scale_texts.append(scale_text)
-        scale_text2tick_list = self.match_ticks_to_text(scale_texts, ticks)
-        return scale_text2tick_list
-
-    def match_ticks_to_text(self, scale_texts, ticks, max_delta=MAX_DELTA_TICK):
-        """
-        matches centroids of ScaleTexts to TickMark coordinates
-
-        :param scale_texts: list of ScaleTexts to match (normally numbers, but not guaranteed)
-        :param ticks: list of TickMarks to match
-        :param max_delta:maximum deviation of coordinates between text and ticks
-        :return: list of (scale_text, tick) tuples (unsorted)
-        """
-        scale_text2tick_list = []
-        for tick in ticks:
-            assert tick.perpendicular == X or tick.perpendicular == Y, f"perp {tick.perpendicular}"
-            for scale_text in scale_texts:
-                scale_coord = scale_text.centroid_coord(tick.perpendicular)
-                if abs(tick.coord - scale_coord) < max_delta:
-                    scale_text2tick_list.append((scale_text.text, tick))
-
-        return scale_text2tick_list
-
+        ami_plot.create_scaled_plot_box(island_index=0)
