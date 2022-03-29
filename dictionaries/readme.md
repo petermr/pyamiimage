@@ -6,5 +6,7 @@ The words are extracted from images using ‘optical character recognition tools
 
 Then, the list obtained is read and the words are looked up in WikiData for their element code, description, and relatable element codes. 
 
-The frequency of occurrence of a word is also recorded. This data is stored in terpene and terpene synthase dictionaries respectively.
+The frequency of occurrence of a word is also recorded. 
+
+This data is stored in terpene and terpene synthase dictionaries respectively. The synonyms of the words are also curated in the dictionaries.
 
