@@ -8,8 +8,12 @@ class EasyOCRWrapper:
         """
         Given an image returns all the detected text, bounding boxes and confidence in a 2D array
         The order of columns per entry is: bounding box(xy_range), text, confidence
-        param: image as numpy array OR filepath as str
-        returns: 2D list of detected text
+        
+            Parameters:
+                image (numpy array or filepath(str)): image to be read
+        
+            Returns:
+                data (list): 2D list of detected text
         """
         data = self.reader.readtext(image)
         data = [[self._create_xy_range_from_bbox(entry[0]), entry[1], entry[2]] for entry in data]

@@ -7,21 +7,12 @@ import pathlib
 from pyamiimage.bbox import BBox
 from pyamiimage.ami_image import AmiImage
 
+from pyamiimage.wrapper._for_easyocr import EasyOCRWrapper
+from pyamiimage.wrapper._for_tesseract import PyTesseractWrapper
+
 CONFIG = 'config.ini'
 config = ConfigParser()
 config.read(CONFIG)
-backend =  config['ocr']['backend']
-
-# Backend Imports
-if backend == 'easyocr':
-    from pyamiimage.wrapper._for_easyocr import EasyOCRWrapper
-    ocr_wrapper = EasyOCRWrapper()
-elif backend == 'tesseract':
-    from pyamiimage.wrapper._for_tesseract import PyTesseractWrapper
-    ocr_wrapper = PyTesseractWrapper()
-else:
-    logging.error('OCR wrapper not found, check configuration file')
-    exit()
 
 class TextBox():
     '''
@@ -57,7 +48,7 @@ class AmiOCR:
     Defines an AmiOCR object. The pupose of this object is to run, refine and store the output of ocr on an image.
     This uses TextBox objects to store the location and values of text in an image.
     '''
-    def __init__(self, image=None) -> None:
+    def __init__(self, image=None, backend=None) -> None:
         '''
         Creates an AmiOCR object from an image or path. To get ocr output use get_textboxes().
 
@@ -67,8 +58,16 @@ class AmiOCR:
             Returns:
                 None
         '''
+        if backend == None:
+            # if no backend is mentioned at the parameter, use config file
+            backend =  config['ocr']['backend']
+        
+        self.ocr_wrapper = None
         self.image = None
         self.textboxes = []
+
+        self.set_ocr_wrapper(backend)
+
         if image is not None:
             try:
                 self.set_image(image)
@@ -76,6 +75,12 @@ class AmiOCR:
                 logging.error('Could not initilize AmiOCR. Invalid image or Path.')
         else:
             logging.warning('AmiOCR initilized without image. No image or Path provided. Use set_image().')
+
+    def set_ocr_wrapper(self, ocr_wrapper):
+        self.ocr_wrapper = AmiOCR.wrapper_selector(ocr_wrapper)
+        if self.ocr_wrapper == None:
+            logging.error("Invalid backend, defaulting to config file") 
+            self.ocr_wrapper = AmiOCR.wrapper_selector(config['ocr']['backend'])
 
     def set_image(self, image):
         '''
@@ -108,30 +113,11 @@ class AmiOCR:
         '''
         if self.textboxes == [] or not use_cache:
             if self.image is not None:
-                self.textboxes = AmiOCR.run_ocr_on_image(self.image)
+                self.textboxes = AmiOCR.run_ocr_on_image(self.image, self.ocr_wrapper)
             else:
                 logging.error('No image to ocr, run set_image().')
                 
         return self.textboxes
-
-    def rescan_subimage(self, subimage_bbox):
-        '''
-        Given a bounding box, it rescans the area within the bounding box
-
-            Parameters:
-                subimage_bbox (BBox or list): 
-        '''
-        # Create snippet of self.image from subimage_bbox
-        snippet = None #TBI
-        # Send snippet to run_ocr_on_image()
-        textboxes = AmiOCR.run_ocr_on_image(snippet)
-        # Translate textboxes to the original image
-        for textbox in textboxes:
-            pass
-            # TBI
-            # Translate each textbox 
-            # Check their quality compared to previous textbox in the same location
-            # Replace with better quality textbox
 
     def show_textboxes(self):
         """
@@ -141,9 +127,17 @@ class AmiOCR:
         plotted_image = AmiOCR.plot_bboxes_on_image(self.image, textboxes)
         AmiImage.show(plotted_image)
             
+    @classmethod
+    def wrapper_selector(cls, backend):
+        if backend == 'easyocr':
+            return EasyOCRWrapper()
+        elif backend == 'tesseract':
+            return PyTesseractWrapper()
+        else:
+            return None
 
     @classmethod
-    def run_ocr_on_image(cls, image):
+    def run_ocr_on_image(cls, image, ocr_wrapper=None):
         '''
         Given an image, runs ocr using the preferred backend.
 
@@ -153,6 +147,9 @@ class AmiOCR:
             Returns:
                 textboxes (list): List of TextBox objects
         '''
+        if ocr_wrapper == None:
+            # if ocr_wrapper is not given set backend from config file
+            AmiOCR.wrapper_selector(config['ocr']['backend'])
         logging.info('Running OCR on image. May take some time. Please wait...')
         textboxes = AmiOCR._generate_textboxes(ocr_wrapper.readtext(image))
         return textboxes
