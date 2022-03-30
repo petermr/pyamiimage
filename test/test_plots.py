@@ -1,5 +1,6 @@
 import glob
 import os
+import unittest
 from collections import Counter
 from pathlib import Path
 
@@ -83,9 +84,14 @@ class TestPlots:
     def test_box_and_ticks(self):
         """creates axial box and ticks
         """
-        ami_graph = self.satish_047q_ami_graph
 
-        plot_island = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)[0]
+        ami_graph = self.satish_047q_ami_graph
+        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.SATISH_047Q_RAW)
+
+        plot_islands = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)
+        if len(plot_islands) == 0:
+            raise ValueError(f" cannot find islands in {len(ami_graph.get_or_create_ami_islands())}")
+        plot_island = plot_islands[0]
         ami_edges = plot_island.get_or_create_ami_edges()
 
         horizontal_edges = AmiEdge.get_horizontal_edges(ami_edges, tolerance=2)
@@ -186,10 +192,53 @@ class TestPlots:
         assert words == ['Hardness', '(Hv)', 'Jominy', ' ', ' ', ' ', ' ', '10', '30', 'Depth',
                          '(mm)', '50', 'eo', '0479']
 
-    def test_match_text_ticks_no_test(self):
+    def test_create_plot_box_042a(self):
+        """creates axial box and ticks
+        rescaled image is twice the size
+        """
+
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.SATISH_042A_RAW)
+        mindim = 50
+        islands = ami_graph.get_or_create_ami_islands(mindim=mindim)
+        assert len(islands) == 2, f"should be box and the plot inside it"
+        # get biggest box
+        island_index = 0 if islands[0].get_or_create_bbox().get_height() > islands[1].get_or_create_bbox().get_height() else 1
+
+        ami_plot = AmiPlot(image_file=Resources.SATISH_042A_RAW)
+        ami_plot.create_scaled_plot_box(island_index=island_index, mindim=mindim)
+        print(f"left text2coord {ami_plot.left_scale.text2coord_list}")
+        print(f"bottom text2coord {ami_plot.bottom_scale.text2coord_list}")
+        assert ami_plot.bottom_scale.text2coord_list[0][0] == '10'
+        # assert ami_plot.bottom_scale.text2coord_list[0][1].bbox.xy_ranges == [[149, 149], [347, 352]]
+
+        assert ami_plot.bottom_scale.user_num_to_plot_scale == 19.575
+        assert ami_plot.bottom_scale.user_num_to_plot_offset == 225.25
+        assert ami_plot.bottom_scale.plot_to_user_num_scale == .05108556832694764
+        assert ami_plot.bottom_scale.plot_to_user_num_offset == -11.507024265644958
+
+        assert not ami_plot.left_scale.text2coord_list
+
+    def test_create_plot_box_005b(self):
         """creates axial box and ticks
         """
         # this image doesn't give good words
-        ami_plot = AmiPlot(image_file=Resources.SATISH_047Q_RAW, ami_graph=self.satish_047q_ami_graph)
+        ami_plot = AmiPlot(image_file=Resources.SATISH_005B_RAW)
+        ami_plot.create_scaled_plot_box(island_index=0, mindim=30)
+        print(f"left {ami_plot.axial_box_by_side['LEFT']}")
+        print(f"left {ami_plot.left_scale.text2coord_list}")
+        print(f"bottom {ami_plot.bottom_scale.text2coord_list}")
 
-        ami_plot.create_scaled_plot_box(island_index=0)
+    def test_create_plot_box_many(self):
+        os.chdir(Resources.SATISH_DIR)
+        files = glob.glob("*.png")
+        for image_file in files:
+            try:
+                print(f"{image_file}")
+                ami_plot = AmiPlot(image_file=Path(image_file))
+                ami_plot.create_scaled_plot_box(island_index=0)
+                print(f"left {ami_plot.left_scale.text2coord_list}")
+                print(f" {image_file} left {ami_plot.left_scale.text2coord_list}")
+                print(f" {image_file} bottom {ami_plot.bottom_scale.text2coord_list}")
+            except Exception as e:
+                print (e)
+

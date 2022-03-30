@@ -54,6 +54,18 @@ class AmiUtil:
             return False
 
     @classmethod
+    def get_float(cls, s):
+        """numeric value of s
+        traps Exception
+        :param s: string to parse
+        :return: numeric value or None
+        """
+        try:
+            return float(s)
+        except ValueError:
+            return None
+
+    @classmethod
     def int2hex(cls, ii):
         """convert int (0-255) to 2-character hex string
         :param ii: integer

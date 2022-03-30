@@ -114,6 +114,8 @@ class Resources:
     assert SATISH_005B_RAW.exists(), f"file exists {SATISH_005B_RAW}"
     SATISH_047Q_RAW = Path(TEST_RESOURCE_DIR, "047Q", "raw.png")
     assert SATISH_047Q_RAW.exists(), f"file exists {SATISH_047Q_RAW}"
+    SATISH_042A_RAW = Path(TEST_RESOURCE_DIR, "042A", "raw.png")
+    assert SATISH_042A_RAW.exists(), f"file exists {SATISH_042A_RAW}"
 
 
     # =====================
