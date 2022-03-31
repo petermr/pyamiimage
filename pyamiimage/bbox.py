@@ -125,11 +125,13 @@ class BBox:
             return
         val0 = int(rrange[0])
         val1 = int(rrange[1])
-        if val1 < val0:
-            if self.swap_minmax:
-                val1, val0 = val0, val1
-            else:
-                raise ValueError(f"ranges must be increasing {val0} !<= {val1}")
+        # This may cause problem for vertical text
+        # if val1 < val0:
+        #     if self.swap_minmax:
+        #         val1, val0 = val0, val1
+        #     else:
+        #         raise ValueError(f"ranges must be increasing {val0} !<= {val1}")
+        self.xy_ranges[index] = [val0, val1]
         self.xy_ranges[index] = [val0, val1]
 
     def __str__(self):
@@ -363,6 +365,7 @@ class BBox:
         :type: BBox or list
         :returns: fig, ax
         """
+        pixel_value = 200 # 0 is black
         # bbox can either be BBox object or in form of [[a, b][c, d]]
 
         # if type(bbox) == BBox:
@@ -382,11 +385,11 @@ class BBox:
 
         try:
             row, col = draw.rectangle_perimeter(start=point_pair[0], end=point_pair[1])
-            image[row, col] = 0
+            image[row, col] = pixel_value
         except IndexError as e:
             point_pair = BBox.fit_point_pair_within_image(image, point_pair)
             row, col = draw.rectangle_perimeter(start=point_pair[0], end=point_pair[1])
-            image[row, col] = 0
+            image[row, col] = pixel_value
 
         return image
 
@@ -486,6 +489,11 @@ class BBox:
         if not bbox.is_valid():
             raise ValueError("Bad bbox {bbox}")
         assert bbox.xy_ranges == target_ranges, f"bbox_xy_ranges {bbox.xy_ranges}, target_ranges {target_ranges}"
+
+    def translate_bbox(self, bbox_origin):
+        '''
+        Translates a bounding box 
+        '''
 
 
 """If you looking for the overlap between two real-valued bounded intervals, then this is quite nice:
