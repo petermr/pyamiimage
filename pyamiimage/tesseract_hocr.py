@@ -221,16 +221,16 @@ class TesseractOCR:
         return phrases_file
 
     @classmethod
-    def extract_bbox_from_image(cls, path):
+    def extract_numpy_box_from_image(cls, path):
         """Given an image path, returns the coordinates for bboxes around the words
         :input: path
-        :returns: numpy array
+        :returns: numpy array [x0 y0 x1 y1]
         """
         hocr = cls.hocr_from_image_path(path)
         root = cls.parse_hocr_string(hocr)
-        bbox_for_words, words = cls.extract_bbox_from_hocr(root)
+        numpy_bbox_for_words, words = cls.extract_bbox_from_hocr(root)
         
-        return bbox_for_words, words
+        return numpy_bbox_for_words, words
 
     @classmethod
     def parse_hocr_title(cls, title):

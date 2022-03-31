@@ -1,10 +1,16 @@
 import logging
+import re
 from collections import Counter
 # local
 from pyamiimage.ami_util import AmiUtil
 from pyamiimage.bbox import BBox
+from pyamiimage.tesseract_hocr import TesseractOCR
+
+# TODO move AmiLine (and maybe others) into ami_graph_all - causes import problems
+#  and doesn't really belong here
 
 logger = logging.getLogger(__name__)
+
 
 HEAD = "head"
 
@@ -18,11 +24,318 @@ SEGMENT = "segment"
 TAIL = "tail"
 X = 0
 Y = 1
+MAX_DELTA_TICK = 10
+
+
+class PlotSide:
+    LEFT = "LEFT"
+    RIGHT = "RIGHT"
+    TOP = "TOP"
+    BOTTOM = "BOTTOM"
+    SIDES = [LEFT, TOP, RIGHT, BOTTOM]
+
+
+class ScaleText:
+    """holds text and bounding box for a scale value
+
+     """
+
+    def __init__(self, text, bbox):
+        """creates scake text
+
+        :param text: e.g. '20.0'
+        :param bbox: e.g. BBox (xy_ranges = [[20,30], [40, 47]]
+        """
+        self.text = text
+        self.bbox = bbox
+
+    def centroid_coord(self, axis):
+        """
+
+        :param axis: X or Y
+        :return:
+        """
+        assert axis == X or axis == Y
+        return self.bbox.centroid[axis]
+
+
+class TickMark:
+
+    def __init__(self, bbox):
+        """holds a tick mark
+
+        Use a class in case we annotate later (e.g. with Major/Minor)
+        :param bbox: BBox exactly containing the tick mark (may be zero width)
+        """
+        assert bbox is not None, f"must not be None"
+        assert type(bbox) is BBox, f"expected BBox found {bbox}"
+        # bbox of the tick mark line
+        self.bbox = bbox
+        # text (or None) for tick
+        self.user_text = None
+        # value computed from user_text
+        self.user_num = None
+
+    def __repr__(self):
+        return str(self.bbox)+" "+str(self.user_text)+" "+str(self.user_num)
+
+    def __str__(self):
+        return str(self.bbox)
+
+    @property
+    def coord(self):
+        """coordinate of line
+
+        :return: coordinate perpendicular to tick mark
+        """
+        return self.centroid[X] if self.orientation is Y else X
+
+    @property
+    def centroid(self):
+        """centroid of bbox
+        :return: centroid of surrounding bbox created from elsewhere (e.g. OCR)
+        """
+        return self.bbox.centroid
+
+    @property
+    def orientation(self):
+        """direction of tick
+
+        X has for horizontal ticks, Y for vertical ticks
+        :return: X if tick line is horizontal else Y
+        """
+        return X if self.bbox.get_width() > self.bbox.get_height() else Y
+
+    @property
+    def perpendicular(self):
+        """direction perpendicular to tick
+
+        Y for horizontal ticks, X for vertical ticks
+        :return: Y if tick line is horizontal else X
+        """
+        return Y if self.bbox.get_width() > self.bbox.get_height() else X
+
+    @classmethod
+    def get_tick_marks(cls, ami_lines, including_box, axis):
+        """
+        get changing tick coordinates for lines
+
+        :param ami_lines: horizontal or vertical lines
+        :param including_box: box which must totally include tick marks
+        :param axis: X or Y
+        :return: tick_marks
+        """
+        assert ami_lines is not None and len(ami_lines) >= 1, f"must have at least one tick"
+        assert including_box is not None
+        assert axis == X or axis == Y, f"must have X or Y axis"
+        return [TickMark(line.bbox) for line in ami_lines if including_box.contains_bbox(line.bbox)]
+
+    @classmethod
+    def assert_ticks(cls, tick_exp, x_ticks):
+        for i, x_tick in enumerate(x_ticks):
+            assert x_tick.bbox.xy_ranges == tick_exp[i], f"tick found {x_tick.bbox.xy_ranges} expected {tick_exp[i]}"
+
+    @classmethod
+    def match_ticks_to_text(cls, scale_texts, ticks, max_delta=MAX_DELTA_TICK):
+        """
+        matches centroids of ScaleTexts to TickMark coordinates
+
+        :param scale_texts: list of ScaleTexts to match (normally numbers, but not guaranteed)
+        :param ticks: list of TickMarks to match
+        :param max_delta:maximum deviation of coordinates between text and ticks
+        :return: list of (scale_text, tick) tuples (unsorted)
+        """
+        scale_text2tick_list = []
+        for tick in ticks:
+            assert tick.perpendicular == X or tick.perpendicular == Y, f"perp {tick.perpendicular}"
+            for scale_text in scale_texts:
+                scale_coord = scale_text.centroid_coord(tick.perpendicular)
+                if abs(tick.coord - scale_coord) < max_delta:
+                    scale_text2tick_list.append((scale_text.text, tick))
+
+        return scale_text2tick_list
 
 
 class AmiPlot:
-    pass
 
+    def __init__(self, bbox=None, image_file=None, ami_graph=None):
+        self.bbox = bbox
+        self.image_file = image_file
+        self.ami_graph = ami_graph
+        self.axial_box_by_side = dict()
+        self.plot_island = None
+        # resources
+        self.ami_edges = None
+        self.horiz_ami_lines = None
+        self.vert_ami_lines = None
+        self.words = None
+        self.word_bboxes = None
+        # scales
+        self.bottom_scale = None
+        self.left_scale = None
+        self.top_scale = None
+        self.right_scale = None
+
+        if image_file:
+            from pyamiimage.ami_graph_all import AmiGraph # TODO resolve AmiPlot and AmiGraph
+            self.ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(image_file)
+        return
+
+    def get_axial_box(self, side=PlotSide.LEFT, low_margin=10, high_margin=10):
+        """
+        create a box for the axial spine and optional margins
+
+        if margins are zero this is a zero-width box exactly covering the axial spine
+        It may be advisable to expand the box along the spine to catch ticks with same
+        coordinate as spine ends
+
+        :param side: side of box (see PlotSide)
+        :param low_margin: decrease lowvalue of non-side range
+        :param high_margin: increase highvalue of non-side range
+        """
+        assert side in PlotSide.SIDES
+        axial_bbox = self.axial_box_by_side.get(side)
+        if self.bbox and not axial_bbox:
+            xrange = self.bbox.get_xrange()
+            yrange = self.bbox.get_yrange()
+            xy_ranges_ = None
+            if side == PlotSide.LEFT:
+                xy_ranges_ = [[xrange[0] - low_margin, xrange[0] + high_margin], yrange]
+            elif side == PlotSide.RIGHT:
+                xy_ranges_ = [[xrange[1] - low_margin, xrange[1] + high_margin], yrange]
+            elif side == PlotSide.TOP:
+                xy_ranges_ = [xrange, [yrange[0] - low_margin, yrange[0] + high_margin]]
+            elif side == PlotSide.BOTTOM:
+                xy_ranges_ = [xrange, [yrange[1] - low_margin, yrange[1] + high_margin]]
+
+            axial_bbox = BBox(xy_ranges=xy_ranges_)
+            self.axial_box_by_side[side] = axial_bbox
+        return axial_bbox
+
+    def clear_axial_boxes(self):
+        self.axial_box_by_side = dict()
+
+    def add_axial_polylines_to_ami_lines(self, ami_edges, horiz_ami_lines, vert_ami_lines, tolerance=2):
+        # TODO not in right class?
+        from pyamiimage.ami_graph_all import AmiEdge  # horrible TODO have to fix this
+        axial_polylines = AmiEdge.get_axial_polylines(ami_edges, tolerance=tolerance)
+        for axial_polyline in axial_polylines:
+            for ami_line in axial_polyline:
+                if ami_line.is_vertical(tolerance=tolerance):
+                    vert_ami_lines.append(ami_line)
+                elif ami_line.is_horizontal(tolerance=tolerance):
+                    horiz_ami_lines.append(ami_line)
+                else:
+                    raise ValueError(f"line {ami_line} must be horizontal or vertical")
+
+    def create_scaled_plot_box(self, island_index=0, maxmindim=10000, mindim=0):
+        from pyamiimage.ami_graph_all import AmiEdge  # TODO resolve imports
+
+        plot_islands = self.ami_graph.get_or_create_ami_islands(mindim=mindim, maxmindim=maxmindim)
+        if len(plot_islands) <= island_index:
+            raise ValueError(f"not enough islands {len(plot_islands)}, wanted {island_index}")
+        self.plot_island = plot_islands[island_index]
+        self.bbox = self.plot_island.get_or_create_bbox()
+        self.ami_edges = self.plot_island.get_or_create_ami_edges()
+        self.horiz_ami_lines = AmiEdge.get_horizontal_lines(self.ami_edges)
+        if len(self.horiz_ami_lines) == 0:
+            print(f"cannot find any horiz lines, edges {self.edges}")
+        self.vert_ami_lines = AmiEdge.get_vertical_lines(self.ami_edges)
+
+        self.left_scale = AmiScale()
+        self.left_scale.box = self.get_axial_box(side=PlotSide.LEFT, low_margin=100, high_margin=50)
+        self.left_scale.box.change_range(1, 3)
+        self.left_scale.ticks = TickMark.get_tick_marks(self.horiz_ami_lines, self.left_scale.box, Y)
+
+        print (f"ticks {self.left_scale.ticks}")
+        self.bottom_scale = AmiScale()
+        self.bottom_scale.box = self.get_axial_box(side=PlotSide.BOTTOM, high_margin=50)
+        self.bottom_scale.box.change_range(1, 3)
+        self.bottom_scale.ticks = TickMark.get_tick_marks(self.vert_ami_lines, self.bottom_scale.box, X)
+
+        print(f"bottom ticks {self.bottom_scale.ticks}")
+
+        # axial polylines can be L- or U-shaped
+        self.add_axial_polylines_to_ami_lines(self.ami_edges, self.horiz_ami_lines, self.vert_ami_lines)
+
+        word_numpys, self.words = TesseractOCR.extract_numpy_box_from_image(self.image_file)
+        self.word_bboxes = [BBox.create_from_numpy_array(word_numpy) for word_numpy in word_numpys]
+        print(f" wordzz {self.words}")
+
+
+
+        self.bottom_scale.text2coord_list = self.bottom_scale.match_scale_text2ticks(
+            self.word_bboxes, self.words,
+        )
+        self.left_scale.text2coord_list = self.left_scale.match_scale_text2ticks(
+            self.word_bboxes, self.words, "[\D*]\-"
+        )
+        self.bottom_scale.get_numeric_ticks()
+        self.bottom_scale.calculate_offset_scale()
+
+
+class AmiScale:
+
+    def __init__(self):
+        self.text2coord_list = None
+        self.scale_text2tick_list = []
+        self.box = None
+        self.ticks = None
+        self.text_values = None
+        self.numeric_ticks = []
+
+        """
+        to convert from user coords to plot coords
+        plot_coord = self.user_num_to_plot_offset + user_to_plot_scale * user_coord
+        """
+        self.user_to_plot_scale = None
+        self.user_num_to_plot_offset = None
+
+    def match_scale_text2ticks(self, word_bboxes, words, del_regex=None):
+        # TODO get rid of self.scale_text2tick_list (maybe a dict())
+        self.text_values = []
+        self.scale_text2tick_list = []
+        if not self.ticks:
+            print(f"no ticks")
+            return
+        if len(self.ticks) < 2:
+            print(f"only one tick")
+            return
+
+        for bbox, word in zip(word_bboxes, words):
+            if self.box.contains_bbox(bbox):
+                self.text_values.append(ScaleText(word, bbox))
+        self.scale_text2tick_list = TickMark.match_ticks_to_text(self.text_values, self.ticks)
+        for scale_text2tick in self.scale_text2tick_list:
+            scale_text = scale_text2tick[0]
+            if del_regex:
+                scale_text = re.sub(del_regex, '', scale_text)
+            scale_text2tick[1].user_num = AmiUtil.get_float(scale_text)
+            scale_text2tick[1].user_text = scale_text
+
+        return self.scale_text2tick_list
+
+    def get_numeric_ticks(self):
+        self.numeric_ticks = [stt[1] for stt in self.scale_text2tick_list if stt[1].user_num is not None]
+        self.numeric_ticks = sorted(self.numeric_ticks, key=lambda n : n.user_num)
+        # print(f"numericR {self.numeric_ticks}")
+
+    def calculate_offset_scale(self):
+        if not self.numeric_ticks:
+            print(f" no numeric ticks")
+            return
+        if len(self.numeric_ticks) == 1:
+            print(f" only one numeric tick")
+            return
+        tick_lo = self.numeric_ticks[0]
+        tick_hi = self.numeric_ticks[-1]
+        delta_plot = tick_hi.coord - tick_lo.coord
+        delta_user = tick_hi.user_num - tick_lo.user_num
+        self.user_to_plot_scale = delta_plot / delta_user
+        self.user_num_to_plot_offset = tick_lo.coord - tick_lo.user_num * self.user_to_plot_scale
+
+    def convert_plot_coords_to_user(self, plot_coord):
+        return (plot_coord - self.user_num_to_plot_offset) / self.user_to_plot_scale
 
 class AmiLine:
     """This will probably include a third-party tool supporting geometry for lines
@@ -41,6 +354,7 @@ class AmiLine:
                 raise ValueError(f"bad xy pair for line {xy12}")
             self.xy1 = [xy12[0][X], xy12[0][Y]]
             self.xy2 = [xy12[1][X], xy12[1][Y]]
+        self._bbox = None
         # ami_nodes = []
 
     def __repr__(self):
@@ -69,6 +383,15 @@ class AmiLine:
             return [(self.xy1[X] + self.xy2[X]) / 2, (self.xy1[Y] + self.xy2[Y]) // 2]
         return None
 
+    @property
+    def bbox(self):
+        """get bbox for line
+        """
+        if not self._bbox and self.xy1 and self.xy2:
+            self._bbox = BBox([[self.xy1[X], self.xy2[X]], [self.xy1[Y], self.xy2[Y]]])
+
+        return self._bbox
+
     def is_horizontal(self, tolerance=1) -> int:
         return abs(self.vector[Y]) <= tolerance < abs(self.vector[X])
 
@@ -96,6 +419,7 @@ class AmiLine:
 
     def get_max(self, xy_flag):
         return None if xy_flag is None else max(self.xy1[xy_flag], self.xy2[xy_flag])
+
 
 class AmiPolyline:
     """polyline. can represent solid or dashed (NYI) lines. contains attachment points
@@ -191,18 +515,20 @@ class AmiPolyline:
         if tolerance is None:
             tolerance = self.tolerance
         if not self.points_list or len(self.points_list) < 2:
-                return None
+            return None
         dx = self.points_list[-1][0] - self.points_list[0][0]
         dy = self.points_list[-1][1] - self.points_list[0][1]
 
         if abs(dx) <= tolerance and abs(dy) <= tolerance:
             return None
         if abs(dx) <= tolerance:
-            l = [self.points_list[-1][1], self.points_list[0][1]] if dy < 0 else [self.points_list[0][1], self.points_list[-1][1]]
-            return l
+            ll = [self.points_list[-1][1], self.points_list[0][1]] if dy < 0 else [self.points_list[0][1],
+                                                                                   self.points_list[-1][1]]
+            return ll
         if abs(dy) <= tolerance:
-            l = [self.points_list[-1][0], self.points_list[0][0]] if dy < 0 else [self.points_list[0][0], self.points_list[-1][0]]
-            return l
+            ll = [self.points_list[-1][0], self.points_list[0][0]] if dy < 0 else [self.points_list[0][0],
+                                                                                   self.points_list[-1][0]]
+            return ll
         return None
         # raise ValueError(f"cannot calculate range {self.points_list}")
 
@@ -214,8 +540,8 @@ class AmiPolyline:
     def get_cartesian_length(self):
         """gets length for axial polylines
         :return: abs distance in axial coordinate else NaN"""
-        range = self.range()
-        return float("NaN") if range is None else abs(range[0] - range[1])
+        range_ = self.range()
+        return float("NaN") if range_ is None else abs(range_[0] - range_[1])
 
     def find_points_in_box(self, bbox):
         """iterates over all points including ends in polyline
@@ -225,7 +551,7 @@ class AmiPolyline:
         size = len(self.points_list)
         for i, point in enumerate(self.points_list):
             if bbox.contains_point(point):
-                points_in_box.append((i, i-size, point))
+                points_in_box.append((i, i - size, point))
         return points_in_box
 
     def number_of_points(self):
@@ -237,18 +563,17 @@ class AmiPolyline:
     def split_line(self, point_triple):
         """split polyline at point
         :param point_triple: triple created by AmiPolyline.find_points_in_box() (index_left, index_right, coords)
-        :param polyline: to split
         :return: two lines, if one is length 0, nul and orginal polyline
         """
         lines = [None, None]
-        l = self.number_of_points()
+        ll = self.number_of_points()
         if point_triple[0] == 0:
             lines[1] = self
         elif point_triple[0] == -1:
             lines[0] = self
         else:
             lines[0] = self.sub_polyline(0, point_triple[0])
-            lines[1] = self.sub_polyline(point_triple[0], l-1)
+            lines[1] = self.sub_polyline(point_triple[0], ll - 1)
 
         return lines
 
@@ -256,7 +581,7 @@ class AmiPolyline:
         """slice line at points , keeping both
         not pythonic
         """
-        polyline = AmiPolyline(self.points_list[index0:index1+1])
+        polyline = AmiPolyline(self.points_list[index0:index1 + 1])
         return polyline
 
 
@@ -366,7 +691,6 @@ class AmiLineTool:
         AmiLineTool._validate_point(point2)
         return AmiUtil.are_coincident(point1, point2, self.tolerance)
 
-
     def _validate_segment(self, segment):
         if type(segment) is list:
             AmiLineTool._validate_point(segment[0])
@@ -408,7 +732,7 @@ class AmiLineTool:
 
         :param polyline_to_add: polyline to add (may be anynumber of points, 1, 2, many
         """
-        if self.line_points_list == []:
+        if not self.line_points_list:
             polylinex = []
             for point in polyline_to_add:
                 polylinex.append([point[0], point[1]])

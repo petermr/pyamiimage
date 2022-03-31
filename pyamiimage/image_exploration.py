@@ -48,22 +48,24 @@ class Exploration:
         # plt.show()
         #
 
-        white = Exploration.create_white_network_snippet("snippet_rgba.png")
+        path = Path(Path(__file__).parent.parent, "test", "resources", "snippet_rgba.png")
+        shape_ = shape = (341, 796)
 
-        AmiUtil.make_numpy_assert(white, shape=(341, 796), maxx=255, dtype=np.int64)
+        self.explore_erode_dilate_1(path, shape_)
 
+    def explore_erode_dilate_1(self, path, shape_=None, interactive=True):
+        white = Exploration.create_white_network_snippet(path)
+        if shape_ is not None:
+            AmiUtil.make_numpy_assert(white, shape_, maxx=255, dtype=np.int64)
         footprint = disk(1)
         eroded = erosion(white, footprint)
         Exploration.plot_comparison(white, eroded, 'erosion')
-
         plt.show()
-
         erode_1 = erosion(white, disk(1))
         erode_2 = erosion(white, disk(2))
         dilate_1 = dilation(white, disk(1))
         dilate_2 = dilation(white, disk(2))
         dilate_erode_1 = dilation(erosion(white, disk(1)), disk(1))
-
         plots = [
             {"image": white, "title": 'Original image'},
             {"image": erode_1, "title": 'erode disk=1'},
@@ -72,12 +74,42 @@ class Exploration:
             {"image": dilate_2, "title": 'dilate disk=2'},
             {"image": dilate_erode_1, "title": 'dilate_erode disk=1'},
         ]
-        ax, fig = self.create_subplots(plots, nrows=3, ncols=2, figsize=(10, 10))
+        if interactive:
+            ax, fig = self.create_subplots(plots, nrows=3, ncols=2, figsize=(10, 10))
+            # Exploration.axis_layout(ax, axis, fig)
+            plt.show()
 
-        # Exploration.axis_layout(ax, axis, fig)
-        plt.show()
+    def explore_dilate_1(self, path, shape_=None, interactive=True):
+        white = Exploration.create_white_network_snippet(path)
+        if shape_ is not None:
+            AmiUtil.make_numpy_assert(white, shape_, maxx=255, dtype=np.int64)
+        footprint = disk(1)
+        # eroded = erosion(white, footprint)
+        # Exploration.plot_comparison(white, eroded, 'erosion')
+        # plt.show()
+        dilate_0 = dilation(white)
+        dilate_00 = dilation(dilate_0)
+        dilate_000 = dilation(dilate_00)
+        dilate_0000 = dilation(dilate_000)
+        dilate_00000 = dilation(dilate_0000)
+        dilate_1 = dilation(white, disk(1))
+        dilate_2 = dilation(white, disk(2))
+        dilate_erode_1 = dilation(erosion(white, disk(1)), disk(1))
+        plots = [
+            {"image": white, "title": 'Original image'},
+            {"image": dilate_0, "title": 'dilate0'},
+            # {"image": dilate_00, "title": 'dilate00'},
+            {"image": dilate_000, "title": 'dilate000'},
+            {"image": dilate_0000, "title": 'dilate0000'},
+            {"image": dilate_00000, "title": 'dilate00000'},
+            {"image": dilate_2, "title": 'dilate disk=2'},
+        ]
+        if interactive:
+            ax, fig = self.create_subplots(plots, nrows=3, ncols=2, figsize=(10, 10))
+            # Exploration.axis_layout(ax, axis, fig)
+            plt.show()
 
-# ================= resources =================
+    # ================= resources =================
     @classmethod
     def create_gray_network_snippet(cls, png):
         path = Path(Path(__file__).parent.parent, "test", "resources", png)
@@ -86,12 +118,12 @@ class Exploration:
         return gray
 
     @classmethod
-    def create_white_network_snippet(cls, png):
-        path = Path(Path(__file__).parent.parent, "test", "resources", png)
+    def create_white_network_snippet(cls, path, shape=None):
         assert path.exists(), f"path {path} exists"
         white = AmiImage.create_white_binary_from_file(path)
 
-        AmiUtil.make_numpy_assert(white, shape=(341, 796), maxx=255, dtype=np.int64)
+        if shape:
+            AmiUtil.make_numpy_assert(white, shape=shape, maxx=255, dtype=np.int64)
 
         return white
 
@@ -186,6 +218,6 @@ class Exploration:
 
 # (Note that you need to use np.uint8 as datatype for your image, since binary images obviously cannot represent different colors.)
 
-# if __name__ == '__main__':
-#     Exploration().sharpen_explore(axis=True)
-#     Exploration().explore_erode_dilate()
+if __name__ == '__main__':
+     Exploration().sharpen_explore(axis=True)
+     Exploration().explore_erode_dilate()

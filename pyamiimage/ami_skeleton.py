@@ -6,7 +6,6 @@ import logging
 from pathlib import Path
 import numpy as np
 import networkx as nx
-import sknw  # must pip install sknw
 import os
 import matplotlib.pyplot as plt
 from skimage import io
