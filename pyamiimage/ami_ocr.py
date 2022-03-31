@@ -77,6 +77,13 @@ class AmiOCR:
             logging.warning('AmiOCR initilized without image. No image or Path provided. Use set_image().')
 
     def set_ocr_wrapper(self, ocr_wrapper):
+        '''
+        Set a backend for running OCR on image
+
+            Parameters:
+                ocr_wrapper (str): Name of backend to use, eg: esyocr or tesseract
+
+        '''
         self.ocr_wrapper = AmiOCR.wrapper_selector(ocr_wrapper)
         if self.ocr_wrapper == None:
             logging.error("Invalid backend, defaulting to config file") 
@@ -87,10 +94,8 @@ class AmiOCR:
         Set image for AmiOCR object
         
             Parameters:
+            ----------
                 image (Path or numpy.ndarray): Image or Path to run AmiOCR on
-            
-            Returns:
-                None
         '''
         if is_valid_image(image):
             self.image = image
