@@ -125,11 +125,12 @@ class BBox:
             return
         val0 = int(rrange[0])
         val1 = int(rrange[1])
-        if val1 < val0:
-            if self.swap_minmax:
-                val1, val0 = val0, val1
-            else:
-                raise ValueError(f"ranges must be increasing {val0} !<= {val1}")
+        # This may cause problem for vertical text
+        # if val1 < val0:
+        #     if self.swap_minmax:
+        #         val1, val0 = val0, val1
+        #     else:
+        #         raise ValueError(f"ranges must be increasing {val0} !<= {val1}")
         self.xy_ranges[index] = [val0, val1]
         self.xy_ranges[index] = [val0, val1]
 

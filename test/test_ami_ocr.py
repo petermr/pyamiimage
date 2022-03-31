@@ -31,10 +31,12 @@ class TestAmiOCR:
     def setup_method(self, method):
         # test image
         self.biosynth3_path = Resources.BIOSYNTH3_RAW
+        self.test_image = Resources.AMIOCR_TEST_RAW
 
     def teardown_method(self, method):
         # clear variables
         self.biosynth3_path = None
+        self.test_image = None
 
     def test_run_ocr_no_image(self):
         no_image_amiocr = AmiOCR()
@@ -56,4 +58,26 @@ class TestAmiOCR:
         biosynth3_amiocr = AmiOCR(str(self.biosynth3_path))
         textboxes = biosynth3_amiocr.get_textboxes()
         assert len(textboxes) == 29, f'Number of textboxes found {len(textboxes)}'
+
+    def test_easyocr_from_file(self):
+        test_ocr = AmiOCR(self.test_image, backend='easyocr')
+        textboxes = test_ocr.get_textboxes()
+        assert textboxes is not None
+
+    def test_tesseract_from_file(self):
+        test_ocr = AmiOCR(self.test_image, backend='tesseract')
+        textboxes = test_ocr.get_textboxes()
+        assert textboxes is not None
+
+    def test_tesseract_from_image(self):
+        test_image = AmiImage.read(self.test_image)
+        test_ocr = AmiOCR(test_image, backend='tesseract')
+        textboxes = test_ocr.get_textboxes()
+        assert textboxes is not None
+
+    def test_easyocr_from_image(self):
+        test_image = AmiImage.read(self.test_image)
+        test_ocr = AmiOCR(test_image, backend='easyocr')
+        textboxes = test_ocr.get_textboxes()
+        assert textboxes is not None
 
