@@ -1,4 +1,5 @@
 import logging
+import re
 from collections import Counter
 # local
 from pyamiimage.ami_util import AmiUtil
@@ -127,11 +128,6 @@ class TickMark:
         assert ami_lines is not None and len(ami_lines) >= 1, f"must have at least one tick"
         assert including_box is not None
         assert axis == X or axis == Y, f"must have X or Y axis"
-        # tick_marks = []
-        # for ami_line in ami_lines:
-        #     if including_box.contains_bbox(ami_line.bbox):
-        #         tick_marks.append(TickMark(ami_line.bbox))
-        # return tick_marks
         return [TickMark(line.bbox) for line in ami_lines if including_box.contains_bbox(line.bbox)]
 
     @classmethod
@@ -242,13 +238,16 @@ class AmiPlot:
         self.bbox = self.plot_island.get_or_create_bbox()
         self.ami_edges = self.plot_island.get_or_create_ami_edges()
         self.horiz_ami_lines = AmiEdge.get_horizontal_lines(self.ami_edges)
+        if len(self.horiz_ami_lines) == 0:
+            print(f"cannot find any horiz lines, edges {self.edges}")
         self.vert_ami_lines = AmiEdge.get_vertical_lines(self.ami_edges)
 
         self.left_scale = AmiScale()
-        self.left_scale.box = self.get_axial_box(side=PlotSide.LEFT, low_margin=100)
+        self.left_scale.box = self.get_axial_box(side=PlotSide.LEFT, low_margin=100, high_margin=50)
         self.left_scale.box.change_range(1, 3)
         self.left_scale.ticks = TickMark.get_tick_marks(self.horiz_ami_lines, self.left_scale.box, Y)
 
+        print (f"ticks {self.left_scale.ticks}")
         self.bottom_scale = AmiScale()
         self.bottom_scale.box = self.get_axial_box(side=PlotSide.BOTTOM, high_margin=50)
         self.bottom_scale.box.change_range(1, 3)
@@ -261,14 +260,15 @@ class AmiPlot:
 
         word_numpys, self.words = TesseractOCR.extract_numpy_box_from_image(self.image_file)
         self.word_bboxes = [BBox.create_from_numpy_array(word_numpy) for word_numpy in word_numpys]
-        # print(f" wordz {[item for item in zip(self.word_bboxes, self.words)]}")
         print(f" wordzz {self.words}")
+
+
 
         self.bottom_scale.text2coord_list = self.bottom_scale.match_scale_text2ticks(
             self.word_bboxes, self.words,
         )
         self.left_scale.text2coord_list = self.left_scale.match_scale_text2ticks(
-            self.word_bboxes, self.words,
+            self.word_bboxes, self.words, "[\D*]\-"
         )
         self.bottom_scale.get_numeric_ticks()
         self.bottom_scale.calculate_offset_scale()
@@ -284,12 +284,15 @@ class AmiScale:
         self.text_values = None
         self.numeric_ticks = []
 
-        self.user_num_to_plot_scale = None
+        """
+        to convert from user coords to plot coords
+        plot_coord = self.user_num_to_plot_offset + user_to_plot_scale * user_coord
+        """
+        self.user_to_plot_scale = None
         self.user_num_to_plot_offset = None
-        self.plot_to_user_num_scale = None
-        self.plot_to_user_num_offset = None
 
-    def match_scale_text2ticks(self, word_bboxes, words):
+    def match_scale_text2ticks(self, word_bboxes, words, del_regex=None):
+        # TODO get rid of self.scale_text2tick_list (maybe a dict())
         self.text_values = []
         self.scale_text2tick_list = []
         if not self.ticks:
@@ -301,11 +304,12 @@ class AmiScale:
 
         for bbox, word in zip(word_bboxes, words):
             if self.box.contains_bbox(bbox):
-                # print(f"matched box {bbox} {word}")
                 self.text_values.append(ScaleText(word, bbox))
         self.scale_text2tick_list = TickMark.match_ticks_to_text(self.text_values, self.ticks)
         for scale_text2tick in self.scale_text2tick_list:
             scale_text = scale_text2tick[0]
+            if del_regex:
+                scale_text = re.sub(del_regex, '', scale_text)
             scale_text2tick[1].user_num = AmiUtil.get_float(scale_text)
             scale_text2tick[1].user_text = scale_text
 
@@ -326,11 +330,12 @@ class AmiScale:
         tick_lo = self.numeric_ticks[0]
         tick_hi = self.numeric_ticks[-1]
         delta_plot = tick_hi.coord - tick_lo.coord
-        delta_user_num = tick_hi.user_num - tick_lo.user_num
-        self.user_num_to_plot_scale = delta_plot / delta_user_num
-        self.plot_to_user_num_scale = 1 / self.user_num_to_plot_scale
-        self.user_num_to_plot_offset = tick_lo.coord - tick_lo.user_num * self.user_num_to_plot_scale
-        self.plot_to_user_num_offset = tick_lo.user_num - tick_lo.coord * self.plot_to_user_num_scale
+        delta_user = tick_hi.user_num - tick_lo.user_num
+        self.user_to_plot_scale = delta_plot / delta_user
+        self.user_num_to_plot_offset = tick_lo.coord - tick_lo.user_num * self.user_to_plot_scale
+
+    def convert_plot_coords_to_user(self, plot_coord):
+        return (plot_coord - self.user_num_to_plot_offset) / self.user_to_plot_scale
 
 class AmiLine:
     """This will probably include a third-party tool supporting geometry for lines

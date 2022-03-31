@@ -197,24 +197,24 @@ class TestPlots:
         rescaled image is twice the size
         """
 
-        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.SATISH_042A_RAW)
+        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.SATISH_042A_RAW)
+        path042a = Path(Resources.TEST_RESOURCE_DIR, "042A", "raw.png")
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(path042a)
         mindim = 50
         islands = ami_graph.get_or_create_ami_islands(mindim=mindim)
         assert len(islands) == 2, f"should be box and the plot inside it"
         # get biggest box
         island_index = 0 if islands[0].get_or_create_bbox().get_height() > islands[1].get_or_create_bbox().get_height() else 1
 
-        ami_plot = AmiPlot(image_file=Resources.SATISH_042A_RAW)
+        ami_plot = AmiPlot(image_file=path042a)
         ami_plot.create_scaled_plot_box(island_index=island_index, mindim=mindim)
         print(f"left text2coord {ami_plot.left_scale.text2coord_list}")
         print(f"bottom text2coord {ami_plot.bottom_scale.text2coord_list}")
         assert ami_plot.bottom_scale.text2coord_list[0][0] == '10'
         # assert ami_plot.bottom_scale.text2coord_list[0][1].bbox.xy_ranges == [[149, 149], [347, 352]]
 
-        assert ami_plot.bottom_scale.user_num_to_plot_scale == 19.575
+        assert ami_plot.bottom_scale.user_to_plot_scale == 19.575
         assert ami_plot.bottom_scale.user_num_to_plot_offset == 225.25
-        assert ami_plot.bottom_scale.plot_to_user_num_scale == .05108556832694764
-        assert ami_plot.bottom_scale.plot_to_user_num_offset == -11.507024265644958
 
         assert not ami_plot.left_scale.text2coord_list
 
