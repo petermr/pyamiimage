@@ -62,22 +62,22 @@ class TestAmiOCR:
     def test_easyocr_from_file(self):
         test_ocr = AmiOCR(self.test_image, backend='easyocr')
         textboxes = test_ocr.get_textboxes()
-        assert textboxes is not None
+        assert len(textboxes) == 55
+    
+    def test_easyocr_from_image(self):
+        test_image = AmiImage.read(self.test_image)
+        test_ocr = AmiOCR(test_image, backend='easyocr')
+        textboxes = test_ocr.get_textboxes()
+        assert len(textboxes) == 55
 
     def test_tesseract_from_file(self):
         test_ocr = AmiOCR(self.test_image, backend='tesseract')
         textboxes = test_ocr.get_textboxes()
-        assert textboxes is not None
+        assert len(textboxes) == 83
 
     def test_tesseract_from_image(self):
         test_image = AmiImage.read(self.test_image)
         test_ocr = AmiOCR(test_image, backend='tesseract')
         textboxes = test_ocr.get_textboxes()
-        assert textboxes is not None
-
-    def test_easyocr_from_image(self):
-        test_image = AmiImage.read(self.test_image)
-        test_ocr = AmiOCR(test_image, backend='easyocr')
-        textboxes = test_ocr.get_textboxes()
-        assert textboxes is not None
+        assert len(textboxes) == 83
 
