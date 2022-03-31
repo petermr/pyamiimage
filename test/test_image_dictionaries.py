@@ -3,7 +3,7 @@ from collections import Counter
 from pathlib import Path
 from pathlib import WindowsPath
 import pandas as pd
-path = WindowsPath('C:/Users/Roopa','hits_words.txt')
+path = WindowsPath('C:/Users/Roopa','extracted_words.txt')
 #assert path.exists(),f"{path} exists"
 wikidata_lookup = WikidataLookup()
 file1 = open('extracted_words.txt', 'r')
