@@ -58,9 +58,14 @@ class AmiOCR:
             Returns:
                 None
         '''
+        # TODO config does not work on all platforms?
         if backend == None:
             # if no backend is mentioned at the parameter, use config file
-            backend =  config['ocr']['backend']
+            try:
+                backend =  config['ocr']['backend']
+            except KeyError as e:
+                logging.error(f"Cannot read values from config.ini {e}, set backend to 'easyocr'")
+                backend = 'easyocr'
         
         self.ocr_wrapper = None
         self.image = None
@@ -154,7 +159,12 @@ class AmiOCR:
         '''
         if ocr_wrapper == None:
             # if ocr_wrapper is not given set backend from config file
-            AmiOCR.wrapper_selector(config['ocr']['backend'])
+            try:
+                AmiOCR.wrapper_selector(config['ocr']['backend'])
+            except KeyError as e:
+                logging.error(f"Cannot read values from config.ini {e}, set backend to 'easyocr'")
+                AmiOCR.wrapper_selector('easyocr')
+
         logging.info('Running OCR on image. May take some time. Please wait...')
         textboxes = AmiOCR._generate_textboxes(ocr_wrapper.readtext(image))
         return textboxes
