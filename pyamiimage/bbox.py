@@ -449,20 +449,25 @@ class BBox:
             return False
         return True
 
-    def contains_bbox(self, bbox):
-        """does bbox fit within self (inclusive coords)
+    def contains_geom_object(self, geom_object):
+        """does object fit within self (inclusive coords)
 
-        :param bbox: bbox xyranges should fit within self.xy_ranges; None returns False
+        :param geom_object: 2-float array or BBox
+        :return: None returns False
         """
 
-        assert bbox, "must have bbox"
-        contains = False
-        if bbox and bbox.xy_ranges:
-            if (bbox.get_xrange()[0] >= self.get_xrange()[0] and
-                bbox.get_xrange()[1] <= self.get_xrange()[1] and
-                bbox.get_yrange()[0] >= self.get_yrange()[0] and
-                bbox.get_yrange()[1] <= self.get_yrange()[1]):
+        if not geom_object:
+            return False
+        if AmiUtil.is_point(geom_object):
+            return (self.get_xrange()[0] <= geom_object[0] <= self.get_xrange()[1] and
+                    self.get_yrange()[0] <= geom_object[1] <= self.get_yrange()[1])
+        if type(geom_object) is BBox:
+            if (geom_object.get_xrange()[0] >= self.get_xrange()[0] and
+                geom_object.get_xrange()[1] <= self.get_xrange()[1] and
+                geom_object.get_yrange()[0] >= self.get_yrange()[0] and
+                geom_object.get_yrange()[1] <= self.get_yrange()[1]):
                 return True
+            return False
         return False
 
 

@@ -54,6 +54,12 @@ class AmiUtil:
             return False
 
     @classmethod
+    def is_point(cls, point):
+        """is point a 2-float array
+        """
+        return point and type(point) is list and len(point) == 2 and AmiUtil.is_number(point[0]) and AmiUtil.is_number(point[1])
+
+    @classmethod
     def get_float(cls, s):
         """numeric value of s
         traps Exception

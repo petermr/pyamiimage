@@ -42,44 +42,48 @@ class TestPlots:
         min_edge_len = 200
         interactive = False
         for img_file in sorted(img_files):
-            img_path = Path(img_file)
-            Exploration().explore_dilate_1(img_path, interactive=interactive)
-            img = TestAmiSkeleton.create_skeleton_from_file(img_path)
-            out_path = Path(Resources.TEMP_DIR, img_path.stem + ".png")
-            imageio.imwrite(out_path, img)
-            print(f"writing {type(img)} {out_path} {img.shape}")
-            ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(img_path)
-            ami_islands = ami_graph.get_or_create_ami_islands(mindim=50)
-            for island in ami_islands:
-                plot_edge = None
-                print(f"{island.get_or_create_bbox()} n, {len(island.get_ami_nodes())} "
-                      f"e {len(island.get_or_create_ami_edges())} coords {len(island.get_or_create_coords())}")
-                if len(island.get_ami_nodes()) <= 2:
-                    print(f"edge?")
-                    print(f"{[(edge.first_point, edge.last_point) for edge in island.get_or_create_ami_edges()]}")
-                    plot_edge = island.get_or_create_ami_edges()[0]
-                elif len(ami_islands) == 1:  # (higher numbers means the edge has been identified elsewhere
-                    print("box?")
-                    for edge in island.get_or_create_ami_edges():
-                        pixlen = edge.pixel_length()
-                        if pixlen < min_edge_len:
-                            continue
-                        start_node = edge.get_start_ami_node()
-                        end_node = edge.get_end_ami_node()
-                        if not start_node or not end_node:
-                            print(f"cannot find nodes for long edge")
-                            continue
-                        print(f"{edge} {pixlen} {start_node} {end_node}")
-                        print(
-                            f"start {len(start_node.get_or_create_ami_edges())} end {len(end_node.get_or_create_ami_edges())}")
-                        if len(start_node.get_or_create_ami_edges()) == 1 or len(
-                                end_node.get_or_create_ami_edges()) == 1:
-                            plot_edge = edge
-                            break
-                if plot_edge:
-                    xy_array = plot_edge.points_xy
-                    csv_path = Path(Resources.TEMP_DIR, img_path.stem + ".csv")
-                    AmiUtil.write_xy_to_csv(xy_array, csv_path)
+            self.get_points_and_write_to_file(img_file, interactive, min_edge_len)
+
+    def get_points_and_write_to_file(self, img_file, interactive, min_edge_len):
+        # TODO add to library
+        img_path = Path(img_file)
+        Exploration().explore_dilate_1(img_path, interactive=interactive)
+        img = TestAmiSkeleton.create_skeleton_from_file(img_path)
+        out_path = Path(Resources.TEMP_DIR, img_path.stem + ".png")
+        imageio.imwrite(out_path, img)
+        print(f"writing {type(img)} {out_path} {img.shape}")
+        ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(img_path)
+        ami_islands = ami_graph.get_or_create_ami_islands(mindim=50)
+        for island in ami_islands:
+            plot_edge = None
+            print(f"{island.get_or_create_bbox()} n, {len(island.get_ami_nodes())} "
+                  f"e {len(island.get_or_create_ami_edges())} coords {len(island.get_or_create_coords())}")
+            if len(island.get_ami_nodes()) <= 2:
+                print(f"edge?")
+                print(f"{[(edge.first_point, edge.last_point) for edge in island.get_or_create_ami_edges()]}")
+                plot_edge = island.get_or_create_ami_edges()[0]
+            elif len(ami_islands) == 1:  # (higher numbers means the edge has been identified elsewhere
+                print("box?")
+                for edge in island.get_or_create_ami_edges():
+                    pixlen = edge.pixel_length()
+                    if pixlen < min_edge_len:
+                        continue
+                    start_node = edge.get_start_ami_node()
+                    end_node = edge.get_end_ami_node()
+                    if not start_node or not end_node:
+                        print(f"cannot find nodes for long edge")
+                        continue
+                    print(f"{edge} {pixlen} {start_node} {end_node}")
+                    print(
+                        f"start {len(start_node.get_or_create_ami_edges())} end {len(end_node.get_or_create_ami_edges())}")
+                    if len(start_node.get_or_create_ami_edges()) == 1 or len(
+                            end_node.get_or_create_ami_edges()) == 1:
+                        plot_edge = edge
+                        break
+            if plot_edge:
+                xy_array = plot_edge.points_xy
+                csv_path = Path(Resources.TEMP_DIR, img_path.stem + ".csv")
+                AmiUtil.write_xy_to_csv(xy_array, csv_path)
 
     def test_box_and_ticks(self):
         """creates axial box and ticks
@@ -207,23 +211,37 @@ class TestPlots:
         island_index = 0 if islands[0].get_or_create_bbox().get_height() > islands[1].get_or_create_bbox().get_height() else 1
 
         ami_plot = AmiPlot(image_file=path042a)
-        ami_plot.create_scaled_plot_box(island_index=island_index, mindim=mindim)
+        ami_plot.create_calibrated_plot_box(mindim=mindim)
+        assert ami_plot.left_scale is not None
         print(f"left text2coord {ami_plot.left_scale.text2coord_list}")
         print(f"bottom text2coord {ami_plot.bottom_scale.text2coord_list}")
         assert ami_plot.bottom_scale.text2coord_list[0][0] == '10'
-        # assert ami_plot.bottom_scale.text2coord_list[0][1].bbox.xy_ranges == [[149, 149], [347, 352]]
 
         assert ami_plot.bottom_scale.user_to_plot_scale == 19.575
         assert ami_plot.bottom_scale.user_num_to_plot_offset == 225.25
 
-        assert not ami_plot.left_scale.text2coord_list
+        assert ami_plot.left_scale.user_to_plot_scale == -0.7283333333333334
+        assert ami_plot.left_scale.user_num_to_plot_offset == 764.8333333333334
+
+    def test_example_042a(self):
+        """creates AmiPlot and reads image and creates scaled data
+        """
+        # input file
+        path042a = Path(Resources.TEST_RESOURCE_DIR, "042A", "raw.png")
+        ami_plot = AmiPlot(image_file=path042a)
+        ami_plot.create_calibrated_plot_box()
+        assert ami_plot.bottom_scale.user_to_plot_scale == 19.575
+        ami_edges = ami_plot.extract_internal_edges()
+        print(f" ami_edges {ami_edges}")
+
+
 
     def test_create_plot_box_005b(self):
         """creates axial box and ticks
         """
         # this image doesn't give good words
         ami_plot = AmiPlot(image_file=Resources.SATISH_005B_RAW)
-        ami_plot.create_scaled_plot_box(island_index=0, mindim=30)
+        ami_plot.create_calibrated_plot_box()
         print(f"left {ami_plot.axial_box_by_side['LEFT']}")
         print(f"left {ami_plot.left_scale.text2coord_list}")
         print(f"bottom {ami_plot.bottom_scale.text2coord_list}")
@@ -235,7 +253,7 @@ class TestPlots:
             try:
                 print(f"{image_file}")
                 ami_plot = AmiPlot(image_file=Path(image_file))
-                ami_plot.create_scaled_plot_box(island_index=0)
+                ami_plot.create_calibrated_plot_box(island_index=0)
                 print(f"left {ami_plot.left_scale.text2coord_list}")
                 print(f" {image_file} left {ami_plot.left_scale.text2coord_list}")
                 print(f" {image_file} bottom {ami_plot.bottom_scale.text2coord_list}")
