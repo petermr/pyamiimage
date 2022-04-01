@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 # library
 import numpy as np
-
+# import sknw  # must pip install sknw
 from networkx.algorithms import tree
 from skimage import io
 from skimage.measure import approximate_polygon
@@ -20,8 +20,7 @@ from pyamiimage.ami_plot import AmiLine, X, Y
 from pyamiimage.ami_util import AmiUtil
 from pyamiimage.svg import BBox
 from pyamiimage.text_box import TextBox
-# copied from sknw of yxdragram because PyPI package is not updated
-import pyamiimage.sknw as sknw
+from pyamiimage.sknw import build_sknw
 
 logger = logging.getLogger(__name__)
 
@@ -488,7 +487,8 @@ class AmiGraph:
         """
         AmiUtil.check_type_and_existence(skeleton_image, np.ndarray)
 
-        nx_graph = sknw.build_sknw(skeleton_image, multi=True, iso=True, ring=True, full=True)
+        # nx_graph = sknw.build_sknw(skeleton_image, multi=True, iso=True, ring=True, full=True)
+        nx_graph = build_sknw(skeleton_image, multi=True, iso=True, ring=True, full=True)
         return nx_graph
 
     def get_ami_islands_from_nx_graph(self):
@@ -646,7 +646,7 @@ class AmiGraph:
         """
         adds rectangle to axis subplot
         :param axis: axis from matplotlib subplots
-        :param bbox: BBox from pyamiimage or its ranges
+        :param bbox: BBox from pyamiimagex or its ranges
         :param linewidth: linewidth of plotted rect (1)
         :param edgecolor: stroke color of line ("red")
         :param facecolor: fill of rect ("none")
@@ -954,6 +954,12 @@ class AmiEdge:
         """
         return f"{self.start_id}_{self.end_id}_{self.branch_id}"
 
+    def get_start_ami_node(self):
+        return None if not self.ami_graph or not self.start_id else self.ami_graph.get_or_create_ami_node(self.start_id)
+
+    def get_end_ami_node(self):
+        return None if not self.ami_graph or not self.end_id else self.ami_graph.get_or_create_ami_node(self.end_id)
+
     def _extract_points_from_nx(self):
         """extract points from self.PTS and create self.points_xy
         """
@@ -1247,10 +1253,40 @@ class AmiEdge:
 
     @classmethod
     def get_non_axial_edges(cls, ami_edges, tolerance=1):
+        """edges other than horizontal or vertical
+        can be slanted straight lines or curves
+        :param ami_edges:
+        :param tolerance: default 1"""
         return list(filter(
             lambda ami_edge:
             not ami_edge.is_horizontal(tolerance=tolerance) and not ami_edge.is_vertical(tolerance=tolerance),
             ami_edges))
+
+    @classmethod
+    def get_vertical_lines(cls, ami_edges, tolerance=2):
+        """
+        get vertical lines from edges
+        :param ami_edges: edges
+        :param tolerance:
+        :return: lines or empty list
+        """
+        vertical_edges = AmiEdge.get_vertical_edges(ami_edges, tolerance=tolerance)
+        vert_ami_lines = AmiEdge.get_single_lines(vertical_edges)
+        return vert_ami_lines
+
+    @classmethod
+    def get_horizontal_lines(self, ami_edges, tolerance=2):
+        """
+        get horizontal lines from edges
+        :param ami_edges: edges
+        :param tolerance:
+        :return: lines or empty list
+        """
+
+        horizontal_edges = AmiEdge.get_horizontal_edges(ami_edges, tolerance=tolerance)
+        horiz_ami_lines = AmiEdge.get_single_lines(horizontal_edges)
+        return horiz_ami_lines
+
 
     def end_point(self, endx):
         """select end 0 (first) or 1 (last)
