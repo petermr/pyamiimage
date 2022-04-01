@@ -117,7 +117,7 @@ class Resources:
 
 # OCR TEST
     AMIOCR_TEST_RAW = Path(TEST_RESOURCE_DIR, "amiocr_test", "raw.png")
-    assert AMIOCR_TEST_RAW.exists(), f"file doesn't exist: {SATISH_DIR}"
+    assert AMIOCR_TEST_RAW.exists(), f"file doesn't exist: {AMIOCR_TEST_RAW}"
 
 
     # =====================
