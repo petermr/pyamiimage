@@ -29,7 +29,7 @@ class BBox:
     @classmethod
     def create_from_numpy_array(cls, nparray):
         coords = nparray.tolist()
-        bbox = BBox(xy_ranges=[[coords[0],coords[2]], [coords[1], coords[3]]])
+        bbox = BBox(xy_ranges=[[coords[0], coords[2]], [coords[1], coords[3]]])
         return bbox
 
     @classmethod
@@ -363,9 +363,9 @@ class BBox:
         :returns: list of 2 tuples
         """
         return [(self.get_yrange()[0], self.get_xrange()[0]),
-         (self.get_yrange()[1], self.get_xrange()[1])]
-         # remember that the indexing is in terms of rows and columns
-         # hence x(columns) y(rows) values are flipped when returning point pair
+                (self.get_yrange()[1], self.get_xrange()[1])]
+        # remember that the indexing is in terms of rows and columns
+        # hence x(columns) y(rows) values are flipped when returning point pair
 
     @classmethod
     def plot_bbox_on(cls, image, bbox):
@@ -377,7 +377,7 @@ class BBox:
         :type: BBox or list
         :returns: fig, ax
         """
-        pixel_value = 200 # 0 is black
+        pixel_value = 200  # 0 is black
         # bbox can either be BBox object or in form of [[a, b][c, d]]
 
         # if type(bbox) == BBox:
@@ -389,16 +389,15 @@ class BBox:
         #     # the bbox passed is not invalid
         #     return None
 
-
         point_pair = bbox.get_point_pair()
-        if point_pair[0][0] > image.shape[0] or point_pair[0][1] >image.shape[1]:
+        if point_pair[0][0] > image.shape[0] or point_pair[0][1] > image.shape[1]:
             # if the starting point is outside the image, ignore bbox
             return image
 
         try:
             row, col = draw.rectangle_perimeter(start=point_pair[0], end=point_pair[1])
             image[row, col] = pixel_value
-        except IndexError as e:
+        except IndexError:
             point_pair = BBox.fit_point_pair_within_image(image, point_pair)
             row, col = draw.rectangle_perimeter(start=point_pair[0], end=point_pair[1])
             image[row, col] = pixel_value
@@ -411,9 +410,9 @@ class BBox:
         max_col = image.shape[1]
         bbox_row = point_pair[1][0]
         bbox_col = point_pair[1][1]
-        if bbox_row >= max_row-1:
+        if bbox_row >= max_row - 1:
             bbox_row = max_row - 2
-        if bbox_col >= max_col-1:
+        if bbox_col >= max_col - 1:
             bbox_col = max_col - 2
         point_pair[1] = (bbox_row, bbox_col)
         return point_pair
@@ -463,13 +462,12 @@ class BBox:
                     self.get_yrange()[0] <= geom_object[1] <= self.get_yrange()[1])
         if type(geom_object) is BBox:
             if (geom_object.get_xrange()[0] >= self.get_xrange()[0] and
-                geom_object.get_xrange()[1] <= self.get_xrange()[1] and
-                geom_object.get_yrange()[0] >= self.get_yrange()[0] and
-                geom_object.get_yrange()[1] <= self.get_yrange()[1]):
+                    geom_object.get_xrange()[1] <= self.get_xrange()[1] and
+                    geom_object.get_yrange()[0] >= self.get_yrange()[0] and
+                    geom_object.get_yrange()[1] <= self.get_yrange()[1]):
                 return True
             return False
         return False
-
 
     @classmethod
     def validate_point(cls, point):
@@ -520,10 +518,29 @@ class BBox:
             raise ValueError("Bad bbox {bbox}")
         assert bbox.xy_ranges == target_ranges, f"bbox_xy_ranges {bbox.xy_ranges}, target_ranges {target_ranges}"
 
-    def translate_bbox(self, bbox_origin):
-        '''
-        Translates a bounding box 
-        '''
+    def extract_edges_in_box(self, ami_edges):
+        # TODO extend to OR and AND and maybe XOR
+        """extract any edges which have at least one node in bbox
+        :param ami_edges:
+        :return: list of extracted edges
+        """
+
+        print(f" bbox: {self}")
+        new_ami_edges = []
+        for ami_edge in ami_edges:
+            bbox = ami_edge.get_or_create_bbox()
+            if bbox.get_width() < 2 or bbox.get_height() < 2:
+                continue
+            # print(f"testing {bbox}")
+            start_node = ami_edge.get_start_ami_node()
+            end_node = ami_edge.get_end_ami_node()
+            start_xy = start_node.centroid_xy
+            end_xy = end_node.centroid_xy
+            print(f"start end {start_xy}, {end_xy}")
+            if (self.contains_geom_object(start_xy) or
+                    self.contains_geom_object(end_xy)):
+                new_ami_edges.append(ami_edge)
+        return new_ami_edges
 
 
 """If you looking for the overlap between two real-valued bounded intervals, then this is quite nice:

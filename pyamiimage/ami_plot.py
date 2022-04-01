@@ -316,14 +316,20 @@ class AmiPlot:
         This will return internal ticks, for example, which may have to
         be later removed
 
-        :return: edges
+        :return: list of edge_lists for each island
         """
-        ami_edges = []
-        for ami_edge in self.ami_edges:
-            if (self.internal_box.contains_geom_object(ami_edge.get_start_ami_node().coords_xy) or
-                self.internal_box.contains_geom_object(ami_edge.get_end_ami_node().coords_xy)):
-                ami_edges.append(ami_edge)
-        return ami_edges
+        ami_edge_list_list = []
+        for island in self.islands:
+            ami_edges = island.get_or_create_ami_edges()
+            print(f"island>>> {len(ami_edges)}")
+            if len(ami_edges) < 5:
+                for ami_edge in ami_edges:
+                    print(f"pixels {ami_edge.pixel_length()}")
+                    print(f"start end {ami_edge.first_point()} {ami_edge.last_point()}")
+            ami_edges = self.internal_box.extract_edges_in_box(ami_edges)
+            print(f"ami_edges {ami_edges}")
+            ami_edge_list_list.append(ami_edges)
+        return ami_edge_list_list
 
 
 class AmiScale:

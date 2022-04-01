@@ -993,11 +993,9 @@ class AmiEdge:
         assert dist is not None
         return dist
 
-    @property
     def first_point(self):
         return self.points_xy[0] if self.points_xy and len(self.points_xy) > 0 else None
 
-    @property
     def last_point(self):
         return self.points_xy[-1] if self.points_xy and len(self.points_xy) > 0 else None
 

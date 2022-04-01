@@ -231,8 +231,19 @@ class TestPlots:
         ami_plot = AmiPlot(image_file=path042a)
         ami_plot.create_calibrated_plot_box()
         assert ami_plot.bottom_scale.user_to_plot_scale == 19.575
-        ami_edges = ami_plot.extract_internal_edges()
-        print(f" ami_edges {ami_edges}")
+        xscale = ami_plot.bottom_scale.user_to_plot_scale
+        yscale = ami_plot.left_scale.user_to_plot_scale
+        xoffset = ami_plot.bottom_scale.user_num_to_plot_offset
+        yoffset = ami_plot.left_scale.user_num_to_plot_offset
+        ami_edge_list_list = ami_plot.extract_internal_edges()
+        points_user = []
+        for ami_edge_list in ami_edge_list_list:
+            for ami_edge in ami_edge_list:
+                for pointxy in ami_edge.points_xy:
+                    points_user = [(pointxy[0] - xoffset) / xscale, (pointxy[1] - yoffset) / yscale]
+                    points_user.append(points_user)
+        print(f"points_user {points_user}")
+        print(f" ami_edge_list_list {ami_edge_list_list}")
 
 
 
