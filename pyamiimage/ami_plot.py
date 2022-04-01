@@ -5,6 +5,7 @@ from collections import Counter
 from pyamiimage.ami_util import AmiUtil
 from pyamiimage.bbox import BBox
 from pyamiimage.tesseract_hocr import TesseractOCR
+from pyamiimage.ami_ocr import AmiOCR
 
 # TODO move AmiLine (and maybe others) into ami_graph_all - causes import problems
 #  and doesn't really belong here
@@ -258,18 +259,20 @@ class AmiPlot:
         # axial polylines can be L- or U-shaped
         self.add_axial_polylines_to_ami_lines(self.ami_edges, self.horiz_ami_lines, self.vert_ami_lines)
 
-        word_numpys, self.words = TesseractOCR.extract_numpy_box_from_image(self.image_file)
-        self.word_bboxes = [BBox.create_from_numpy_array(word_numpy) for word_numpy in word_numpys]
-        print(f" wordzz {self.words}")
+        # word_numpys, self.words = TesseractOCR.extract_numpy_box_from_image(self.image_file)
+        # self.word_bboxes = [BBox.create_from_numpy_array(word_numpy) for word_numpy in word_numpys]
+        # print(f" wordzz {self.words}")
+
+        # defaults to easyocr
+        ami_ocr = AmiOCR(self.image_file)
+        text_boxes = ami_ocr.get_textboxes()
+        # assert 20 <= len(text_boxes) <= 22, f"text_boxes found {len(text_boxes)}"
+        for text_box in text_boxes:
+            print(f"text box {text_box}")
 
 
-
-        self.bottom_scale.text2coord_list = self.bottom_scale.match_scale_text2ticks(
-            self.word_bboxes, self.words,
-        )
-        self.left_scale.text2coord_list = self.left_scale.match_scale_text2ticks(
-            self.word_bboxes, self.words, "[\D*]\-"
-        )
+        self.bottom_scale.text2coord_list = self.bottom_scale.match_scale_text_box2ticks(text_boxes)
+        self.left_scale.text2coord_list = self.left_scale.match_scale_text_box2ticks(text_boxes)
         self.bottom_scale.get_numeric_ticks()
         self.bottom_scale.calculate_offset_scale()
 
@@ -310,6 +313,28 @@ class AmiScale:
             scale_text = scale_text2tick[0]
             if del_regex:
                 scale_text = re.sub(del_regex, '', scale_text)
+            scale_text2tick[1].user_num = AmiUtil.get_float(scale_text)
+            scale_text2tick[1].user_text = scale_text
+
+        return self.scale_text2tick_list
+
+    def match_scale_text_box2ticks(self, text_boxes):
+        # TODO get rid of self.scale_text2tick_list (maybe a dict())
+        self.text_values = []
+        self.scale_text2tick_list = []
+        if not self.ticks:
+            print(f"no ticks")
+            return
+        if len(self.ticks) < 2:
+            print(f"only one tick")
+            return
+
+        for text_box in text_boxes:
+            if self.box.contains_bbox(text_box.bbox):
+                self.text_values.append(ScaleText(text_box.text, text_box.bbox))
+        self.scale_text2tick_list = TickMark.match_ticks_to_text(self.text_values, self.ticks)
+        for scale_text2tick in self.scale_text2tick_list:
+            scale_text = scale_text2tick[0]
             scale_text2tick[1].user_num = AmiUtil.get_float(scale_text)
             scale_text2tick[1].user_text = scale_text
 

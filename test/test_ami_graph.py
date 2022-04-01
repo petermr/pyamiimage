@@ -50,7 +50,7 @@ class TestAmiGraph:
     def setup_method(self, method):
 
         self.arrows1 = self.resources.arrows1_image_file
-        self.nx_graph_arrows1 = self.resources.arrows1_nx_graph
+        self.nx_graph_arrows1 = self.resources.nx_graph_arrows1
 
         self.biosynth1_binary = self.resources.biosynth1_binary
         self.biosynth1_elem = self.resources.biosynth1_elem
@@ -140,7 +140,7 @@ class TestAmiGraph:
         :return:
         """
         # nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
-        nx_graph = self.resources.arrows1_nx_graph
+        nx_graph = self.resources.nx_graph_arrows1
 
         """
         {0, 1, 2, 3, 4, 5, 6, 7},  # double arrow
@@ -234,7 +234,7 @@ class TestAmiGraph:
         # nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(
         #     Resources.BIOSYNTH1_CROPPED_ARROWS_RAW
         # )
-        nx_graph = self.resources.arrows1_nx_graph
+        nx_graph = self.resources.nx_graph_arrows1
 
         connected_components = list(nx.algorithms.components.connected_components(nx_graph))
         assert nx.algorithms.components.number_connected_components(nx_graph) == 4
