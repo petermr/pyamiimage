@@ -67,8 +67,6 @@ class BBox:
             return None
         high_high = cls._find_low_low_high_high(points_list, 1, tolerance)
         low_low = cls._find_low_low_high_high(points_list, -1, tolerance)
-        print(f"high_high {high_high}")
-        print(f"lo_lo {low_low}")
         bbox = None
         if low_low and high_high:
             bbox = BBox(xy_ranges=[
@@ -156,12 +154,8 @@ class BBox:
         """
         bbox1 = None
         if bbox is not None:
-            # print("XRanges",self.get_xrange(), bbox.get_xrange())
             xrange = self.intersect_range(self.get_xrange(), bbox.get_xrange())
-            # print("XRange", xrange)
-            # print("YRanges",self.get_yrange(), bbox.get_yrange())
             yrange = self.intersect_range(self.get_yrange(), bbox.get_yrange())
-            # print("YRange", yrange)
             bbox1 = BBox([xrange, yrange])
         return bbox1
 
@@ -525,18 +519,15 @@ class BBox:
         :return: list of extracted edges
         """
 
-        print(f" bbox: {self}")
         new_ami_edges = []
         for ami_edge in ami_edges:
             bbox = ami_edge.get_or_create_bbox()
             if bbox.get_width() < 2 or bbox.get_height() < 2:
                 continue
-            # print(f"testing {bbox}")
             start_node = ami_edge.get_start_ami_node()
             end_node = ami_edge.get_end_ami_node()
             start_xy = start_node.centroid_xy
             end_xy = end_node.centroid_xy
-            print(f"start end {start_xy}, {end_xy}")
             if (self.contains_geom_object(start_xy) or
                     self.contains_geom_object(end_xy)):
                 new_ami_edges.append(ami_edge)

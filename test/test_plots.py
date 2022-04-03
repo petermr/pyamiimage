@@ -73,9 +73,6 @@ class TestPlots:
                     if not start_node or not end_node:
                         print(f"cannot find nodes for long edge")
                         continue
-                    print(f"{edge} {pixlen} {start_node} {end_node}")
-                    print(
-                        f"start {len(start_node.get_or_create_ami_edges())} end {len(end_node.get_or_create_ami_edges())}")
                     if len(start_node.get_or_create_ami_edges()) == 1 or len(
                             end_node.get_or_create_ami_edges()) == 1:
                         plot_edge = edge
@@ -231,21 +228,11 @@ class TestPlots:
         ami_plot = AmiPlot(image_file=path042a)
         ami_plot.create_calibrated_plot_box()
         assert ami_plot.bottom_scale.user_to_plot_scale == 19.575
-        xscale = ami_plot.bottom_scale.user_to_plot_scale
-        yscale = ami_plot.left_scale.user_to_plot_scale
-        xoffset = ami_plot.bottom_scale.user_num_to_plot_offset
-        yoffset = ami_plot.left_scale.user_num_to_plot_offset
-        ami_edge_list_list = ami_plot.extract_internal_edges()
-        points_user = []
-        for ami_edge_list in ami_edge_list_list:
-            for ami_edge in ami_edge_list:
-                for pointxy in ami_edge.points_xy:
-                    points_user = [(pointxy[0] - xoffset) / xscale, (pointxy[1] - yoffset) / yscale]
-                    points_user.append(points_user)
-        print(f"points_user {points_user}")
-        print(f" ami_edge_list_list {ami_edge_list_list}")
-
-
+        edge_points_xy = ami_plot.get_points_xy_for_single_edge()
+        assert 1150 < len(edge_points_xy) < 1160, f" got {len(edge_points_xy)} instead of 1158"
+        points_user_xy = ami_plot.scale_plot_points_to_user(edge_points_xy)
+        path = Path(Resources.TEMP_DIR, "042a_user_coords.csv")
+        AmiUtil.write_xy_to_csv(points_user_xy, path, ['X', 'Y'])
 
     def test_create_plot_box_005b(self):
         """creates axial box and ticks

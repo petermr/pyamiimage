@@ -318,18 +318,45 @@ class AmiPlot:
 
         :return: list of edge_lists for each island
         """
-        ami_edge_list_list = []
+        ami_edges_list = []
         for island in self.islands:
             ami_edges = island.get_or_create_ami_edges()
-            print(f"island>>> {len(ami_edges)}")
-            if len(ami_edges) < 5:
-                for ami_edge in ami_edges:
-                    print(f"pixels {ami_edge.pixel_length()}")
-                    print(f"start end {ami_edge.first_point()} {ami_edge.last_point()}")
+            # internal box defines the plot area without axes
             ami_edges = self.internal_box.extract_edges_in_box(ami_edges)
-            print(f"ami_edges {ami_edges}")
-            ami_edge_list_list.append(ami_edges)
-        return ami_edge_list_list
+            if len(ami_edges) > 0:
+                ami_edges_list.append(ami_edges)
+        return ami_edges_list
+
+    def scale_plot_points_to_user(self, points_xy):
+        """transforms coordinates of list of plot.screen points to user coords
+        """
+        assert points_xy, f"must not be None"
+        assert len(points_xy) == 0 or AmiUtil.is_point(points_xy[0])
+        points_user_xy = [self.scale_plot_point_to_user(point_xy) for point_xy in points_xy]
+        return points_user_xy
+
+    def scale_plot_point_to_user(self, point_xy):
+        """transforms plot/screen coord to user coord"""
+        assert point_xy, f"point must not be None"
+        point_user_xy = [
+            (point_xy[X] - self.bottom_scale.user_num_to_plot_offset) / self.bottom_scale.user_to_plot_scale,
+            (point_xy[Y] - self.left_scale.user_num_to_plot_offset) / self.left_scale.user_to_plot_scale]
+        return point_user_xy
+
+    def get_points_xy_for_single_edge(self):
+        """gets list of list_of_points in edges sorted by first element
+        """
+        ami_edges_list = self.extract_internal_edges()
+        edge_point_lists = []
+        for ami_edges in ami_edges_list:
+            for ami_edge in ami_edges:
+                edge_point_lists.append(ami_edge.points_xy)
+        edge_point_lists = sorted(edge_point_lists, key=lambda x: x[0])
+        points_xy = []
+        for edge_points in edge_point_lists:
+            points_xy.extend(edge_points)
+        return points_xy
+
 
 
 class AmiScale:
@@ -809,11 +836,6 @@ class AmiLineTool:
         assert type(points) is list
         for point in points:
             self.add_point(point)
-
-    # def insert_point(self, pos, point):
-    #     AmiLineTool._validate_point(point)
-    #     self.points.insert(0, [33, 44])
-    #     self.points.insert(pos, point)
 
     def add_merge_polyline_to_poly_list(self, polyline_to_add):
         """
