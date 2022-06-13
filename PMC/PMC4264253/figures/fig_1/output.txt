@@ -1,0 +1,27 @@
+glucose
+glycolysis
+Astaxanthin
+acetyl-CoA
+T
+Fatty
+acids
+Crts
+0
+L
+AcaT
+B-carotene
+acetoacetyl-CoA
+Hmgs
+J
+HMG-CoA
+HmgR
+GGPP
+CrtE
+0i
+mevalonate -
+IPP
+GPP
+FPP
+DMAPP
+Terpene synthesis
+Ergosterol
