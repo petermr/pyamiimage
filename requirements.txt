@@ -4,8 +4,10 @@ networkx
 numpy
 Pillow
 pytesseract
+easyocr
 pytest
 scikit_image
+scikit-learn
 setuptools
 skan
 sknw

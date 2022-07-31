@@ -8,8 +8,11 @@ from skan.pre import threshold
 import unittest
 from lxml import etree as ET
 import logging
+import os
+import glob
 # local
-import context
+
+# local
 from pyamiimage.tesseract_hocr import TesseractOCR
 from resources import Resources
 
@@ -29,6 +32,7 @@ we may have to manually rename these to .html
 
 skip_long_tests = True
 interactive = False
+
 
 class TestTesseractHOCR:
     interactive = False
@@ -177,7 +181,6 @@ class TestTesseractHOCR:
                 io.imshow(tile)
                 io.show()
 
-
     @unittest.skipIf(skip_long_tests, "wikidata lookup")
     def test_phrase_wikidata_search(self):
         path = Resources.BIOSYNTH3_RAW
@@ -202,10 +205,34 @@ class TestTesseractHOCR:
     def test_extract_bbox_from_hocr3(self):
         root = TesseractOCR.read_hocr_file(Resources.BIOSYNTH3_HOCR)
         bboxes, words = TesseractOCR.extract_bbox_from_hocr(root)
+        print(f"words {words}")
         assert len(bboxes) == 60
 
+    def test_extract_bbox_from_hocr_satish_005b(self):
+        raw_file = Resources.SATISH_005B_RAW
+        bboxes, words = TesseractOCR.extract_numpy_box_from_image(raw_file)
+        img = io.imread(raw_file)
+        # the content appears to be slightly variable
+        # assert words == ['Hardness', '(Hv)', '250', '200', '150', '100', '50', 'Jominy',
+        #                  ' ', ' ', '10', '20', '30', 'Depth', '(mm)', '40', '50', ' ', '—@', '0058']
+        assert 20 > len(bboxes) > 15
+        for box, word in zip(bboxes, words):
+            print(f"box {box}, word '{word}'")
+
+    def test_extract_bbox_from_hocr_satish_all(self):
+        img_dir = Resources.SATISH_DIR
+        path = Path(img_dir)
+        os.chdir(path)
+        # path = Path(img_dir, "*.png")
+
+        img_files = glob.glob("*.png")
+        assert len(img_files) > 0
+        for img_file in img_files:
+            bboxes, words = TesseractOCR.extract_numpy_box_from_image(img_file)
+            print(f"{img_file} words {words}")
+
     def test_extract_bboxes_from_image(self):
-        bboxes, words = TesseractOCR.extract_bbox_from_image(Resources.BIOSYNTH3_RAW)
+        bboxes, words = TesseractOCR.extract_numpy_box_from_image(Resources.BIOSYNTH3_RAW)
         assert len(bboxes) == 60
         assert str(bboxes[0]) == "[201  45 302  75]"
         assert words[0] == "Straight"
