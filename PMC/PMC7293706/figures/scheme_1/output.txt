@@ -1,0 +1,82 @@
+Domoic Acid Biosynthesis
+OH
+OH
+DabA
+OPP
+HzN 
+OH
+Mg2+
+OH
+geranyl diphosphate
+L-glutamic acid
+N-geranyl-L-glutamic acid
+(GPP)
+(NGG)
+OH
+OH
+domoic acid
+Kainic Acid Biosynthesis
+OH
+OH
+OH
+KabA
+Kabc
+OH
+Mg2+
+OH
+Fe2t, 02
+HN-
+OH
+OPP
+HzN"
+aKG
+dimethylallyl
+L-glutamic acid
+prekainic acid
+kainic acid
+diphosphate
+(DMAPP)
+Terpene Cyclase
+SdS
+SdS
+OPP
+Mg2+
+farnesyl diphosphate
+allylic carbocation
+(FPP)
+intermediate
+selinadiene
+ABBA Aromatic Prenyltransferase
+NHz
+OH
+DMATS
+DMATS
+OPP
+Mg2+
+NHz
+dimethylallyl
+diphosphate
+allylic carbocation
+OH
+dimethylallyl tryptophan
+intermediate
+(DMAPP)
+L-tryptophan
+Isoprenyl Diphosphate Synthase
+GPP
+GPP
+OPP
+Synthase
+Synthase
+OPP
+Mg
+dimethylallyl
+allylic carbocation
+geranyl diphosphate
+diphosphate
+intermediate
+(GPP)
+(DMAPP)
+OPP
+isopentenyl diphosphate
+(IPPI
