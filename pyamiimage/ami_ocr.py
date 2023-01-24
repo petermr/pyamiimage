@@ -5,7 +5,7 @@ import numpy as np
 import pathlib
 
 from pyamiimage.bbox import BBox
-from pyamiimage.ami_image import AmiImage
+from pyamiimage.ami_image import AmiImage, AmiImageReader
 
 from pyamiimage.wrapper._for_easyocr import EasyOCRWrapper
 from pyamiimage.wrapper._for_tesseract import PyTesseractWrapper
@@ -105,7 +105,7 @@ class AmiOCR:
         if is_valid_image(image):
             self.image = image
         elif is_valid_path(image):
-            self.image = AmiImage.read(image)
+            self.image = AmiImageReader.read_image(image)
         else:
             raise TypeError('Only image (numpy.ndarray), path (str) or Path (pathlib.Path) allowed.')
     

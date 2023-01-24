@@ -8,9 +8,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from skimage import data, io, morphology
 from skimage.filters import unsharp_mask
+import imageio as iio
 
 import context
-from pyamiimage.ami_image import AmiImage
+from pyamiimage.ami_image import AmiImage, AmiImageReader
 from resources import Resources
 
 RESOURCE_DIR = Path(Path(__file__).parent, "resources")
@@ -31,9 +32,8 @@ class TestAmiImage:
         class.  setup_method is invoked for every test method of a class.
         """
         # assert RGBA_SNIPPET.exists(), f"image should exist {RGBA_SNIPPET}"
-        # self.image = io.imread(RGBA_SNIPPET)
         assert RGB_SNIPPET.exists(), f"image should exist {RGB_SNIPPET}"
-        self.image = io.imread(RGB_SNIPPET)
+        self.image = AmiImageReader.read_image(RGB_SNIPPET)
 
         assert (
             COMPARE_DIR.exists()
@@ -91,7 +91,7 @@ class TestAmiImage:
 
     def test_sharpen_iucr(self):
         """shows effect of sharpening (interactive display)"""
-        image = io.imread(str(Path(Resources.YW5003_5_RAW)))
+        image = AmiImageReader.read_image(str(Path(Resources.YW5003_5_RAW)))
         assert image is not None
         print(image.shape)
         image = AmiImage.create_rgb_from_rgba(image)
@@ -157,3 +157,17 @@ class TestAmiImage:
         assert np.array_equal(
             comparable_image, compare_image
         ), f"Image does not match {msg}"
+
+    def test_can_read_grayscale(self):
+        """
+        tests that images can be read.
+        (There is/has_been a problem with reading in some complex situations)
+        """
+        img = io.imread(GRAY2_SNIPPET)
+        print(f"read io img {img.shape}\n{img}")
+        img = iio.imread(GRAY2_SNIPPET)
+        print(f"read iio img {img.shape}\n{img}")
+
+        img = AmiImageReader.read_image(GRAY2_SNIPPET)
+        print(f"img ami {img.shape} \n{img}")
+

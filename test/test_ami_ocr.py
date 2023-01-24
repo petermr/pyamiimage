@@ -3,7 +3,7 @@ import unittest
 import context
 from pyamiimage.ami_ocr import TextBox, AmiOCR
 from pyamiimage.bbox import BBox
-from pyamiimage.ami_image import AmiImage
+from pyamiimage.ami_image import AmiImage, AmiImageReader
 
 from resources import Resources
 
@@ -44,7 +44,7 @@ class TestAmiOCR:
         assert len(textboxes) == 0, f'Number of textboxes found {len(textboxes)}'
 
     def test_run_ocr_biosynth3_image(self):
-        biosynth3_image = AmiImage.read(self.biosynth3_path)
+        biosynth3_image = AmiImageReader.read_image(self.biosynth3_path)
         biosynth3_amiocr = AmiOCR(biosynth3_image)
         textboxes = biosynth3_amiocr.get_textboxes()
         assert len(textboxes) == 29, f'Number of textboxes found {len(textboxes)}'
@@ -65,7 +65,7 @@ class TestAmiOCR:
         assert len(textboxes) == 55
     
     def test_easyocr_from_image(self):
-        test_image = AmiImage.read(self.test_image)
+        test_image = AmiImageReader.read_image(self.test_image)
         test_ocr = AmiOCR(test_image, backend='easyocr')
         textboxes = test_ocr.get_textboxes()
         assert len(textboxes) == 55
@@ -77,7 +77,7 @@ class TestAmiOCR:
         assert 62 <= len(textboxes) <= 83
 
     def test_tesseract_from_image(self):
-        test_image = AmiImage.read(self.test_image)
+        test_image = AmiImageReader.read_image(self.test_image)
         test_ocr = AmiOCR(test_image, backend='tesseract')
         textboxes = test_ocr.get_textboxes()
         # this is system dependent

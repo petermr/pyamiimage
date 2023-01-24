@@ -107,7 +107,7 @@ class TestPlots:
         assert len(vert_ami_lines) == 8
 
         # ticks
-        ami_plot = AmiPlot(bbox=island_bbox)
+        ami_plot = AmiPlot(bbox=island_bbox, reader=Resources.IMAGE_METHOD)
 
         vert_box = ami_plot.get_axial_box(side=PlotSide.LEFT)
         vert_box.change_range(1, 3)

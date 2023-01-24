@@ -1,7 +1,7 @@
 import context
 from configparser import ConfigParser
 from pyamiimage._old_ami_ocr import AmiOCR, TextBox
-from pyamiimage.ami_image import AmiImage
+from pyamiimage.ami_image import AmiImage, AmiImageReader
 from skimage import io
 import easyocr
 
@@ -32,7 +32,7 @@ def get_words():
 
 if __name__ == '__main__':
     words = get_words()
-    image = AmiImage.read(image_file)
+    image = AmiImageReader.read(image_file)
     for item in words:
         print(item)
     bboxed_image = AmiOCR.plot_bboxes_on_image(image, words)

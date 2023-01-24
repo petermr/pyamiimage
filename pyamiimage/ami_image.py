@@ -4,6 +4,8 @@ mainly classmathods, but may need some objects to preserve statementfor expensiv
 TODO authors Anuv Chakroborty and Peter Murray-Rust, 2021
 Apache2 Open Source licence
 """
+import logging
+
 import numpy as np
 from skimage import io, color, morphology
 import skimage
@@ -11,6 +13,11 @@ from pathlib import Path
 import os
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+import cv2
+import enum
+import imageio.v3 as iio
+
+from py4ami.util import Util
 
 TEMP_DIR = Path(__file__).parent.parent
 TEMP_DIR = Path(TEMP_DIR, "temp")
@@ -43,13 +50,14 @@ class AmiImage:
     @classmethod
     def read(cls, path):
         image = io.imread(path)
+        # image = AmiImageReader().read_image(path)
         return image
     
     def read_file(self, file):
         assert file, "file should not be None"
         assert file.exists(), "{file} must exist"
         try:
-            image = io.imread(file)
+            image = AmiImageReader().read_image(file)
         except Exception as e:
             raise e
         self.image_dict[FILE] = file
@@ -75,7 +83,7 @@ class AmiImage:
         :return: single channel grayscale
         """
         assert path is not None
-        image = io.imread(path)
+        image = AmiImageReader.read_image(path)
         gray_image = cls.create_grayscale_from_image(image)
         return gray_image
 
@@ -105,7 +113,10 @@ class AmiImage:
 
     @classmethod
     def create_rgb_from_rgba(cls, image_rgba):
-        assert cls.has_alpha_channel_shape(image_rgba)
+        if not image_rgba:
+            logging.error("cannot create RGB from None")
+            return None
+        assert cls.has_alpha_channel_shape(image_rgba), f"found {image_rgba.shape}"
         image_rgb = color.rgba2rgb(image_rgba)
         assert not cls.has_alpha_channel_shape(image_rgb), f"converted rgb should have lost alpha channel"
         assert cls.has_rgb_shape(image_rgb), f"converted rgb does not have rgb_shape"
@@ -130,14 +141,14 @@ class AmiImage:
         :param path: path with image
         :return: AmiSkeleton
         """
-        # image = io.imread(file)
         assert path is not None
         assert path.exists() and not path.is_dir(), f"{path} should be existing file"
 
         # grayscale = AmiImage.create_grayscale_from_file(path)
         # assert grayscale is not None, f"cannot create grayscale image from {path}"
         # skeleton_image = AmiImage.create_white_skeleton_from_image(grayscale)
-        image = io.imread(path)
+        image = AmiImageReader.read_image(path)
+
         # print(f"path {path} has shape: {image.shape}")
         # print(f"AmiImage.has_alpha_channel_shape() {AmiImage.has_alpha_channel_shape(path)} for {path} ")
         skeleton_image = cls.create_white_skeleton_from_image(image)
@@ -163,7 +174,7 @@ class AmiImage:
     @classmethod
     def create_white_binary_from_file(cls, path):
         assert path is not None
-        image = io.imread(path)
+        image = AmiImageReader.read_image(path)
         binary = AmiImage.create_white_binary_from_image(image)
         return binary
 
@@ -278,7 +289,8 @@ class AmiImage:
         :return:
         """
         assert image_file.exists(), f"{image_file} does not exist"
-        rgb = io.imread(image_file)
+        rgb = AmiImageReader.read_image(image_file)
+
         img = color.rgb2gray(rgb)
         if erode_rad > 0:
             disk = morphology.disk(erode_rad)
@@ -322,14 +334,15 @@ class AmiImage:
         col_layers = raw_image.shape[2]  # find colour layers
 
         if AmiImage.has_alpha_channel_shape(raw_image):
-            fname = Path(TEMP_DIR, "junk_rgba.png")
+            fname = str(Path(TEMP_DIR, "junk_rgba.png"))
             io.imsave(fname, raw_image)
             raw_image = AmiImage.create_rgb_from_rgba(raw_image)
-            fname = Path(TEMP_DIR, "junk_rgb.png")
+            fname = str(Path(TEMP_DIR, "junk_rgb.png"))
             # this is awful, don't know why the rgb image can't be analysed
             # save the image, and then re-read
             io.imsave(fname, raw_image)
-            raw_image = io.imread(fname)
+            raw_image = AmiImageReader.read_image(fname)
+
         col_layers = raw_image.shape[2]
         print(f"COLORS: {col_layers} {raw_image.shape}")
         # this might raise error
@@ -353,6 +366,52 @@ class AmiImage:
             path = Path(dir, filename + str(index) + file_extension)
             print(path)
             AmiImage.write(path, image, mkdir, overwrite)
+
+
+class ImageReaderOptions(enum.Enum):
+    CV2 = 1,
+    SKIMAGE = 2,
+    IMAGEIO = 3,
+
+class AmiImageReader:
+    """
+    wrapper for *.imread() as I don't trust skimage
+    """
+    def __init__(self):
+        pass
+
+    @classmethod
+    def read_image(cls, imagefile, reader=ImageReaderOptions.CV2, debug=False):
+        """
+        reads image using standard libraries. Allows for chioce of library
+        as some are giving load trouble.
+        :param imagefile: file to read, checks for existence (might be Path)
+        :param reader: library to read with (default = CV2)
+        :param debug: print image values
+        :return: image as array
+        """
+        if imagefile is None:
+            return None
+        if not Path(imagefile).exists():
+            raise FileNotFoundError(f"no file {imagefile}")
+        try:
+            if reader == ImageReaderOptions.CV2:
+                img = cv2.imread(str(imagefile))
+            else:
+                img = io.imread(str(imagefile))
+            if debug:
+                print(f" img {img}")
+            return img
+        except Exception as e:
+            """this is probably a abd idea!"""
+            try:
+                print(f" retrying as grayscale")
+                img = io.imread(imagefile, as_gray=True) # grayscale, but this is not required
+            except Exception as e1:
+                print(f"cannot read imagefile {imagefile} in grayscale mode because {e1}")
+                raise e1
+        return img
+            # Util.print_stacktrace(e)
 
 
 class AmiImageDTO():

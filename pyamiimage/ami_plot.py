@@ -6,6 +6,7 @@ from pyamiimage.ami_util import AmiUtil
 from pyamiimage.bbox import BBox
 from pyamiimage.tesseract_hocr import TesseractOCR
 from pyamiimage.ami_ocr import AmiOCR
+from pyamiimage.ami_image import ImageReaderOptions
 
 # TODO move AmiLine (and maybe others) into ami_graph_all - causes import problems
 #  and doesn't really belong here
@@ -159,7 +160,7 @@ class TickMark:
 
 class AmiPlot:
 
-    def __init__(self, bbox=None, image_file=None, ami_graph=None):
+    def __init__(self, bbox=None, image_file=None, ami_graph=None, reader=ImageReaderOptions.SKIMAGE):
         self.bbox = bbox
         self.image_file = image_file
         self.ami_graph = ami_graph
@@ -179,7 +180,7 @@ class AmiPlot:
 
         if image_file:
             from pyamiimage.ami_graph_all import AmiGraph # TODO resolve AmiPlot and AmiGraph
-            self.ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(image_file)
+            self.ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(image_file, reader=reader)
         return
 
     def get_axial_box(self, side=PlotSide.LEFT, low_margin=10, high_margin=10):

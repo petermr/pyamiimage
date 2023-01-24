@@ -13,14 +13,16 @@ import numpy as np
 from networkx.algorithms import tree
 from skimage import io
 from skimage.measure import approximate_polygon
+import cv2
 
 # local
-from pyamiimage.ami_image import AmiImage
+from pyamiimage.ami_image import AmiImage, AmiImageReader, ImageReaderOptions
 from pyamiimage.ami_plot import AmiLine, X, Y
 from pyamiimage.ami_util import AmiUtil
 from pyamiimage.svg import BBox
 from pyamiimage.text_box import TextBox
 from pyamiimage.sknw import build_sknw
+
 
 logger = logging.getLogger(__name__)
 
@@ -103,9 +105,9 @@ class AmiGraph:
         return
 
     @classmethod
-    def create_ami_graph_from_arbitrary_image_file(cls, file, interactive=False):
+    def create_ami_graph_from_arbitrary_image_file(cls, file, interactive=False, reader=ImageReaderOptions.SKIMAGE):
         assert file.exists()
-        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(file, interactive=interactive)
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(file, interactive=interactive, reader=reader)
         return AmiGraph(nx_graph)
 
     # def get_nx_graph(self):
@@ -452,11 +454,11 @@ class AmiGraph:
     # AmiGraph
 
     @classmethod
-    def create_nx_graph_from_arbitrary_image_file(cls, path, interactive=False):
+    def create_nx_graph_from_arbitrary_image_file(cls, path, interactive=False, reader=ImageReaderOptions.SKIMAGE):
         assert path.exists() and not path.is_dir(), f"{path} should be existing file"
         assert isinstance(path, PurePath)
 
-        image1 = io.imread(str(path))
+        image1 = AmiImageReader.read_image(str(path), reader=reader)
         AmiUtil.check_type_and_existence(image1, np.ndarray)
         gray_image = AmiImage.create_grayscale_from_image(image1)
         assert AmiImage.check_grayscale(gray_image)
