@@ -139,6 +139,9 @@ class AmiOCR:
             
     @classmethod
     def wrapper_selector(cls, backend):
+        """
+        select the wrapper for OCR system (currently Tesseract or EasyOCR)
+        """
         if backend == 'easyocr':
             return EasyOCRWrapper()
         elif backend == 'tesseract':

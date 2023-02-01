@@ -52,21 +52,20 @@ class TestAmiGraph:
         self.resources.create_ami_graph_objects()
 
     def setup_method(self, method):
-        pass
         #
-        # self.arrows1 = self.resources.arrows1_image_file
-        # self.nx_graph_arrows1 = self.resources.nx_graph_arrows1
-        #
-        # self.biosynth1_binary = self.resources.biosynth1_binary
-        # self.biosynth1_elem = self.resources.biosynth1_elem
-        #
-        # self.nx_graph_biosynth3 = self.resources.biosynth3_dto.nx_graph
-        #
-        # self.nx_graph_prisma = self.resources.nx_graph_prisma
-        #
-        # self.battery1_image = self.resources.battery1_image
-        # self.nx_graph_battery1 = self.resources.nx_graph_battery1
-        #
+        self.arrows1 = self.resources.arrows1_image_file
+        self.nx_graph_arrows1 = self.resources.nx_graph_arrows1
+
+        self.biosynth1_binary = self.resources.biosynth1_binary
+        self.biosynth1_elem = self.resources.biosynth1_elem
+
+        self.nx_graph_biosynth3 = self.resources.biosynth3_dto.nx_graph
+
+        self.nx_graph_prisma = self.resources.nx_graph_prisma
+
+        self.battery1_image = self.resources.battery1_image
+        self.nx_graph_battery1 = self.resources.nx_graph_battery1
+
         # return self
 
 
@@ -130,7 +129,7 @@ class TestAmiGraph:
         # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         # ami_graph = self.resources.arrows1_ami_graph
         dto = Resources.get_image_dto(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW,
-                                      raw_image_shape=(1167, 1515)
+                                      raw_image_shape=(315, 1512)
                                       )
         ami_graph = dto.ami_graph
         # ami_graph = Resources.create_graph(ARROWS_1)

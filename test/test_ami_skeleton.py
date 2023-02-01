@@ -52,12 +52,12 @@ class TestAmiSkeleton:
     # def __init__(self):
     #     self.arrows_skeleton = None
 
-    # def setup_method(self):
-    #     self.arrows_skeleton = TestAmiSkeleton.create_biosynth_arrows_skeleton()
-    #     self.arrows1_image = io.imread(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
-    #     self.arrows1_skeleton = AmiImage.invert_binarize_skeletonize(self.arrows1_image)
-    #     self.arrows1_graph = AmiGraph.create_nx_graph_from_skeleton(self.arrows1_skeleton)
-    #     # self.arrows1_graph = AmiSkeleton().create_nx_graph_via_skeleton_sknw_NX_GRAPH(Resources.BIOSYNTH1_ARROWS)
+    def setup_method(self):
+        self.arrows_skeleton = TestAmiSkeleton.create_biosynth_arrows_skeleton()
+        self.arrows1_image = io.imread(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
+        self.arrows1_skeleton = AmiImage.invert_binarize_skeletonize(self.arrows1_image)
+        self.arrows1_graph = AmiGraph.create_nx_graph_from_skeleton(self.arrows1_skeleton)
+        # self.arrows1_graph = AmiSkeleton().create_nx_graph_via_skeleton_sknw_NX_GRAPH(Resources.BIOSYNTH1_ARROWS)
 
     @classmethod
     def create_biosynth_arrows_skeleton(cls):

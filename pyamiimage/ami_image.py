@@ -113,7 +113,7 @@ class AmiImage:
 
     @classmethod
     def create_rgb_from_rgba(cls, image_rgba):
-        if not image_rgba:
+        if image_rgba is None:
             logging.error("cannot create RGB from None")
             return None
         assert cls.has_alpha_channel_shape(image_rgba), f"found {image_rgba.shape}"
