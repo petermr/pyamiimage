@@ -1,5 +1,6 @@
 
 import numpy as np
+import logging
 import matplotlib.pyplot as plt
 from skimage import filters, color, io, data, draw
 from skimage.exposure import histogram
@@ -437,10 +438,11 @@ class Quantizer:
                                                 old_col=[146, 209, 80],
                                                 new_col=[255, 0, 0],
                                                 back_col=[220, 255, 255])
-        plt.imsave(Path(out_dir, "single" + "." + out_form), single_chan)
+        if out_dir:
+            plt.imsave(Path(out_dir, "single" + "." + out_form), single_chan)
         self.palette_dict = self.create_palette(img_out)
         print("palette", self.palette_dict)
-        self.create_monochrome_images_of_color_streams(np.array(img_out), out_dir, out_form)
+        self.write_monochrome_images_of_color_streams(np.array(img_out), out_dir=None, out_form="png")
         image_by_hx = self.create_monochrome_images_from_rgb(np.array(img_out))
         print("image by hex", image_by_hx)
 
@@ -472,13 +474,23 @@ class Quantizer:
         single_chan = np.multiply(single_chan, 1.0 / 255.)
         return single_chan
 
-    def create_monochrome_images_of_color_streams(self, img_array, out_dir, out_form="png"):
+    def write_monochrome_images_of_color_streams(self, img_array, out_dir=None, out_form="png"):
+        """
+        self contains self.num_colors (needs refactoring)
+        iterates through the colours picking each by index
+        creates output name of form <out_dir>/p<index>.<format>
+        :param img_array: image array indexed as a palette
+        :param out_dir: outout directory
+        :param out_form: output format default png
+
+        """
+        if not out_dir:
+            logging.warn(f"warn no output_dir given")
+            return
         for palette_index in range(self.num_colors):
-            if out_dir:
-                out_path = Path(out_dir, "p" + str(palette_index) + "." + out_form)
-                # img1 = np.where(img_array == color, True, False)
-                img1 = np.where(img_array == palette_index, palette_index, 254)
-                plt.imsave(out_path, img1)
+            out_path = Path(out_dir, "p" + str(palette_index) + "." + out_form)
+            img1 = np.where(img_array == palette_index, palette_index, 254)
+            plt.imsave(out_path, img1)
 
     def create_monochrome_images_from_rgb(self, rgb_array, back_col=None):
         if back_col is None:
@@ -495,7 +507,7 @@ class Quantizer:
             new_array_dict[rgb2hex(rgb)] = new_array
         return new_array_dict
 
-    def extract_color_streams(self):
+    def extract_color_streams(self, out_dir=None):
         in_path = None
         suffixes = ["png", "jpeg", "jpg"]
         for suffix in suffixes:

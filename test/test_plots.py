@@ -30,12 +30,12 @@ class TestPlots:
         self.resources.create_ami_graph_objects()
 
     def setup_method(self, method):
-        self.satish_047q_ami_graph = self.resources.satish_047q_ami_graph
+        self.lineplot_047q_ami_graph = self.resources.lineplot_047q_ami_graph
 
         return self
 
-    def test_satish_erode_dilate(self):
-        img_dir = Resources.SATISH_DIR
+    def test_lineplot_erode_dilate(self):
+        img_dir = Resources.LINEPLOT_DIR
         os.chdir(img_dir)
         img_files = glob.glob("*.png")
         assert len(img_files) > 0
@@ -85,8 +85,7 @@ class TestPlots:
         """creates axial box and ticks
         """
 
-        ami_graph = self.satish_047q_ami_graph
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.SATISH_047Q_RAW)
+        ami_graph = self.lineplot_047q_ami_graph
 
         plot_islands = ami_graph.get_or_create_ami_islands(mindim=50, maxmindim=300)
         if len(plot_islands) == 0:
@@ -166,7 +165,7 @@ class TestPlots:
         assert horiz_dict == Counter({352: 4, 351: 2, 151: 1, 285: 1, 83: 1, 218: 1, 82: 1}), f"found {horiz_dict}"
 
 # this image doesn't give good words
-        image_file = Resources.SATISH_047Q_RAW
+        image_file = Resources.LINEPLOT_047Q_RAW
 
         expected_bboxes = [
             [[34, 45], [203, 261]],
@@ -196,7 +195,6 @@ class TestPlots:
         rescaled image is twice the size
         """
 
-        # ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.SATISH_042A_RAW)
         path042a = Path(Resources.TEST_RESOURCE_DIR, "042A", "raw.png")
         ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(path042a)
         mindim = 50
@@ -221,14 +219,14 @@ class TestPlots:
         """creates axial box and ticks
         """
         # this image doesn't give good words
-        ami_plot = AmiPlot(image_file=Resources.SATISH_005B_RAW)
+        ami_plot = AmiPlot(image_file=Resources.LINEPLOT_005B_RAW)
         ami_plot.create_scaled_plot_box(island_index=0, mindim=30)
         print(f"left {ami_plot.axial_box_by_side['LEFT']}")
         print(f"left {ami_plot.left_scale.text2coord_list}")
         print(f"bottom {ami_plot.bottom_scale.text2coord_list}")
 
     def test_create_plot_box_many(self):
-        os.chdir(Resources.SATISH_DIR)
+        os.chdir(Resources.LINEPLOT_DIR)
         files = glob.glob("*.png")
         for image_file in files:
             try:

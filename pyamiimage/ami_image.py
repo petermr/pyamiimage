@@ -116,7 +116,9 @@ class AmiImage:
         if image_rgba is None:
             logging.error("cannot create RGB from None")
             return None
-        assert cls.has_alpha_channel_shape(image_rgba), f"found {image_rgba.shape}"
+        if not cls.has_alpha_channel_shape(image_rgba):
+            print(f"channel does not have alpha, found {image_rgba.shape}")
+            return image_rgba
         image_rgb = color.rgba2rgb(image_rgba)
         assert not cls.has_alpha_channel_shape(image_rgb), f"converted rgb should have lost alpha channel"
         assert cls.has_rgb_shape(image_rgb), f"converted rgb does not have rgb_shape"

@@ -111,15 +111,15 @@ class Resources:
     YW5003_5_RAW = Path(TEST_RESOURCE_DIR, "iucr_yw5003_fig5.png")
     assert YW5003_5_RAW.exists(), f"file exists {YW5003_5_RAW}"
 
-# Satish
-    SATISH_DIR = Path(TEST_RESOURCE_DIR, "satish")
-    assert SATISH_DIR.exists(), f"file exists {SATISH_DIR}"
-    SATISH_005B_RAW = Path(TEST_RESOURCE_DIR, "005B", "raw.png")
-    assert SATISH_005B_RAW.exists(), f"file exists {SATISH_005B_RAW}"
-    SATISH_047Q_RAW = Path(TEST_RESOURCE_DIR, "047Q", "raw.png")
-    assert SATISH_047Q_RAW.exists(), f"file exists {SATISH_047Q_RAW}"
-    SATISH_042A_RAW = Path(TEST_RESOURCE_DIR, "042A", "raw.png")
-    assert SATISH_042A_RAW.exists(), f"file exists {SATISH_042A_RAW}"
+# Lineplots - diagrams are publicly viewable at
+    LINEPLOT_DIR = Path(TEST_RESOURCE_DIR, "lineplots")
+    assert LINEPLOT_DIR.exists(), f"file exists {LINEPLOT_DIR}"
+    LINEPLOT_005B_RAW = Path(TEST_RESOURCE_DIR, "005B", "raw.png")
+    assert LINEPLOT_005B_RAW.exists(), f"file exists {LINEPLOT_005B_RAW}"
+    LINEPLOT_047Q_RAW = Path(TEST_RESOURCE_DIR, "047Q", "raw.png")
+    assert LINEPLOT_047Q_RAW.exists(), f"file exists {LINEPLOT_047Q_RAW}"
+    LINEPLOT_042A_RAW = Path(TEST_RESOURCE_DIR, "042A", "raw.png")
+    assert LINEPLOT_042A_RAW.exists(), f"file exists {LINEPLOT_042A_RAW}"
 
 # Test AMIOCR
     AMIOCR_TEST_RAW = Path(TEST_RESOURCE_DIR, "amiocr_test", "raw.png")
@@ -222,7 +222,7 @@ class Resources:
         )
 
         self.yw5003_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.YW5003_5_RAW)
-        self.satish_047q_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.SATISH_047Q_RAW)
+        self.lineplot_047q_ami_graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(Resources.LINEPLOT_047Q_RAW)
 
         return self
 
