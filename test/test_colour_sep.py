@@ -103,7 +103,7 @@ class TestOctree:
         Available methods are NONE or FLOYDSTEINBERG (default). Default: 1 (legacy setting)
         Returns A new image"""
         quantizer = Quantizer(input_dir=PICO_DIR, root="emss-81481-f001")
-        stream  = quantizer.extract_color_streams()
+        stream  = quantizer.extract_color_streams(out_dir=Path(Resources.TEMP_DIR, "pico"))
         print(f"stream {stream}")
 
     def test_example_several_color_streams(self):
@@ -117,13 +117,13 @@ class TestOctree:
         quantizer = Quantizer(input_dir=PICO_DIR, num_colors=16)
         for root in roots:
             quantizer.root = root
-            stream = quantizer.extract_color_streams()
+            stream = quantizer.extract_color_streams(out_dir=Path(Resources, "pico"))
             print(f"stream {stream}")
 
     def test_green_battery(self):
         streams = Quantizer(
             input_dir=Resources.BATTERY_DIR, method="octree", root="green"
-        ).extract_color_streams()
+        ).extract_color_streams(out_dir=Path(Resources.TEMP_DIR, "battery"))
         print(f"streams {streams}")
 
     def test_skimage(self):
