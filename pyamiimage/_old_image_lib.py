@@ -429,6 +429,7 @@ class Quantizer:
         else:
             img_out = pil_img.convert('P', palette=Image.ADAPTIVE, colors=self.num_colors)
         print(f"\nform {img_out.format}, size {img_out.size}, mode {img_out.mode}")
+        Path(out_dir).mkdir(exist_ok=True, parents=True)
         img_out.save(Path(out_dir, "palette"+"." + out_form), out_form)
         img_rgb = img_out.convert("RGB")
         img_rgb.save(Path(out_dir, "rgb"+"." + out_form), out_form)
@@ -439,6 +440,7 @@ class Quantizer:
                                                 new_col=[255, 0, 0],
                                                 back_col=[220, 255, 255])
         if out_dir:
+            print(f"saving to {out_dir}")
             plt.imsave(Path(out_dir, "single" + "." + out_form), single_chan)
         self.palette_dict = self.create_palette(img_out)
         print("palette", self.palette_dict)
@@ -517,7 +519,9 @@ class Quantizer:
         if in_path is None:
             print(f"cannot find images with root {self.root}")
             return
-        out_dir = self.make_out_dir(self.input_dir, self.root)
+        if not out_dir:
+            print(f"no out_dir given")
+            return
         img = Image.open(in_path)
         self.create_and_write_color_streams(img, num_colors=8, out_dir=out_dir)
 
