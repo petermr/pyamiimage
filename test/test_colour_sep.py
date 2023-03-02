@@ -119,8 +119,7 @@ class TestOctree(AmiAnyTest):
         quantizer = Quantizer(input_dir=PICO_DIR, num_colors=16)
         for root in roots:
             quantizer.root = root
-            stream = quantizer.extract_and_write_color_streams(out_dir=Path(Resources.TEMP_DIR, "pico", root))
-            print(f"stream {stream}")
+            quantizer.extract_and_write_color_streams(out_dir=Path(Resources.TEMP_DIR, "pico", root))
 
     def test_barcharts(self):
         """from IPCC """
@@ -138,6 +137,7 @@ class TestOctree(AmiAnyTest):
     def test_green_battery(self):
         streams = Quantizer(
             input_dir=Resources.BATTERY_DIR, method="octree", root="green"
+        ).extract_color_streams(out_dir=Path(Resources.TEMP_DIR, "battery"))
         ).extract_and_write_color_streams(out_dir=Path(Resources.TEMP_DIR, "battery"))
         print(f"streams {streams}")
 

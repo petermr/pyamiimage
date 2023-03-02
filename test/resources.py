@@ -5,8 +5,7 @@ import logging
 from pathlib import Path
 
 import numpy as np
-# from skimage import io
-import cv2
+from skimage import io
 
 # local
 import skimage.color
@@ -15,7 +14,6 @@ import context
 from pyamiimage.ami_graph_all import AmiGraph, AmiImage
 from pyamiimage.ami_image import AmiImageDTO, AmiImageReader, ImageReaderOptions
 from pyamiimage.tesseract_hocr import TesseractOCR
-
 
 logger = logging.getLogger(__name__)
 
