@@ -101,6 +101,18 @@ class AmiUtil:
                 return False
         return True
 
+    @classmethod
+    def col6_to_col3(cls, col6):
+        """
+        shortens 6 character hex color to 3-character
+        e.g.
+        a1b2c3 +> abc
+        :param col6: 6 letter color
+        :return: None if invalid input
+        """
+        if not col6 or not len(col6) == 6:
+            return None
+        return "".join([col6[::2]])
 
     @classmethod
     def is_gray(cls, color, delta=20):

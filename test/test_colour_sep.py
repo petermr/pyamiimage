@@ -21,18 +21,21 @@ from pyamiimage.ami_util import AmiUtil
 
 from resources import Resources
 
+from ami_test_lib import AmiAnyTest
+
 interactive = False
 #interactive = True
 
 PYAMI_DIR = Path(__file__).parent.parent
 TEST_DIR = Path(PYAMI_DIR, "test")
 PICO_DIR = Path(TEST_DIR, "alex_pico/")
+BARCHARTS_DIR = Path(TEST_DIR, "barcharts/")
 RESOURCES_DIR = Path(TEST_DIR, "resources")
 
 LONG_TEST = False
 
 """Tests both Octree and kmeans color separation"""
-class TestOctree:
+class TestOctree(AmiAnyTest):
     def setup_method(self, method=None):
         pass
 
@@ -103,8 +106,7 @@ class TestOctree:
         Available methods are NONE or FLOYDSTEINBERG (default). Default: 1 (legacy setting)
         Returns A new image"""
         quantizer = Quantizer(input_dir=PICO_DIR, root="emss-81481-f001")
-        stream  = quantizer.extract_color_streams(out_dir=Path(Resources.TEMP_DIR, "pico"))
-        print(f"stream {stream}")
+        quantizer.extract_and_write_color_streams(out_dir=Path(Resources.TEMP_DIR, "pico", "emss-81481-f001"))
 
     def test_example_several_color_streams(self):
         """not yet useful tests"""
@@ -112,18 +114,31 @@ class TestOctree:
             "13068_2019_1355_Fig4_HTML",
             # "fmicb-09-02460-g001",
             # "pone.0054762.g004",
-            # "emss-81481-f001",
+            "emss-81481-f001",
         ]
         quantizer = Quantizer(input_dir=PICO_DIR, num_colors=16)
         for root in roots:
             quantizer.root = root
-            stream = quantizer.extract_color_streams(out_dir=Path(Resources.TEMP_DIR, "pico"))
+            stream = quantizer.extract_and_write_color_streams(out_dir=Path(Resources.TEMP_DIR, "pico", root))
             print(f"stream {stream}")
+
+    def test_barcharts(self):
+        """from IPCC """
+        roots = [
+            "image.6.12.1.78_306.157_311",
+            "image.6.12.2.77_306.382_548",
+            "image.6.12.3.314_514.174_311",
+            "image.6.12.4.311_512.382_525",
+        ]
+        quantizer = Quantizer(input_dir=BARCHARTS_DIR, num_colors=16)
+        for root in roots:
+            quantizer.root = root
+            quantizer.extract_and_write_color_streams(out_dir=Path(Resources.TEMP_DIR, "barcharts", root))
 
     def test_green_battery(self):
         streams = Quantizer(
             input_dir=Resources.BATTERY_DIR, method="octree", root="green"
-        ).extract_color_streams(out_dir=Path(Resources.TEMP_DIR, "battery"))
+        ).extract_and_write_color_streams(out_dir=Path(Resources.TEMP_DIR, "battery"))
         print(f"streams {streams}")
 
     def test_skimage(self):

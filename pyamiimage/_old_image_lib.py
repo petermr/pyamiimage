@@ -1,4 +1,5 @@
 
+from enum import Enum
 import numpy as np
 import logging
 import matplotlib.pyplot as plt
@@ -11,20 +12,28 @@ from skimage.segmentation import active_contour
 from pathlib import Path
 from PIL import Image
 
+
 # https://scikit-image.org/docs/dev/user_guide/tutorial_segmentation.html
 # https://scikit-image.org/docs/dev/auto_examples/edges/plot_active_contours.html
 
 from skimage.morphology import medial_axis, skeletonize, thin
 
+# from py4ami import AmiUtil
+
 """Code copied from earlier PMR ImageLib
 being gradually converted into ImageProcessor
+
+I *think* only the class mathods are used
 """
+
 
 
 class ImageLib:
     def __init__(self):
+
         self.image = None
         self.path = "assets/purple_ocimum_basilicum.png"
+        raise NotImplementedError("We shouldn't use non-class mathods; delete")
         # self.old_init()
 
     def old_init(self):
@@ -38,11 +47,12 @@ class ImageLib:
         binary = self.image > thresh
         self.image = binary
         print("read image")
+        raise NotImplementedError("We shouldn't use non-class mathods; delete")
 
-    def image_import(self, path=None):
-        if path is None:
-            path = self.path
-        self.image = io.imread(path)
+    # def image_import(self, path=None):
+    #     if path is None:
+    #         path = self.path
+    #     self.image = io.imread(path)
 
     @classmethod
     def image_show(cls, image, nrows=1, ncols=1, cmap='gray'):
@@ -52,36 +62,36 @@ class ImageLib:
         ax.axis('off')
         return fig, ax
 
-    def image_show_top(self):
-        print("start image_show")
-
-        self.text = data.page()
-        print("text>>", self.text)
-        self.image_show(self.text)
-
-        fig, ax = plt.subplots(1, 1)
-        ax.hist(self.text.ravel(), bins=32, range=[0, 256])
-        ax.set_xlim(0, 256)
-
-        text_segmented = self.text > 50
-        self.image_show(text_segmented)
-
-        text_segmented = self.text > 70
-        self.image_show(text_segmented)
-
-        text_segmented = self.text > 120
-        self.image_show(text_segmented)
-
-        text_threshold = filters.threshold_otsu(self.text)
-        self.image_show(self.text > text_threshold)
-
-        text_threshold = filters.threshold_li(self.text)
-        self.image_show(self.text > text_threshold)
-
-        text_threshold = filters.threshold_local(self.text, block_size=51, offset=10)
-        self.image_show(self.text > text_threshold)
-        print("end image_show")
-
+    # def image_show_top(self):
+    #     print("start image_show")
+    #
+    #     self.text = data.page()
+    #     print("text>>", self.text)
+    #     self.image_show(self.text)
+    #
+    #     fig, ax = plt.subplots(1, 1)
+    #     ax.hist(self.text.ravel(), bins=32, range=[0, 256])
+    #     ax.set_xlim(0, 256)
+    #
+    #     text_segmented = self.text > 50
+    #     self.image_show(text_segmented)
+    #
+    #     text_segmented = self.text > 70
+    #     self.image_show(text_segmented)
+    #
+    #     text_segmented = self.text > 120
+    #     self.image_show(text_segmented)
+    #
+    #     text_threshold = filters.threshold_otsu(self.text)
+    #     self.image_show(self.text > text_threshold)
+    #
+    #     text_threshold = filters.threshold_li(self.text)
+    #     self.image_show(self.text > text_threshold)
+    #
+    #     text_threshold = filters.threshold_local(self.text, block_size=51, offset=10)
+    #     self.image_show(self.text > text_threshold)
+    #     print("end image_show")
+    #
 
 class ImageExamples:
 
@@ -96,6 +106,7 @@ class ImageExamples:
 
         return np.array([c, r]).T
 
+    #  not used/usable as file has disappeared
     def blobs(self):
         print("start blobs")
         self.image = data.binary_blobs()
@@ -388,6 +399,8 @@ class Quantizer:
     a tortous journey to flattem images to a small set of colours
     finally arriving at FASTOCTREE and convert()
     """
+    FileStem = Enum('FileStem', ['COLOR3', 'COLOR6', 'INDEX'])
+
     OCTREE = "octree"
 
     def __init__(self, input_dir, root=None, num_colors=8, method=None):
@@ -419,6 +432,8 @@ class Quantizer:
         :param dither: used in quantize, def = None, option  PIL.Image.FLOYDSTEINBERG
 
         :return:
+
+        creates self.palette_dict
         """
         if method is not None:
             self.method = method
@@ -444,7 +459,7 @@ class Quantizer:
             plt.imsave(Path(out_dir, "single" + "." + out_form), single_chan)
         self.palette_dict = self.create_palette(img_out)
         print("palette", self.palette_dict)
-        self.write_monochrome_images_of_color_streams(np.array(img_out), out_dir=None, out_form="png")
+        self.write_monochrome_images_of_color_streams(np.array(img_out), out_dir=out_dir, out_form="png")
         image_by_hx = self.create_monochrome_images_from_rgb(np.array(img_out))
         print("image by hex", image_by_hx)
 
@@ -476,7 +491,7 @@ class Quantizer:
         single_chan = np.multiply(single_chan, 1.0 / 255.)
         return single_chan
 
-    def write_monochrome_images_of_color_streams(self, img_array, out_dir=None, out_form="png"):
+    def write_monochrome_images_of_color_streams(self, img_array, out_dir=None, out_form="png", out_stem=FileStem.COLOR3):
         """
         self contains self.num_colors (needs refactoring)
         iterates through the colours picking each by index
@@ -484,13 +499,27 @@ class Quantizer:
         :param img_array: image array indexed as a palette
         :param out_dir: outout directory
         :param out_form: output format default png
+        :param out_stem: "color3" (default);
 
         """
         if not out_dir:
             logging.warn(f"warn no output_dir given")
             return
-        for palette_index in range(self.num_colors):
-            out_path = Path(out_dir, "p" + str(palette_index) + "." + out_form)
+        colors = [k for k in self.palette_dict.keys()]
+
+        for palette_index in range(len(colors)):
+            print(f"{palette_index}")
+            hex_color = colors[palette_index]
+            if out_stem == Quantizer.FileStem.COLOR6:
+                file_stem = str(hex_color)
+            elif out_stem == Quantizer.FileStem.COLOR3:
+                # use this when py4ami is reinstalled
+                # file_stem = AmiUtil.col6_to_col3(out_stem)
+                file_stem = "".join([hex_color[::2]])
+            elif out_stem == Quantizer.FileStem.INDEX:
+                file_stem = "p" + str(palette_index)
+
+            out_path = Path(out_dir, str(file_stem) + "." + out_form)
             img1 = np.where(img_array == palette_index, palette_index, 254)
             plt.imsave(out_path, img1)
 
@@ -509,7 +538,7 @@ class Quantizer:
             new_array_dict[rgb2hex(rgb)] = new_array
         return new_array_dict
 
-    def extract_color_streams(self, out_dir=None):
+    def extract_and_write_color_streams(self, out_dir=None):
         in_path = None
         suffixes = ["png", "jpeg", "jpg"]
         for suffix in suffixes:

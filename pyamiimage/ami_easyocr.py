@@ -1,8 +1,10 @@
-import context
-from configparser import ConfigParser
-from pyamiimage._old_ami_ocr import AmiOCR, TextBox
+OLD_AMI_OCR = False
+if OLD_AMI_OCR:
+    from pyamiimage.\
+        _old_ami_ocr import AmiOCR, TextBox
+else:
+    from pyamiimage.ami_ocr import AmiOCR, TextBox
 from pyamiimage.ami_image import AmiImage, AmiImageReader
-from skimage import io
 import easyocr
 
 image_num = 3
