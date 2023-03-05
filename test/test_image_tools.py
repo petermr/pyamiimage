@@ -12,9 +12,11 @@ import context
 from pyamiimage.ami_image import AmiImage
 from pyamiimage.ami_util import AmiUtil
 
+from ami_test_lib import AmiAnyTest
+
 interactive = False
 
-class TestImageTools:
+class TestImageTools(AmiAnyTest):
 
     """explores erode-dilate and similar tools"""
 

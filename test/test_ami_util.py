@@ -2,9 +2,11 @@ import pytest
 
 import context
 from pyamiimage.ami_util import Vector2
+from ami_test_lib import AmiAnyTest
 
 
-class TestAmiUtil:
+
+class TestAmiUtil(AmiAnyTest):
     def test_angle(self):
         """
         test angle between 2 vectors

@@ -10,9 +10,10 @@ from skimage import data, io, morphology
 from skimage.filters import unsharp_mask
 import imageio as iio
 
-import context
 from pyamiimage.ami_image import AmiImage, AmiImageReader
 from resources import Resources
+from ami_test_lib import AmiAnyTest
+from ami_plot import AmiPlotter
 
 RESOURCE_DIR = Path(Path(__file__).parent, "resources")
 COMPARE_DIR = Path(Path(__file__).parent, "comparison_images")
@@ -26,7 +27,9 @@ interactive = False
 # interactive = True
 
 
-class TestAmiImage:
+class TestAmiImage(
+    # AmiAnyTest
+):
     def setup_method(self, method):
         """setup any state tied to the execution of the given method in a
         class.  setup_method is invoked for every test method of a class.
@@ -35,9 +38,7 @@ class TestAmiImage:
         assert RGB_SNIPPET.exists(), f"image should exist {RGB_SNIPPET}"
         self.image = AmiImageReader.read_image(RGB_SNIPPET)
 
-        assert (
-            COMPARE_DIR.exists()
-        ), "Comparison directory does not exist, run generate_compare_files.py"
+        assert COMPARE_DIR.exists(), "Comparison directory does not exist, run generate_compare_files.py"
 
     def teardown_method(self, method):
         """teardown any state that was previously setup with a setup_method
@@ -100,24 +101,40 @@ class TestAmiImage:
         result_1 = unsharp_mask(image, radius=1, amount=1)
         result_2 = unsharp_mask(image, radius=5, amount=2)
         result_3 = unsharp_mask(image, radius=20, amount=1)
+        images = [image, result_1, result_2, result_3]
+        titles = [
+            "Original image",
+            "Enhanced image, radius=1, amount=1.0",
+            "Enhanced image, radius=5, amount=2.0",
+            "Enhanced image, radius=20, amount=1.0",
+        ]
+        cmaps = [
+            plt.cm.gray,
+            plt.cm.gray,
+            plt.cm.gray,
+            plt.cm.gray,
+        ]
 
-        fig, axes = plt.subplots(
-            nrows=2, ncols=2, sharex=True, sharey=True, figsize=(10, 10)
+        plotter = AmiPlotter(nrows=2, ncols=2, sharex="all", sharey="all", figsize=(10, 10))
+        for i, (image, title, cmap) in enumerate(zip(images, titles, cmaps)):
+            plotter.imshow(image=image, axis=i, title=title, cmap=cmap)
+        plotter.show(interactive)
+
+        AmiPlotter().imshow(image=image, title="single plot").show(interactive)
+
+
+    def test_plot_array(self):
+        points = np.array(
+            [
+                [1.0, 1.0],
+                [1.1, 2.0],
+                [0.9, 3.0],
+                [2.0, 2.9],
+                [3.0, 3.0],
+            ]
         )
-        ax = axes.ravel()
-
-        ax[0].imshow(image, cmap=plt.cm.gray)
-        ax[0].set_title("Original image")
-        ax[1].imshow(result_1, cmap=plt.cm.gray)
-        ax[1].set_title("Enhanced image, radius=1, amount=1.0")
-        ax[2].imshow(result_2, cmap=plt.cm.gray)
-        ax[2].set_title("Enhanced image, radius=5, amount=2.0")  # best
-        ax[3].imshow(result_3, cmap=plt.cm.gray)
-        ax[3].set_title("Enhanced image, radius=20, amount=1.0")
-        print(f"shape {result_3}")
-
-        if interactive:
-            plt.show()
+        plotter = AmiPlotter(nrows=2, ncols=1, sharex="all", sharey="all", figsize=(10, 10))
+        plotter.plot(points, title="Single Plot").show(interactive)
 
     # ========== helper methods ==============
     @classmethod

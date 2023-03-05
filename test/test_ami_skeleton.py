@@ -19,8 +19,10 @@ from pyamiimage.ami_util import AmiUtil
 # local
 from resources import Resources
 
+from ami_test_lib import AmiAnyTest
 
-class TestAmiSkeleton:
+
+class TestAmiSkeleton(AmiAnyTest):
 
     # def __init__(self):
     #     self.plot_plot = True
@@ -52,7 +54,7 @@ class TestAmiSkeleton:
     # def __init__(self):
     #     self.arrows_skeleton = None
 
-    def setup_method(self):
+    def setUp(self):
         self.arrows_skeleton = TestAmiSkeleton.create_biosynth_arrows_skeleton()
         self.arrows1_image = io.imread(Resources.BIOSYNTH1_CROPPED_ARROWS_RAW)
         self.arrows1_skeleton = AmiImage.invert_binarize_skeletonize(self.arrows1_image)

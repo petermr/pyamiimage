@@ -11,6 +11,7 @@ import PIL
 from PIL import Image
 from sklearn.metrics import pairwise_distances_argmin
 from sklearn.utils import shuffle
+import skimage
 
 # local imports
 import context
@@ -18,7 +19,7 @@ from pyamiimage import octree
 from pyamiimage._old_image_lib import Quantizer
 from pyamiimage.ami_image import AmiImage
 from pyamiimage.ami_util import AmiUtil
-
+from pyamiimage.ami_graph_all import AmiGraph
 from resources import Resources
 
 from ami_test_lib import AmiAnyTest
@@ -29,8 +30,8 @@ interactive = False
 PYAMI_DIR = Path(__file__).parent.parent
 TEST_DIR = Path(PYAMI_DIR, "test")
 PICO_DIR = Path(TEST_DIR, "alex_pico/")
-BARCHARTS_DIR = Path(TEST_DIR, "barcharts/")
 RESOURCES_DIR = Path(TEST_DIR, "resources")
+BARCHARTS_DIR = Path(RESOURCES_DIR, "barcharts/")
 
 LONG_TEST = False
 
@@ -67,7 +68,6 @@ class TestOctree(AmiAnyTest):
         size = 6
         path = Path(PICO_DIR, "emss-81481-f001.png")
         assert path.exists()
-        # img = imageio.imread(path)
         img = Image.open(path)
         pil_rgb_image, palette, palette_image = octree.quantize(img, size=size)
         print(f"\npalette {type(palette)}  {palette}")
@@ -131,15 +131,47 @@ class TestOctree(AmiAnyTest):
             "image.6.12.4.311_512.382_525",
         ]
         quantizer = Quantizer(input_dir=BARCHARTS_DIR, num_colors=16)
-        for root in roots:
+        for i, root in enumerate(roots):
             quantizer.root = root
-            quantizer.extract_and_write_color_streams(out_dir=Path(Resources.TEMP_DIR, "barcharts", root))
+            path = Path(Resources.TEMP_DIR, "barcharts", root)
+            quantizer.extract_and_write_color_streams(out_dir=path)
+            for j, col_img_tuple in enumerate(quantizer.col_img_tuples):
+                col_3 = AmiUtil.col6_to_col3(col_img_tuple[0])
+                edges_dir = Path(path, f"{col_3}")
+                edges_dir.mkdir(exist_ok=True, parents=True)
+                bool_img = col_img_tuple[1]
+                blob_edge_array = skimage.segmentation.find_boundaries(bool_img, connectivity=1, mode='thick', background=0)
+                im = Image.fromarray(blob_edge_array)
+                im.save(str(Path(edges_dir, f"edge.png")))
+
+
+    def test_find_graph_of_outlines(self):
+        """
+        Checks that we can extract a graph out of outlines (e.g. from colour regions
+        """
+        # 6 rects
+        path = Path(Resources.TEST_RESOURCE_DIR, "barcharts", "image.6.12.2.77_306.382_548", "9c4", "edge.png")
+        graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(path, invert=True)
+        print("\n")
+        for edge in graph.get_or_create_all_ami_edges():
+            polyline = edge.create_segmented_polyline(cyclic=edge.is_cyclic())
+            polyline.print_line_segments()
+            polyline.plot()
+
+        # polygons
+        path = Path(Resources.TEST_RESOURCE_DIR, "barcharts", "image.6.12.3.314_514.174_311", "583", "edge.png")
+        graph = AmiGraph.create_ami_graph_from_arbitrary_image_file(path, invert=True)
+        print("\n")
+        for edge in graph.get_or_create_all_ami_edges():
+            polyline = edge.create_segmented_polyline(cyclic=edge.is_cyclic(), tolerance=0)
+            polyline.print_line_segments()
+            polyline.plot()
+
 
     def test_green_battery(self):
-        streams = Quantizer(
-            input_dir=Resources.BATTERY_DIR, method="octree", root="green"
-        ).extract_and_write_color_streams(out_dir=Path(Resources.TEMP_DIR, "battery"))
-        print(f"streams {streams}")
+        quantizer = Quantizer(input_dir=Resources.BATTERY_DIR, method="octree", root="green")
+        quantizer.extract_and_write_color_streams(out_dir=Path(Resources.TEMP_DIR, "battery"))
+        
 
     def test_skimage(self):
         # Authors: Robert Layton <robertlayton@gmail.com>

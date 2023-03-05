@@ -1,4 +1,5 @@
 import context
+
 from pyamiimage.svg import (
     SVGG,
     SVGSVG,
@@ -11,8 +12,10 @@ from pyamiimage.svg import (
     SVGTitle,
 )
 
+from ami_test_lib import AmiAnyTest
 
-class TestBBox:
+
+class TestBBox(AmiAnyTest):
 
     # Bounding box Tests
 

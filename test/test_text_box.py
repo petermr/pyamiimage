@@ -5,7 +5,9 @@ import context
 from pyamiimage.tesseract_hocr import TesseractOCR
 from pyamiimage.text_box import TextBox
 
-class TestTextBox:
+from ami_test_lib import AmiAnyTest
+
+class TestTextBox(AmiAnyTest):
     def setup_method(self, method):
         self.cropped1_hocr = TesseractOCR.hocr_from_image_path(
             Resources.BIOSYNTH1_CROPPED_PNG

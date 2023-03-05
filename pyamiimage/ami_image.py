@@ -108,6 +108,11 @@ class AmiImage:
             gray = color.rgb2gray(image)
 
         gray = skimage.img_as_ubyte(gray)
+        white_count = np.sum(gray == 255)
+        black_count = np.sum(gray == 0)
+        gray_count = gray.shape[0] * gray.shape[1] - (white_count + black_count)
+        if gray_count > 0:
+            logging.warning(f"{gray_count} pixels other than 0/255 found")
         return gray
 
 
@@ -166,8 +171,13 @@ class AmiImage:
         """
         assert image is not None
 
+        image_white = np.sum(image == 255)
+        image_black = np.sum(image == 0)
         binary = AmiImage.create_white_binary_from_image(image)
+        white = np.sum(binary == 255)
+        black = np.sum(binary == 0)
         binary = binary/255
+        logging.warning(f"binary {binary}")
         mask = morphology.skeletonize(binary)
         skeleton = np.zeros(image.shape)
         skeleton[mask] = 255
@@ -188,6 +198,18 @@ class AmiImage:
         :param threshold: integer or float?
         :return: integer 0/1 binary image
         """
+
+        # maybe binary already
+        if len(image.shape) == 2:
+            size = image.shape[0] * image.shape[1]
+            image_white = np.sum(image == 255)
+            image_black = np.sum(image == 0)
+            if size == image_black + image_white:
+                # invert if signal is white
+                if image_white > image_black:
+                    image = np.where(image == 255, 0, 255)
+                return image
+
         # check if image is grayscale
         if len(image.shape) > 2:
             # convert to grayscale if not grayscale
@@ -201,12 +223,19 @@ class AmiImage:
         return binary_image
 
     @classmethod
-    def invert_binarize_skeletonize(cls, image):
+    def invert_binarize_skeletonize(cls, image, invert=True):
         """Inverts Thresholds and Skeletonize a single channel grayscale image
         :show: display images for invert, threshold and skeletonize
+        :param invert: if True invert the image (def=True)
         :return: skeletonized image
         """
-        inverted_image = cls.create_inverted_image(image)
+        inverted_image = image
+        if invert:
+            inverted_image = cls.create_inverted_image(image)
+        # this is just a debug
+        # path = Path(Resources.TEMP_DIR,"inverted.png")
+        # print(f"path: {path.absolute()}")
+        # io.imsave(path, inverted_image)
         # skeletonize has inbuilt binarization
         skeleton = cls.create_white_skeleton_from_image(inverted_image)
         assert np.max(skeleton) == 255, f"skeleton should have max 255 , found {np.max(skeleton)}"

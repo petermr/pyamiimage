@@ -17,7 +17,7 @@ import cv2
 
 # local
 from pyamiimage.ami_image import AmiImage, AmiImageReader, ImageReaderOptions
-from pyamiimage.ami_plot import AmiLine, X, Y
+from pyamiimage.ami_plot import AmiLine, X, Y, AmiPolyline
 from pyamiimage.ami_util import AmiUtil
 from pyamiimage.svg import BBox
 from pyamiimage.text_box import TextBox
@@ -105,9 +105,19 @@ class AmiGraph:
         return
 
     @classmethod
-    def create_ami_graph_from_arbitrary_image_file(cls, file, interactive=False, reader=ImageReaderOptions.SKIMAGE):
+    def create_ami_graph_from_arbitrary_image_file(
+            cls, file, interactive=False, reader=ImageReaderOptions.SKIMAGE, invert=True):
+        """
+        creates a graph from an arbitrary file
+        :param file: file to read
+        :param interactive: ?
+        :param reader: image reader (default ImageReaderOptions.SKIMAGE)
+        :param invert: invert image (def True) mainly for black on white
+        :return: AmiGraph object
+        """
         assert file.exists()
-        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(file, interactive=interactive, reader=reader)
+        nx_graph = AmiGraph.create_nx_graph_from_arbitrary_image_file(
+            file, interactive=interactive, reader=reader, invert=invert)
         return AmiGraph(nx_graph)
 
     # def get_nx_graph(self):
@@ -454,7 +464,8 @@ class AmiGraph:
     # AmiGraph
 
     @classmethod
-    def create_nx_graph_from_arbitrary_image_file(cls, path, interactive=False, reader=ImageReaderOptions.SKIMAGE):
+    def create_nx_graph_from_arbitrary_image_file(
+            cls, path, interactive=False, reader=ImageReaderOptions.SKIMAGE, invert=True):
         assert path.exists() and not path.is_dir(), f"{path} should be existing file"
         assert isinstance(path, PurePath)
 
@@ -466,7 +477,7 @@ class AmiGraph:
         if interactive:
             io.imshow(gray_image)
             io.show()
-        skeleton_array = AmiImage.invert_binarize_skeletonize(gray_image)
+        skeleton_array = AmiImage.invert_binarize_skeletonize(gray_image, invert)
         if interactive:
             io.imshow(skeleton_array)
             io.show()
@@ -1103,15 +1114,19 @@ class AmiEdge:
 
     # class AmiEdge:
 
-    def create_line_segments(self, tolerance=1):
+    def create_segmented_polyline(self, tolerance=1, cyclic=False):
         """create AmiLine segments from sknw points
-        :param tolerance: totlerance in pixels
-        :return: array of lines
+        uses approximate_polygon
+        :param tolerance: tolerance - I don't know how this works , works but 100 still gives many points
+        :return: AmiPolyline
         """
-
-        points = self.nx_graph[self.start_id][self.end_id][self.branch_id][AmiEdge.PTS]
-        points2 = approximate_polygon(points, tolerance=tolerance)
-        return points2
+        # this returns all points in y,x
+        points_yx = self.nx_graph[self.start_id][self.end_id][self.branch_id][AmiEdge.PTS]
+        points_xy = AmiEdge.swap_xy(points_yx)
+        points2 = approximate_polygon(points_xy, tolerance=float(tolerance))
+        print(f"segments {len(points_xy)}, {len(points2)}")
+        polyline = AmiPolyline(points2, cyclic=cyclic)
+        return polyline
 
     def find_single_line(self, tol=1) -> AmiLine:
         """segments the edge into straight lines (AmiLine)
@@ -1300,8 +1315,11 @@ class AmiEdge:
         return self.first_point if endx == 0 else self.last_point
 
     def is_cyclic(self):
-        """start and end are identical and length > 1"""
-        return len(self.points_xy) > 1 and self.start_id and self.start_id == self.end_id
+        """
+        start and end are identical and length > 1
+        """
+        cyclic = len(self.points_xy) > 1 and self.start_id is not None and self.start_id == self.end_id
+        return cyclic
     # =========================================
 
     @classmethod
@@ -1328,13 +1346,10 @@ class AmiEdge:
             plt.show()
 
     @classmethod
-    def douglas_peucker_plot_line(cls, nx_graph, i, j, tolerance, ax1, ax2):
+    def douglas_peucker_plot_line(cls, nx_graph, i, j, tolerance, ax1, ax2, do_plot = True):
         """this may be replaced by create_ami_lines()"""
         points = nx_graph[i][j][AmiEdge.PTS]
 
-        # original wiggly line
-        # x and y are reversed in sknw
-        ax1.plot(points[:, 1], -points[:, 0])  # negative since down the page
         points2 = approximate_polygon(points, tolerance=tolerance)
 
         # the line is not directed so find which end fits which node is best
@@ -1342,7 +1357,12 @@ class AmiEdge:
         distji = cls.move_line_ends_to_closest_node(nx_graph, (j, i), points2, move=False)
         ij = (i, j) if distij < distji else (j, i)
         AmiEdge.move_line_ends_to_closest_node(nx_graph, ij, points2, move=True)
-        ax2.plot(points2[:, 1], -points2[:, 0])
+        if do_plot:
+            # original wiggly line
+            # x and y are reversed in sknw
+            ax1.plot(points[:, 1], -points[:, 0])  # negative since down the page
+            ax2.plot(points2[:, 1], -points2[:, 0])
+        return points2
 
     # class AmiEdge:
 
@@ -1396,6 +1416,18 @@ class AmiEdge:
         if id0[1] == id1[0] or id0[1] == id1[1]:
             return id0[1]
         return None
+
+    @classmethod
+    def swap_xy(cls, points_yx):
+        """
+        swap x and y coordinates
+        :param points_yx: array os coordinates (N, 2)
+        :return: NEW array with x and y swapped
+        TODO move to library
+        """
+        points_xy = points_yx.copy()
+        points_xy[:,[0, 1]] = points_xy[:,[1, 0]]
+        return points_xy
 
 
 """a wrapper for an sknw/nx node, still being developed"""

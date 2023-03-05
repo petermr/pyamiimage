@@ -2,9 +2,10 @@ import unittest
 
 import context
 from pyamiimage.ami_plot import POLYGON, POLYLINE, AmiLine, AmiLineTool, X, Y
+import ami_test_lib
 
 
-class TestAmiLineTool:
+class TestAmiLineTool(ami_test_lib.AmiAnyTest):
     """test AmilineTool"""
 
     def test_empty_polyline(self):

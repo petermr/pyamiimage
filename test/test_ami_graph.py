@@ -28,6 +28,7 @@ from pyamiimage.ami_util import AmiUtil
 from pyamiimage.bbox import BBox
 from pyamiimage.text_box import TextBox, TextUtil
 from resources import Resources
+from ami_test_lib import AmiAnyTest
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ BOXED = 1
 ARROWS_1 = "arrows1"
 
 
-class TestAmiGraph:
+class TestAmiGraph(AmiAnyTest):
 
     def setup_class(self):
         """
@@ -191,8 +192,8 @@ class TestAmiGraph:
         assert len(ami_edges) == 23
         for ami_edge in ami_edges:
             for tol in range(1, 10, 3):
-                segments = ami_edge.create_line_segments(tolerance=tol)
-                print(f"tol {tol} edge {ami_edge.start_id, ami_edge.end_id} segments {len(segments)} -> {segments}")
+                segmented_polyline = ami_edge.create_segmented_polyline(tolerance=tol)
+                print(f"tol {tol} edge {ami_edge.start_id, ami_edge.end_id} segments {len(segmented_polyline.ami_lines)} -> {segmented_polyline}")
 
         """
         {8, 9, 26, 19},            # y-shaped arrow-less
@@ -1115,7 +1116,7 @@ class TestAmiGraph:
         if interactive:
             plt.show()
 
-class TestNew:
+class TestNew(AmiAnyTest):
     """
     simple? test class, hopefull scrapped soon
     """

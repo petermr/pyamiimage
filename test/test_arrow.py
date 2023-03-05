@@ -13,10 +13,12 @@ from pyamiimage.bbox import BBox
 from pyamiimage.svg import SVG_NS, SVGG, SVGSVG, SVGArrow, SVGRect, ns_xpath
 from resources import Resources
 
+from ami_test_lib import AmiAnyTest
+
 logger = logging.getLogger(__name__)
 
 
-class TestArrow:
+class TestArrow(AmiAnyTest):
     def setup_class(self):
         """
         resources are created once only in self.resources.create_ami_graph_objects()

@@ -411,6 +411,7 @@ class Quantizer:
         self.num_colors = num_colors
         self.method = method
         self.palette_dict = None
+        self.col_img_tuples = []
 
     def create_and_write_color_streams(self, pil_img, num_colors=8, out_dir=None, out_form="png", out_root=None,
                                        method=OCTREE, kmeans=8, dither=None):
@@ -507,8 +508,8 @@ class Quantizer:
             return
         colors = [k for k in self.palette_dict.keys()]
 
+        self.col_img_tuples = []
         for palette_index in range(len(colors)):
-            print(f"{palette_index}")
             hex_color = colors[palette_index]
             if out_stem == Quantizer.FileStem.COLOR6:
                 file_stem = str(hex_color)
@@ -519,9 +520,12 @@ class Quantizer:
             elif out_stem == Quantizer.FileStem.INDEX:
                 file_stem = "p" + str(palette_index)
 
-            out_path = Path(out_dir, str(file_stem) + "." + out_form)
-            img1 = np.where(img_array == palette_index, palette_index, 254)
-            plt.imsave(out_path, img1)
+            out_dir1 = Path(out_dir, str(file_stem))
+            out_dir1.mkdir(exist_ok=True, parents=True)
+            out_path = Path(out_dir1, "fill" + "." + out_form)
+            bool_img = np.where(img_array == palette_index, palette_index, 254)
+            self.col_img_tuples.append((hex_color, bool_img))
+            plt.imsave(out_path, bool_img)
 
     def create_monochrome_images_from_rgb(self, rgb_array, back_col=None):
         if back_col is None:

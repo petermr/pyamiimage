@@ -1,10 +1,10 @@
 import logging
 import re
 from collections import Counter
+import numpy as np
 # local
 from pyamiimage.ami_util import AmiUtil
 from pyamiimage.bbox import BBox
-from pyamiimage.tesseract_hocr import TesseractOCR
 from pyamiimage.ami_ocr import AmiOCR
 from pyamiimage.ami_image import ImageReaderOptions
 
@@ -446,25 +446,48 @@ class AmiLine:
     def get_max(self, xy_flag):
         return None if xy_flag is None else max(self.xy1[xy_flag], self.xy2[xy_flag])
 
-
-class AmiPolyline:
-    """polyline. can represent solid or dashed (NYI) lines. contains attachment points
+import math
+class AmiPoint:
+    """
+    not sure whether it's needed to manage the individual points
     """
 
-    def __init__(self, points_list=None, ami_edge=None, tolerance=1):
+    @classmethod
+    def are_equal(cls, point0, point1, tolerance=1):
+        """
+        uses math.dist
+        """
+        return math.dist(point0, point1) <= tolerance
+
+
+class AmiPolyline:
+    """
+    polyline
+    may contain a cyclic flag to represent polygon
+    """
+
+    def __init__(self, points_list=None, ami_edge=None, cyclic=False, tolerance=1):
         """
         polyline contains a list of connected points and also
         :param points_list:
-        :param ami_edge:
+        :param ami_edge: the edge (if any) it was created from
         :param tolerance:
         """
         self.ami_edge = ami_edge
         self.points_list = []  # 2D coords
         self.bbox = None
-        if points_list:
-            for point in points_list:
-                self.points_list.append([point[0], point[1]])
+        if points_list is not None:
+            # for point in points_list:
+            #     self.points_list.append([point[0], point[1]])
+            self.points_list = points_list.copy()
+        # if polygon is forces and start != end, add start to end
+        point0 = self.points_list[0]
+        point_last = self.points_list[-1]
+        if cyclic and not AmiPoint.are_equal(point0, point_last):
+            self.points_list.append(self.points[0].copy())
+        self.cyclic = cyclic
         self.tolerance = tolerance
+        self.ami_line_list = None
 
     @property
     def id(self):
@@ -476,6 +499,23 @@ class AmiPolyline:
             p1 = self.points_list[-1]
             idd += str(p1[0]) + "_" + str(p1[1])
         return idd
+
+    @property
+    def ami_lines(self):
+        if self.ami_line_list is None:
+            self.ami_line_list = []
+            for i, point in enumerate(self.points_list[:-1]):
+                self.ami_line_list.append(AmiLine([point, self.points_list[i + 1]], ami_edge=self.ami_edge))
+        return self.ami_line_list
+
+    def print_line_segments(self):
+        print("edge")
+        for ami_line in self.ami_lines:
+            print(f"line {ami_line}")
+
+    def plot(self):
+        plotter = AmiPlotter(nrows=2, ncols=1, sharex="all", sharey="all", figsize=(10, 10))
+        plotter.plot(self.points_list, title="Single Plot").show()
 
     def get_bounding_box(self):
         if not self.bbox and self.points_list:
@@ -495,10 +535,10 @@ class AmiPolyline:
     @property
     def vector(self):
         """vector between end points
-        :return: xy2 - xy1
+        :return: xy_end - xy_0
         """
         pl = self.points_list
-        return [pl[0][X] - pl[-1][X], pl[1][Y] - pl[1][Y]]
+        return [pl[0][X] - pl[-1][X], pl[1][Y] - pl[-1][Y]]
 
     @property
     def xy_mid(self):
@@ -559,7 +599,7 @@ class AmiPolyline:
         # raise ValueError(f"cannot calculate range {self.points_list}")
 
     def get_attachment_points(self):
-        if self.points_list and len(self.points_list) >= 2:
+        if not self.cyclic and self.points_list and len(self.points_list) >= 2:
             return self.points_list[1:-1]
         return None
 
@@ -912,3 +952,82 @@ class AmiEdgeTool:
                 node_ids.add(ami_edge.start_id)
                 node_ids.add(ami_edge.end_id)
             self.ami_nodes = self.ami_graph.create_ami_nodes_from_ids(node_ids)
+
+import matplotlib.pyplot as plt
+class AmiPlotter:
+
+    """
+    convenience method to wrap matplotlib
+    """
+    def __init__(self, nrows=1, ncols=1, sharex='all', sharey='all',
+                 figsize=(10, 10)):
+        """
+
+        """
+        self.nrows = nrows
+        self.ncols = ncols
+        self.sharex = sharex
+        self.sharey = sharey
+        self.figsize = figsize
+        self.figs = None
+        self.axes = None
+        self.axial_titles = None
+        self.cmaps = None
+        self.images = None
+        self.subplots()
+        if type(self.axes) is np.ndarray:
+            self.ax = self.axes.ravel()
+        else:
+            self.ax = [self.axes]
+
+    def subplots(self):
+        self.figs, self.axes = plt.subplots(
+            nrows = self.nrows,
+            ncols = self.ncols,
+            sharex = self.sharex,
+            sharey = self.sharey,
+            figsize = self.figsize
+        )
+
+    def show(self, show=False):
+        """
+        actually displays the image
+        """
+        if show:
+            plt.show()
+
+    def imshow(self, axis=0, image=None, title=None, cmap=plt.cm.gray):
+        """
+        Examples:
+        # single image - one-line(with several defaults)
+        AmiPlotter().imshow(image=image, title="single plot").show()
+
+        # several images (we assume titles and cmaps available
+        plotter = AmiPlotter(nrows=2, ncols=2, sharex="all", sharey="all", figsize=(10, 10))
+        for i, (image, title, cmap) in enumerate(zip(images, titles, cmaps)):
+            plotter.imshow(image=image, axis=i, title=title, cmap=cmap)
+        plotter.show()
+
+
+
+        :param axis: index 0 ... naxes (default 0 for single plot)
+        :return: self, to allow chaining .show() (only for one image)
+        """
+
+        if image is not None and axis < len(self.ax):
+            self.ax[axis].imshow(image, cmap=cmap)
+            if title is not None:
+                self.ax[axis].set_title(title)
+        return self
+
+    def plot(self, points, axis=0, title=None):
+        """
+        plot array of points
+        """
+        if points is not None and axis < len(self.ax):
+            self.ax[axis].plot(points[:, 0], points[:, 1])
+            if title is not None:
+                self.ax[axis].set_title(title)
+        return self
+
+

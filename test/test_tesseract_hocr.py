@@ -16,6 +16,8 @@ import glob
 from pyamiimage.tesseract_hocr import TesseractOCR
 from resources import Resources
 
+from ami_test_lib import AmiAnyTest
+
 logger = logging.getLogger(__name__)
 
 """
@@ -34,7 +36,7 @@ skip_long_tests = True
 interactive = False
 
 
-class TestTesseractHOCR:
+class TestTesseractHOCR(AmiAnyTest):
     interactive = False
 
     def setup_method(self, method):

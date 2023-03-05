@@ -20,8 +20,10 @@ from pyamiimage.svg import (
     SVGTitle,
 )
 
+from ami_test_lib import AmiAnyTest
 
-class TestSVG:
+
+class TestSVG(AmiAnyTest):
     def test_good_attribute(self):
         rect = SVGRect()
         rect.element.attrib["foo"] = "bar"

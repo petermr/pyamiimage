@@ -6,11 +6,12 @@ from pyamiimage.bbox import BBox
 from pyamiimage.ami_image import AmiImage, AmiImageReader
 
 from resources import Resources
+from ami_test_lib import AmiAnyTest
 
 Interactive = False
 heavy = True
 
-class TestTextBox:
+class TestTextBox(AmiAnyTest):
     def setup_method(self, method):
         self.textbox = TextBox('hello world', [[10, 50], [40, 50]])
 
@@ -27,7 +28,7 @@ class TestTextBox:
     def test_get_ranges(self):
         assert self.textbox.bbox.get_ranges() == [[10, 50], [40, 50]]
 
-class TestAmiOCR:
+class TestAmiOCR(AmiAnyTest):
     def setup_method(self, method):
         # test image
         self.biosynth3_path = Resources.BIOSYNTH3_RAW

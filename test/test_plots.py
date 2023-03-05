@@ -16,8 +16,10 @@ from pyamiimage.tesseract_hocr import TesseractOCR
 from resources import Resources
 from test_ami_skeleton import TestAmiSkeleton
 
+from ami_test_lib import AmiAnyTest
 
-class TestPlots:
+
+class TestPlots(AmiAnyTest):
 
     def setup_class(self):
         """
