@@ -981,6 +981,9 @@ class AmiPlotter:
             self.ax = [self.axes]
 
     def subplots(self):
+        """
+        run delegates plt.subplots
+        """
         self.figs, self.axes = plt.subplots(
             nrows = self.nrows,
             ncols = self.ncols,

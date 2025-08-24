@@ -17,7 +17,7 @@ import cv2
 import enum
 import imageio.v3 as iio
 
-from py4ami.util import Util
+from amilib.ami_util import AmiUtil
 
 TEMP_DIR = Path(__file__).parent.parent
 TEMP_DIR = Path(TEMP_DIR, "temp")
@@ -178,7 +178,7 @@ class AmiImage:
         black = np.sum(binary == 0)
         binary = binary/255
         logging.warning(f"binary {binary}")
-        mask = morphology.skeletonize(binary)
+        mask = morphology.medial_axis(binary)
         skeleton = np.zeros(image.shape)
         skeleton[mask] = 255
         return skeleton

@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=69.0.0", "wheel>=0.40.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyamiimage"
+version = "0.0.13"
+description = "Image analysis for words and graphics"
+readme = "README.md"
+license = {text = "Apache2"}
+authors = [
+    {name = "Peter Murray-Rust", email = "petermurrayrust@googlemail.com"},
+    {name = "Anuv Chakraborty"}
+]
+keywords = ["text", "image", "mining", "ocr", "diagram"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.8"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pyamiimage*"]
+
+[tool.setuptools.package-data]
+pyamiimage = ["*.txt", "*.md", "*.rst", "*.ini", "*.cfg"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pyamiimage.__version__"}
+readme = {file = "README.md"}
+dependencies = {file = "requirements.txt"}
+

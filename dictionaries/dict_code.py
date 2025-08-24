@@ -1,4 +1,4 @@
-from py4ami.wikimedia import WikidataLookup
+from amilib.wikimedia import WikidataLookup
 from collections import Counter
 from pathlib import Path
 import pandas as pd

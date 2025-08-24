@@ -11,13 +11,13 @@ with open('README.md') as readme_file:
     readme = readme_file.read()
 
 long_desc = """
-Pyamiimage extracts words and line primitives from imaages using pytessearct and sknw.
+Pyamiimage extracts words and line primitives from images using pytesseract and sknw.
 """
 
 setup(
     name='pyamiimage',
     url='https://github.com/petermr/pyamiimage',
-    version='0.0.12',
+    version='0.0.13',
     description='Image analysis for words and graphics.',
     long_description_content_type='text/markdown',
     long_description=readme,
@@ -35,11 +35,13 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
     ],
+    python_requires='>=3.8',
     entry_points={
         'console_scripts': [
             'pyamiimage=pyamiimage.commandline:main',

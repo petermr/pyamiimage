@@ -13,7 +13,7 @@ import imageio as iio
 from pyamiimage.ami_image import AmiImage, AmiImageReader
 from resources import Resources
 from ami_test_lib import AmiAnyTest
-from ami_plot import AmiPlotter
+from pyamiimage.ami_plot import AmiPlotter
 
 RESOURCE_DIR = Path(Path(__file__).parent, "resources")
 COMPARE_DIR = Path(Path(__file__).parent, "comparison_images")
