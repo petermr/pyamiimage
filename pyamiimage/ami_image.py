@@ -163,13 +163,19 @@ class AmiImage:
         return skeleton_image
 
     @classmethod
-    def create_white_skeleton_from_image(cls, image):
+    def create_white_skeleton_from_image(cls, image, method='medial_axis'):
         """
         create skeleton_image based on white components of image
-        :param image:
-        :return: skeleton image
+        :param image: input image (must be 2D grayscale)
+        :param method: 'medial_axis', 'skeletonize', or 'thin'
+        :return: skeleton image (2D grayscale)
         """
         assert image is not None
+        
+        # Validate that input is 2D
+        if len(image.shape) != 2:
+            raise ValueError(f"Skeletonization requires 2D grayscale image, got shape {image.shape}. "
+                           f"Use AmiImage.create_grayscale_from_image() to convert RGB images first.")
 
         image_white = np.sum(image == 255)
         image_black = np.sum(image == 0)
@@ -178,9 +184,21 @@ class AmiImage:
         black = np.sum(binary == 0)
         binary = binary/255
         logging.warning(f"binary {binary}")
-        mask = morphology.medial_axis(binary)
-        skeleton = np.zeros(image.shape)
+        
+        if method == 'medial_axis':
+            mask = morphology.medial_axis(binary)
+        elif method == 'skeletonize':
+            mask = morphology.skeletonize(binary)
+        elif method == 'thin':
+            mask = morphology.thin(binary)
+        else:
+            raise ValueError(f"Unknown skeletonization method: {method}. Use 'medial_axis', 'skeletonize', or 'thin'")
+            
+        # Create 2D skeleton
+        skeleton = np.zeros((image.shape[0], image.shape[1]))
         skeleton[mask] = 255
+        # Convert to uint8 for proper image output
+        skeleton = skeleton.astype(np.uint8)
         return skeleton
 
     @classmethod

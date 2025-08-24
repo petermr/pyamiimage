@@ -207,3 +207,55 @@ We need to update the **expected values** in tests to match the improved skeleto
 - **Maintained**: Test rigor while accommodating improved algorithm results
 
 The changes represent a systematic approach to fixing both technical issues (imports, data types) and adapting to improvements in the underlying algorithms (better skeletonization, improved OCR).
+
+## Skeletonization Improvements and Experiments - August 24, 2025
+
+### **Core Algorithm Enhancements**
+- **Added method parameter** to `create_white_skeleton_from_image()` with choices: `medial_axis`, `skeletonize`, `thin`
+- **Changed default method** from `skeletonize` to `medial_axis` for better results
+- **Added 3D image validation** to ensure only 2D grayscale images are processed
+- **Fixed output format** to always produce 2D uint8 skeletons
+
+### **Command Line Interface Extension**
+- **Extended `pyamiimage/commandline.py`** with skeletonization functionality
+- **Added `--skeletonize` flag** and `--skeletonize-method` argument
+- **Integrated with existing CLI structure** following established patterns
+
+### **Test Image Format Fixes**
+- **Converted `black-and-white.png`** from 3D RGB to 2D grayscale format
+- **Moved test outputs** to `temp/` directory structure following STYLE rules
+- **Organized comparison images** in `temp/test_comparison_images/`
+
+### **New Test Suite Creation**
+- **`test_skeletonize_black_white.py`**: Basic skeletonization testing with all three methods
+- **`test_skeletonize_preprocessing.py`**: Morphological preprocessing experiments (dilate/erode, sharpen, etc.)
+- **`test_skeletonize_thresholds.py`**: Threshold adjustment experiments with multiple algorithms
+
+### **Preprocessing Experiments Results**
+- **Morphological operations** (dilate/erode, erode/dilate) produced worse results
+- **Sharpening approaches** were too aggressive and lost too many pixels
+- **None of the morphological preprocessing methods** improved skeleton quality
+
+### **Threshold Experiments Results**
+- **Triangle thresholding (244.0)** produced best results: 431,363 pixels (10.78% density)
+- **Yen thresholding (210.0)** produced good results: 331,473 pixels (8.29% density)
+- **Manual adjustments around Otsu** showed gradual improvements with higher thresholds
+- **Threshold approach** significantly better than morphological preprocessing
+
+### **STYLE Rule Compliance**
+- **Removed `sys.path` manipulation** from test scripts
+- **Used proper package installation** with `pip install -e .`
+- **Fixed import issues** by following STYLE rules
+- **Organized all test outputs** to `temp/` directory structure
+
+### **Output Organization**
+- **`temp/skeletonize_black_white/`**: Basic skeletonization results
+- **`temp/skeletonize_preprocessing/`**: Morphological preprocessing results
+- **`temp/skeletonize_thresholds/`**: Threshold adjustment results with binary and skeleton images
+- **`temp/test_comparison_images/`**: Moved test comparison images
+
+### **Key Findings**
+- **`medial_axis` method** produces most detailed skeletons
+- **Triangle thresholding** significantly improves skeleton quality over Otsu
+- **Higher thresholds** generally produce better connectivity and fewer broken lines
+- **Threshold adjustment** more effective than morphological preprocessing for this use case
