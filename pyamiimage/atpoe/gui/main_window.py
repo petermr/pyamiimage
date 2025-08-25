@@ -265,6 +265,7 @@ class SkeletonizationDashboard:
             
     def _on_parameters_changed(self):
         """Callback when parameters change."""
+        print(f"Parameters changed callback triggered")  # Debug
         self._process_image()
         
     def _save_skeleton(self):

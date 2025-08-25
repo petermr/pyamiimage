@@ -265,6 +265,7 @@ class ParameterPanel(ttk.Frame):
         if self.live_preview_var.get():
             # Live preview enabled - apply immediately
             if self.callback:
+                print(f"Live preview triggered with parameters: {self.parameters}")  # Debug
                 self.callback()
         else:
             # Live preview disabled - enable manual apply
