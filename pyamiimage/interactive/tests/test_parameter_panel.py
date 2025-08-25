@@ -7,7 +7,7 @@ import tkinter as tk
 from unittest.mock import Mock
 
 # Import the component to test
-from pyamiimage.atpoe.gui.parameter_panel import ParameterPanel
+from pyamiimage.interactive.gui.parameter_panel import ParameterPanel
 
 
 class TestParameterPanel(unittest.TestCase):

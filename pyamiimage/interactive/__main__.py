@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Main entry point for running ATPOE as a module.
+Main entry point for running Interactive as a module.
 """
 
-from pyamiimage.atpoe.gui.main_window import SkeletonizationDashboard
+from pyamiimage.interactive.gui.main_window import SkeletonizationDashboard
 
 
 def main():

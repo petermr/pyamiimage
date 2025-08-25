@@ -15,9 +15,9 @@ from pyamiimage.ami_image import AmiImage
 from pyamiimage.ami_skeleton import AmiSkeleton
 from pyamiimage.ami_graph_all import AmiGraph
 
-from pyamiimage.atpoe.gui.image_viewer import ImageViewer
-from pyamiimage.atpoe.gui.parameter_panel import ParameterPanel
-from pyamiimage.atpoe.gui.graph_viewer import GraphViewer
+from pyamiimage.interactive.gui.image_viewer import ImageViewer
+from pyamiimage.interactive.gui.parameter_panel import ParameterPanel
+from pyamiimage.interactive.gui.graph_viewer import GraphViewer
 
 
 class SkeletonizationDashboard:

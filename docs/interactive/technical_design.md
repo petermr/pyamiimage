@@ -1,8 +1,8 @@
-# ATPOE Dashboard Technical Design
+# Interactive Dashboard Technical Design
 
 ## Architecture Overview
 
-ATPOE (Advanced Topological Processing and Optimization Engine) is built as a modular desktop application that reuses existing pyamiimage skeletonization code while providing an interactive Tkinter interface for parameter adjustment and visualization.
+Interactive is built as a modular desktop application that reuses existing pyamiimage skeletonization code while providing an interactive Tkinter interface for parameter adjustment and visualization.
 
 ## System Architecture
 
@@ -10,7 +10,7 @@ ATPOE (Advanced Topological Processing and Optimization Engine) is built as a mo
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    ATPOE Dashboard                          │
+│                    Interactive Dashboard                    │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
 │  │   Main      │  │  Parameter  │  │    Graph Viewer     │ │
