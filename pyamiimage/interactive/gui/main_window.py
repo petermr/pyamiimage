@@ -88,9 +88,9 @@ class SkeletonizationDashboard:
         main_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
         # Configure grid weights for better horizontal expansion
-        main_frame.columnconfigure(0, weight=3)  # Original image gets more space
-        main_frame.columnconfigure(1, weight=3)  # Skeleton image gets more space
-        main_frame.columnconfigure(2, weight=1)  # Right panel gets less space
+        main_frame.columnconfigure(0, weight=5)  # Original image gets more space
+        main_frame.columnconfigure(1, weight=5)  # Skeleton image gets more space
+        main_frame.columnconfigure(2, weight=2)  # Right panel gets moderate space
         main_frame.rowconfigure(0, weight=1)
         
         # Left panel - Original image viewer

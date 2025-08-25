@@ -41,21 +41,34 @@ class ImageViewer(ttk.Frame):
         ttk.Button(zoom_frame, text="-", width=3, command=self._zoom_out).pack(side=tk.LEFT, padx=2)
         ttk.Button(zoom_frame, text="Reset", command=self._reset_view).pack(side=tk.LEFT, padx=2)
         
-        # Canvas for image display
-        self.canvas = tk.Canvas(self, bg='white', relief=tk.SUNKEN, bd=1)
-        self.canvas.pack(fill=tk.BOTH, expand=True)
+        # Canvas for image display with scrollbars
+        canvas_frame = ttk.Frame(self)
+        canvas_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Scrollbars
-        self.h_scrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.canvas.xview)
-        self.h_scrollbar.pack(fill=tk.X)
+        # Create canvas
+        self.canvas = tk.Canvas(canvas_frame, bg='white', relief=tk.SUNKEN, bd=1)
         
-        self.v_scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.canvas.yview)
-        self.v_scrollbar.pack(fill=tk.Y, side=tk.RIGHT)
+        # Create scrollbars
+        self.v_scrollbar = ttk.Scrollbar(canvas_frame, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.h_scrollbar = ttk.Scrollbar(canvas_frame, orient=tk.HORIZONTAL, command=self.canvas.xview)
         
+        # Configure canvas scrolling
         self.canvas.configure(
             xscrollcommand=self.h_scrollbar.set,
             yscrollcommand=self.v_scrollbar.set
         )
+        
+        # Grid layout for canvas and scrollbars
+        self.canvas.grid(row=0, column=0, sticky="nsew")
+        self.v_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.h_scrollbar.grid(row=1, column=0, sticky="ew")
+        
+        # Configure grid weights
+        canvas_frame.columnconfigure(0, weight=1)
+        canvas_frame.rowconfigure(0, weight=1)
+        
+        # Set minimum size to ensure scrollbars are visible
+        canvas_frame.configure(width=400, height=300)
         
         # Status bar
         self.status_label = ttk.Label(self, text="No image loaded", relief=tk.SUNKEN)
