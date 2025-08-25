@@ -76,6 +76,9 @@ class ImageViewer(ttk.Frame):
         self.canvas.bind('<Control-minus>', lambda e: self._zoom_out())
         self.canvas.bind('<Control-0>', lambda e: self._reset_view())
         
+        # Bind resize event to update scroll region
+        self.canvas.bind('<Configure>', self._on_canvas_resize)
+        
     def set_image(self, image: np.ndarray):
         """
         Set the image to display.
@@ -127,8 +130,18 @@ class ImageViewer(ttk.Frame):
             # Keep reference to prevent garbage collection issues
             self._photo_ref = self.photo
             
-            # Update scroll region
-            self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+            # Update scroll region to include the entire image area
+            # Calculate the total scrollable area
+            total_width = max(width, self.canvas.winfo_width())
+            total_height = max(height, self.canvas.winfo_height())
+            
+            # Set scroll region to cover the entire image area plus pan offset
+            scroll_left = min(0, self.pan_x)
+            scroll_top = min(0, self.pan_y)
+            scroll_right = max(total_width, self.pan_x + width)
+            scroll_bottom = max(total_height, self.pan_y + height)
+            
+            self.canvas.configure(scrollregion=(scroll_left, scroll_top, scroll_right, scroll_bottom))
             
             # Update status
             self.status_label.config(
@@ -168,7 +181,12 @@ class ImageViewer(ttk.Frame):
         
     def _on_mouse_drag(self, event):
         """Handle mouse drag for panning."""
+        # Use canvas scan_dragto for smooth panning with scrollbars
         self.canvas.scan_dragto(event.x, event.y, gain=1)
+        
+        # Update pan coordinates for viewport overlay
+        self.pan_x = self.canvas.canvasx(0)
+        self.pan_y = self.canvas.canvasy(0)
         
     def _on_mouse_up(self, event):
         """Handle mouse button release."""
@@ -298,6 +316,12 @@ class ImageViewer(ttk.Frame):
         self.pan_y = (canvas_height - img_height * self.zoom_factor) / 2
         
         self._update_display()
+        
+    def _on_canvas_resize(self, event):
+        """Handle canvas resize events to update scroll region."""
+        if self.image is not None:
+            # Update scroll region when canvas is resized
+            self._update_display()
 
 
 
