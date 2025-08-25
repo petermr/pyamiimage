@@ -1,0 +1,28 @@
+# ATPOE Dashboard Dependencies
+# Additional dependencies required for the skeletonization dashboard
+
+# Image processing
+opencv-python>=4.8.0
+scikit-image>=0.21.0
+
+# Skeleton to graph conversion
+skan>=0.11.0
+
+# Graph analysis and manipulation
+networkx>=3.0
+
+# Image manipulation and saving
+pillow>=10.0.0
+
+# Numerical operations
+numpy>=1.24.0
+
+# Advanced visualization
+matplotlib>=3.7.0
+
+# Optional: Community detection for graph analysis
+# python-louvain>=0.15
+
+
+
+
