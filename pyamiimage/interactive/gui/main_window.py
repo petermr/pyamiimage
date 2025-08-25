@@ -255,6 +255,12 @@ class SkeletonizationDashboard:
                 # Color the graph components
                 colored_graph = self._color_graph_components(self.current_graph)
                 
+                # Create colored skeleton image
+                colored_skeleton = self._create_colored_skeleton(skeleton, colored_graph)
+                
+                # Update skeleton viewer with colored version
+                self.skeleton_viewer.set_image(colored_skeleton)
+                
                 # Update graph viewer with colored graph
                 self.graph_viewer.set_graph(colored_graph)
                 
@@ -338,6 +344,93 @@ class SkeletonizationDashboard:
         print(f"Component sizes: {[len(c) for c in components]}")
         
         return colored_graph
+        
+    def _create_colored_skeleton(self, skeleton: np.ndarray, colored_graph):
+        """Create a colored version of the skeleton where each component has a different color."""
+        import networkx as nx
+        import cv2
+        
+        print(f"Creating colored skeleton from graph with {len(colored_graph.nodes())} nodes")
+        
+        # Create a copy of the skeleton for coloring
+        colored_skeleton = np.zeros((skeleton.shape[0], skeleton.shape[1], 3), dtype=np.uint8)
+        
+        # Find all connected components
+        components = list(nx.connected_components(colored_graph))
+        
+        if len(components) == 0:
+            print("Warning: No components found for coloring")
+            return skeleton
+            
+        # Create an extended color palette with more colors
+        color_palette = [
+            [255, 107, 107],  # Red
+            [78, 205, 196],   # Teal
+            [69, 183, 209],   # Blue
+            [150, 206, 180],  # Green
+            [255, 234, 167],  # Yellow
+            [221, 160, 221],  # Plum
+            [152, 216, 200],  # Mint
+            [247, 220, 111],  # Gold
+            [187, 143, 206],  # Purple
+            [133, 193, 233],  # Light Blue
+            [255, 140, 0],    # Dark Orange
+            [0, 255, 127],    # Spring Green
+            [138, 43, 226],   # Blue Violet
+            [255, 20, 147],   # Deep Pink
+            [0, 191, 255],    # Deep Sky Blue
+            [255, 215, 0],    # Gold
+            [50, 205, 50],    # Lime Green
+            [186, 85, 211],   # Medium Violet Red
+            [255, 69, 0],     # Red Orange
+            [0, 250, 154]     # Medium Spring Green
+        ]
+        
+        # Color each component
+        for i, component in enumerate(components):
+            color = color_palette[i % len(color_palette)]
+            print(f"Coloring skeleton component {i} with {len(component)} nodes using color {color}")
+            
+            # Get the skeleton pixels for this component
+            component_pixels = set()
+            
+            # For each node in the component, find its skeleton pixels
+            for node in component:
+                # Get node position from graph
+                if hasattr(colored_graph.nodes[node], 'pos'):
+                    pos = colored_graph.nodes[node]['pos']
+                else:
+                    # If no position attribute, we need to find the skeleton pixels differently
+                    # For now, we'll use a simple approach based on node ID
+                    continue
+                
+                # Add skeleton pixels for this node
+                if isinstance(pos, (tuple, list)) and len(pos) == 2:
+                    x, y = int(pos[0]), int(pos[1])
+                    if 0 <= x < skeleton.shape[1] and 0 <= y < skeleton.shape[0]:
+                        if skeleton[y, x] > 0:  # If it's a skeleton pixel
+                            component_pixels.add((y, x))
+            
+            # Color the skeleton pixels for this component
+            for y, x in component_pixels:
+                colored_skeleton[y, x] = color
+        
+        # If we couldn't color by component positions, fall back to a simpler approach
+        if np.sum(colored_skeleton) == 0:
+            print("Falling back to simple component coloring")
+            # Create a simple colored version by assigning colors to skeleton regions
+            skeleton_mask = skeleton > 0
+            colored_skeleton = np.zeros((skeleton.shape[0], skeleton.shape[1], 3), dtype=np.uint8)
+            
+            # Use connected components analysis on the skeleton image
+            num_labels, labels = cv2.connectedComponents(skeleton_mask.astype(np.uint8))
+            
+            for label in range(1, num_labels):  # Skip background (label 0)
+                color = color_palette[(label - 1) % len(color_palette)]
+                colored_skeleton[labels == label] = color
+        
+        print(f"Colored skeleton created with shape {colored_skeleton.shape}")
+        return colored_skeleton
             
     def _update_viewport_linking(self):
         """Update viewport linking between original and skeleton views."""
