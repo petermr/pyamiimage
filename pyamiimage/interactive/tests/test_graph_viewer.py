@@ -8,7 +8,7 @@ import networkx as nx
 from unittest.mock import Mock, patch
 
 # Import the component to test
-from pyamiimage.atpoe.gui.graph_viewer import GraphViewer
+from pyamiimage.interactive.gui.graph_viewer import GraphViewer
 
 
 class TestGraphViewer(unittest.TestCase):

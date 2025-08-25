@@ -8,7 +8,7 @@ import tkinter as tk
 from unittest.mock import Mock, patch
 
 # Import the component to test
-from pyamiimage.atpoe.gui.image_viewer import ImageViewer
+from pyamiimage.interactive.gui.image_viewer import ImageViewer
 
 
 class TestImageViewer(unittest.TestCase):

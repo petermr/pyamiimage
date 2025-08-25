@@ -1,5 +1,5 @@
 """
-ATPOE - Advanced Topological Processing and Optimization Engine
+Interactive - Interactive Skeletonization Dashboard
 
 A local desktop application for interactive skeletonization and graph analysis.
 """

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test runner for ATPOE dashboard tests.
+Test runner for Interactive dashboard tests.
 
 Run all tests or specific test modules.
 """
@@ -12,7 +12,7 @@ from pathlib import Path
 # Package should be installed with pip install -e .
 
 def run_all_tests():
-    """Run all ATPOE dashboard tests."""
+    """Run all Interactive dashboard tests."""
     # Discover and run all tests
     loader = unittest.TestLoader()
     start_dir = Path(__file__).parent / 'tests'
@@ -27,7 +27,7 @@ def run_specific_test(test_module):
     """Run a specific test module."""
     try:
         # Import the test module
-        module_name = f"pyamiimage.atpoe.tests.{test_module}"
+        module_name = f"pyamiimage.interactive.tests.{test_module}"
         test_module = __import__(module_name, fromlist=[''])
         
         # Run the tests
@@ -52,7 +52,7 @@ def main():
         success = run_specific_test(test_module)
     else:
         # Run all tests
-        print("Running all ATPOE dashboard tests...")
+        print("Running all Interactive dashboard tests...")
         success = run_all_tests()
     
     if success:
