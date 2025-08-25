@@ -325,15 +325,30 @@ class GraphViewer(ttk.Frame):
             pos = nx.spring_layout(self.current_graph, k=1, iterations=50)
             
             # Draw edges with colors
-            for edge in self.current_graph.edges():
-                edge_color = self.current_graph.edges[edge].get('color', '#888888')
-                nx.draw_networkx_edges(
-                    self.current_graph, pos, 
-                    edgelist=[edge], 
-                    edge_color=edge_color,
-                    width=2,
-                    alpha=0.7
-                )
+            if self.current_graph.is_multigraph():
+                # Handle MultiGraph edges
+                for edge in self.current_graph.edges():
+                    if len(edge) == 3:  # (u, v, key)
+                        u, v, key = edge
+                        edge_color = self.current_graph.edges[u, v, key].get('color', '#888888')
+                        nx.draw_networkx_edges(
+                            self.current_graph, pos, 
+                            edgelist=[(u, v)], 
+                            edge_color=edge_color,
+                            width=2,
+                            alpha=0.7
+                        )
+            else:
+                # Handle simple Graph edges
+                for edge in self.current_graph.edges():
+                    edge_color = self.current_graph.edges[edge].get('color', '#888888')
+                    nx.draw_networkx_edges(
+                        self.current_graph, pos, 
+                        edgelist=[edge], 
+                        edge_color=edge_color,
+                        width=2,
+                        alpha=0.7
+                    )
             
             # Draw nodes with colors
             for node in self.current_graph.nodes():

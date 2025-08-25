@@ -240,10 +240,18 @@ class SkeletonizationDashboard:
     def _extract_graph(self, skeleton: np.ndarray):
         """Extract graph from skeleton using existing AmiGraph functionality."""
         try:
+            print(f"Extracting graph from skeleton of shape: {skeleton.shape}")
+            print(f"Skeleton dtype: {skeleton.dtype}")
+            print(f"Skeleton unique values: {np.unique(skeleton)}")
+            
             # Use existing AmiGraph functionality
             self.current_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton)
             
+            print(f"Graph extraction result: {self.current_graph}")
             if self.current_graph is not None:
+                print(f"Graph nodes: {len(self.current_graph.nodes())}")
+                print(f"Graph edges: {len(self.current_graph.edges())}")
+                
                 # Color the graph components
                 colored_graph = self._color_graph_components(self.current_graph)
                 
@@ -260,18 +268,27 @@ class SkeletonizationDashboard:
                 
         except Exception as e:
             print(f"Graph extraction error: {e}")
+            import traceback
+            traceback.print_exc()
             self.status_bar.config(text="Graph extraction failed")
             
     def _color_graph_components(self, graph):
         """Color each connected component of the graph with different colors."""
         import networkx as nx
         
+        print(f"Coloring graph with {len(graph.nodes())} nodes and {len(graph.edges())} edges")
+        
         # Create a copy of the graph to avoid modifying the original
         colored_graph = graph.copy()
         
         # Find all connected components
         components = list(nx.connected_components(colored_graph))
+        print(f"Found {len(components)} connected components")
         
+        if len(components) == 0:
+            print("Warning: No components found in graph")
+            return colored_graph
+            
         # Create a color palette
         color_palette = [
             '#FF6B6B',  # Red
@@ -289,6 +306,7 @@ class SkeletonizationDashboard:
         # Color each component
         for i, component in enumerate(components):
             color = color_palette[i % len(color_palette)]
+            print(f"Coloring component {i} with {len(component)} nodes using color {color}")
             
             # Set node attributes for coloring
             for node in component:
@@ -300,8 +318,16 @@ class SkeletonizationDashboard:
             for node in component:
                 for neighbor in colored_graph.neighbors(node):
                     if neighbor in component:  # Only color edges within the same component
-                        colored_graph.edges[node, neighbor]['color'] = color
-                        colored_graph.edges[node, neighbor]['component'] = i
+                        # Handle MultiGraph edges properly
+                        if colored_graph.is_multigraph():
+                            # For MultiGraph, we need to handle multiple edges
+                            for key in colored_graph[node][neighbor]:
+                                colored_graph.edges[node, neighbor, key]['color'] = color
+                                colored_graph.edges[node, neighbor, key]['component'] = i
+                        else:
+                            # For simple Graph
+                            colored_graph.edges[node, neighbor]['color'] = color
+                            colored_graph.edges[node, neighbor]['component'] = i
         
         # Find the largest component
         largest_component = max(components, key=len)
