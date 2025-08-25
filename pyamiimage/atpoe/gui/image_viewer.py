@@ -192,7 +192,7 @@ class ImageViewer(ttk.Frame):
         self.canvas.scan_dragto(event.x, event.y, gain=1)
         # Update pan coordinates for viewport calculations
         self.pan_x = self.canvas.canvasx(0)
-        self.pan_y = self.canvasy(0)
+        self.pan_y = self.canvas.canvasy(0)
         
     def _on_mouse_up(self, event):
         """Handle mouse button release."""
