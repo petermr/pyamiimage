@@ -104,7 +104,7 @@ class ParameterPanel(ttk.Frame):
         blur_frame.pack(fill=tk.X, pady=2)
         
         ttk.Label(blur_frame, text="Gaussian Blur:").pack(side=tk.LEFT)
-        self.blur_var = tk.IntVar(value=5)
+        self.blur_var = tk.IntVar(value=1)
         blur_scale = ttk.Scale(
             blur_frame, 
             from_=1, 
@@ -120,7 +120,7 @@ class ParameterPanel(ttk.Frame):
         median_frame.pack(fill=tk.X, pady=2)
         
         ttk.Label(median_frame, text="Median Filter:").pack(side=tk.LEFT)
-        self.median_var = tk.IntVar(value=5)
+        self.median_var = tk.IntVar(value=1)
         median_scale = ttk.Scale(
             median_frame, 
             from_=1, 
@@ -189,7 +189,7 @@ class ParameterPanel(ttk.Frame):
         branch_frame.pack(fill=tk.X, pady=2)
         
         ttk.Label(branch_frame, text="Branch Threshold:").pack(side=tk.LEFT)
-        self.branch_thresh_var = tk.IntVar(value=10)
+        self.branch_thresh_var = tk.IntVar(value=1)
         branch_scale = ttk.Scale(
             branch_frame, 
             from_=1, 
@@ -205,7 +205,7 @@ class ParameterPanel(ttk.Frame):
         min_path_frame.pack(fill=tk.X, pady=2)
         
         ttk.Label(min_path_frame, text="Min Path Length:").pack(side=tk.LEFT)
-        self.min_path_var = tk.IntVar(value=5)
+        self.min_path_var = tk.IntVar(value=1)
         min_path_scale = ttk.Scale(
             min_path_frame, 
             from_=1, 
@@ -221,7 +221,7 @@ class ParameterPanel(ttk.Frame):
         node_filter_frame.pack(fill=tk.X, pady=2)
         
         ttk.Label(node_filter_frame, text="Min Node Size:").pack(side=tk.LEFT)
-        self.min_node_var = tk.IntVar(value=3)
+        self.min_node_var = tk.IntVar(value=1)
         min_node_scale = ttk.Scale(
             node_filter_frame, 
             from_=1, 
@@ -236,14 +236,14 @@ class ParameterPanel(ttk.Frame):
         """Setup default parameter values."""
         self.parameters = {
             'skeleton_method': 'medial_axis',
-            'gaussian_blur': 5,
-            'median_filter': 5,
+            'gaussian_blur': 1,  # No blur by default
+            'median_filter': 1,   # No median filter by default
             'threshold_method': 'otsu',
             'manual_threshold': 128,
             'max_iterations': 100,
-            'branch_threshold': 10,
-            'min_path_length': 5,
-            'min_node_size': 3
+            'branch_threshold': 1,  # More permissive branch detection
+            'min_path_length': 1,   # Keep all paths
+            'min_node_size': 1      # Keep all nodes
         }
         
     def _on_parameter_change(self):
