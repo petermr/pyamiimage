@@ -87,9 +87,15 @@ class SkeletonizationDashboard:
         main_frame = ttk.Frame(self.root)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
+        # Configure grid weights for better horizontal expansion
+        main_frame.columnconfigure(0, weight=3)  # Original image gets more space
+        main_frame.columnconfigure(1, weight=3)  # Skeleton image gets more space
+        main_frame.columnconfigure(2, weight=1)  # Right panel gets less space
+        main_frame.rowconfigure(0, weight=1)
+        
         # Left panel - Original image viewer
         left_frame = ttk.Frame(main_frame)
-        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
         
         original_label = ttk.Label(left_frame, text="Original Image")
         original_label.pack(pady=(0, 5))
@@ -99,7 +105,7 @@ class SkeletonizationDashboard:
         
         # Center panel - Skeleton image viewer
         center_frame = ttk.Frame(main_frame)
-        center_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(10, 0))
+        center_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 5))
         
         skeleton_label = ttk.Label(center_frame, text="Skeleton Image")
         skeleton_label.pack(pady=(0, 5))
@@ -109,7 +115,7 @@ class SkeletonizationDashboard:
         
         # Right panel - Parameters and graph
         right_frame = ttk.Frame(main_frame)
-        right_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(10, 0))
+        right_frame.grid(row=0, column=2, sticky="nsew", padx=(5, 0))
         
         # Parameter panel
         param_label = ttk.Label(right_frame, text="Parameters")
