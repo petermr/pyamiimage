@@ -88,9 +88,9 @@ class SkeletonizationDashboard:
         
     def _setup_main_layout(self):
         """Setup the main layout with image viewers and parameter panel."""
-        # Main container
+        # Main container - use grid for proper weight distribution
         main_frame = ttk.Frame(self.root)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        main_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         
         # Configure grid weights for proper horizontal expansion
         main_frame.columnconfigure(0, weight=3)  # Original image
@@ -102,44 +102,54 @@ class SkeletonizationDashboard:
         left_frame = ttk.Frame(main_frame)
         left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
         
+        # Configure left frame grid weights
+        left_frame.columnconfigure(0, weight=1)
+        left_frame.rowconfigure(1, weight=1)  # Row 1 is the ImageViewer
+        
         original_label = ttk.Label(left_frame, text="Original Image")
-        original_label.pack(pady=(0, 5))
+        original_label.grid(row=0, column=0, pady=(0, 5), sticky="w")
         
         self.original_viewer = ImageViewer(left_frame, title="Original")
-        self.original_viewer.pack(fill=tk.BOTH, expand=True)
+        self.original_viewer.grid(row=1, column=0, sticky="nsew")
         
         # Center panel - Skeleton image viewer
         center_frame = ttk.Frame(main_frame)
         center_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 5))
         
+        # Configure center frame grid weights
+        center_frame.columnconfigure(0, weight=1)
+        center_frame.rowconfigure(1, weight=1)  # Row 1 is the ImageViewer
+        
         skeleton_label = ttk.Label(center_frame, text="Skeleton Image")
-        skeleton_label.pack(pady=(0, 5))
+        skeleton_label.grid(row=0, column=0, pady=(0, 5), sticky="w")
         
         self.skeleton_viewer = ImageViewer(center_frame, title="Skeleton")
-        self.skeleton_viewer.pack(fill=tk.BOTH, expand=True)
+        self.skeleton_viewer.grid(row=1, column=0, sticky="nsew")
         
         # Right panel - Parameters and graph
         right_frame = ttk.Frame(main_frame)
         right_frame.grid(row=0, column=2, sticky="nsew", padx=(5, 0))
         
-        # Parameter panel
+        # Configure right frame grid weights
+        right_frame.columnconfigure(0, weight=1)
+        right_frame.rowconfigure(2, weight=1)  # Row 2 is the GraphViewer
+        
         param_label = ttk.Label(right_frame, text="Parameters")
-        param_label.pack(pady=(0, 5))
+        param_label.grid(row=0, column=0, pady=(0, 5), sticky="w")
         
         self.parameter_panel = ParameterPanel(right_frame, callback=self._on_parameters_changed)
-        self.parameter_panel.pack(fill=tk.X, pady=(0, 10))
+        self.parameter_panel.grid(row=1, column=0, sticky="ew", pady=(0, 10))
         
-        # Graph viewer
         graph_label = ttk.Label(right_frame, text="Graph Analysis")
-        graph_label.pack(pady=(0, 5))
+        graph_label.grid(row=2, column=0, pady=(0, 5), sticky="w")
         
         self.graph_viewer = GraphViewer(right_frame)
-        self.graph_viewer.pack(fill=tk.BOTH, expand=True)
+        self.graph_viewer.grid(row=3, column=0, sticky="nsew")
         
     def _setup_status_bar(self):
         """Setup the status bar."""
         self.status_bar = ttk.Label(self.root, text="Ready", relief=tk.SUNKEN, anchor=tk.W)
-        self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+        self.status_bar.grid(row=1, column=0, sticky="ew", pady=(5, 0))
         
     def _bind_events(self):
         """Bind keyboard and mouse events."""
