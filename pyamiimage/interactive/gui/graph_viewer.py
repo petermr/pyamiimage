@@ -72,6 +72,35 @@ class GraphViewer(ttk.Frame):
         self.junction_nodes_label = ttk.Label(node_analysis_frame, text="Junction Nodes: 0")
         self.junction_nodes_label.pack(anchor=tk.W, pady=2)
         
+        # Graph visualization frame
+        viz_frame = ttk.LabelFrame(self, text="Graph Visualization", padding=10)
+        viz_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        
+        # Add matplotlib canvas for graph display
+        try:
+            import matplotlib.pyplot as plt
+            from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+            from matplotlib.figure import Figure
+            
+            self.figure = Figure(figsize=(6, 4), dpi=100)
+            self.ax = self.figure.add_subplot(111)
+            self.canvas = FigureCanvasTkAgg(self.figure, viz_frame)
+            self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            
+            # Initial empty plot
+            self.ax.text(0.5, 0.5, 'Load an image to see graph visualization', 
+                        ha='center', va='center', transform=self.ax.transAxes)
+            self.ax.set_xlim(0, 1)
+            self.ax.set_ylim(0, 1)
+            self.canvas.draw()
+            
+        except ImportError:
+            # Fallback if matplotlib is not available
+            self.canvas = None
+            self.figure = None
+            self.ax = None
+            ttk.Label(viz_frame, text="Matplotlib not available for graph visualization").pack()
+        
         # Actions frame
         actions_frame = ttk.Frame(self)
         actions_frame.pack(fill=tk.X, pady=(10, 0))
@@ -282,6 +311,60 @@ class GraphViewer(ttk.Frame):
         """Clear the current graph and display."""
         self.current_graph = None
         self._clear_display()
+        
+    def _update_graph_visualization(self):
+        """Update the graph visualization with colored components."""
+        if self.canvas is None or self.current_graph is None:
+            return
+            
+        try:
+            # Clear the previous plot
+            self.ax.clear()
+            
+            # Get node positions using spring layout
+            pos = nx.spring_layout(self.current_graph, k=1, iterations=50)
+            
+            # Draw edges with colors
+            for edge in self.current_graph.edges():
+                edge_color = self.current_graph.edges[edge].get('color', '#888888')
+                nx.draw_networkx_edges(
+                    self.current_graph, pos, 
+                    edgelist=[edge], 
+                    edge_color=edge_color,
+                    width=2,
+                    alpha=0.7
+                )
+            
+            # Draw nodes with colors
+            for node in self.current_graph.nodes():
+                node_color = self.current_graph.nodes[node].get('color', '#888888')
+                nx.draw_networkx_nodes(
+                    self.current_graph, pos,
+                    nodelist=[node],
+                    node_color=node_color,
+                    node_size=100,
+                    alpha=0.8
+                )
+            
+            # Add node labels
+            nx.draw_networkx_labels(self.current_graph, pos, font_size=8)
+            
+            # Set title and remove axes
+            self.ax.set_title(f"Graph: {len(self.current_graph.nodes())} nodes, {len(self.current_graph.edges())} edges")
+            self.ax.axis('off')
+            
+            # Redraw the canvas
+            self.canvas.draw()
+            
+        except Exception as e:
+            print(f"Error updating graph visualization: {e}")
+            # Show error message on plot
+            self.ax.clear()
+            self.ax.text(0.5, 0.5, f'Error visualizing graph: {str(e)}', 
+                        ha='center', va='center', transform=self.ax.transAxes)
+            self.ax.set_xlim(0, 1)
+            self.ax.set_ylim(0, 1)
+            self.canvas.draw()
 
 
 

@@ -15,6 +15,9 @@ from pyamiimage.ami_image import AmiImage
 from pyamiimage.ami_skeleton import AmiSkeleton
 from pyamiimage.ami_graph_all import AmiGraph
 
+# Import networkx for graph analysis
+import networkx as nx
+
 from pyamiimage.interactive.gui.image_viewer import ImageViewer
 from pyamiimage.interactive.gui.parameter_panel import ParameterPanel
 from pyamiimage.interactive.gui.graph_viewer import GraphViewer
@@ -241,19 +244,74 @@ class SkeletonizationDashboard:
             self.current_graph = AmiGraph.create_nx_graph_from_skeleton(skeleton)
             
             if self.current_graph is not None:
-                # Update graph viewer
-                self.graph_viewer.set_graph(self.current_graph)
+                # Color the graph components
+                colored_graph = self._color_graph_components(self.current_graph)
+                
+                # Update graph viewer with colored graph
+                self.graph_viewer.set_graph(colored_graph)
                 
                 # Update status with graph info
                 num_nodes = len(self.current_graph.nodes())
                 num_edges = len(self.current_graph.edges())
-                self.status_bar.config(text=f"Graph extracted: {num_nodes} nodes, {num_edges} edges")
+                num_components = len(list(nx.connected_components(self.current_graph)))
+                self.status_bar.config(text=f"Graph extracted: {num_nodes} nodes, {num_edges} edges, {num_components} components")
             else:
                 self.status_bar.config(text="Graph extraction failed")
                 
         except Exception as e:
             print(f"Graph extraction error: {e}")
             self.status_bar.config(text="Graph extraction failed")
+            
+    def _color_graph_components(self, graph):
+        """Color each connected component of the graph with different colors."""
+        import networkx as nx
+        
+        # Create a copy of the graph to avoid modifying the original
+        colored_graph = graph.copy()
+        
+        # Find all connected components
+        components = list(nx.connected_components(colored_graph))
+        
+        # Create a color palette
+        color_palette = [
+            '#FF6B6B',  # Red
+            '#4ECDC4',  # Teal
+            '#45B7D1',  # Blue
+            '#96CEB4',  # Green
+            '#FFEAA7',  # Yellow
+            '#DDA0DD',  # Plum
+            '#98D8C8',  # Mint
+            '#F7DC6F',  # Gold
+            '#BB8FCE',  # Purple
+            '#85C1E9'   # Light Blue
+        ]
+        
+        # Color each component
+        for i, component in enumerate(components):
+            color = color_palette[i % len(color_palette)]
+            
+            # Set node attributes for coloring
+            for node in component:
+                colored_graph.nodes[node]['color'] = color
+                colored_graph.nodes[node]['component'] = i
+                colored_graph.nodes[node]['component_size'] = len(component)
+            
+            # Set edge attributes for coloring
+            for node in component:
+                for neighbor in colored_graph.neighbors(node):
+                    if neighbor in component:  # Only color edges within the same component
+                        colored_graph.edges[node, neighbor]['color'] = color
+                        colored_graph.edges[node, neighbor]['component'] = i
+        
+        # Find the largest component
+        largest_component = max(components, key=len)
+        largest_component_id = components.index(largest_component)
+        
+        print(f"Graph colored: {len(components)} components found")
+        print(f"Largest component: {len(largest_component)} nodes (component {largest_component_id})")
+        print(f"Component sizes: {[len(c) for c in components]}")
+        
+        return colored_graph
             
     def _update_viewport_linking(self):
         """Update viewport linking between original and skeleton views."""
