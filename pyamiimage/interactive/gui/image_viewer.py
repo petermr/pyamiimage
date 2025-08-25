@@ -70,6 +70,10 @@ class ImageViewer(ttk.Frame):
         # Set minimum size to ensure scrollbars are visible
         canvas_frame.configure(width=400, height=300)
         
+        # Configure the frame to expand properly
+        canvas_frame.columnconfigure(0, weight=1)
+        canvas_frame.rowconfigure(0, weight=1)
+        
         # Status bar
         self.status_label = ttk.Label(self, text="No image loaded", relief=tk.SUNKEN)
         self.status_label.pack(fill=tk.X, pady=(5, 0))

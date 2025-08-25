@@ -40,6 +40,11 @@ class SkeletonizationDashboard:
             
         self.root.title("Interactive - Skeletonization Dashboard")
         self.root.geometry("1400x900")
+        self.root.minsize(1000, 700)
+        
+        # Configure root window for proper resizing
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
         
         # Initialize components
         self.image_processor = None
@@ -87,10 +92,10 @@ class SkeletonizationDashboard:
         main_frame = ttk.Frame(self.root)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
-        # Configure grid weights for better horizontal expansion
-        main_frame.columnconfigure(0, weight=5)  # Original image gets more space
-        main_frame.columnconfigure(1, weight=5)  # Skeleton image gets more space
-        main_frame.columnconfigure(2, weight=2)  # Right panel gets moderate space
+        # Configure grid weights for proper horizontal expansion
+        main_frame.columnconfigure(0, weight=3)  # Original image
+        main_frame.columnconfigure(1, weight=3)  # Skeleton image  
+        main_frame.columnconfigure(2, weight=1)  # Right panel
         main_frame.rowconfigure(0, weight=1)
         
         # Left panel - Original image viewer
