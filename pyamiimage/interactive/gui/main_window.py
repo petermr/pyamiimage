@@ -8,7 +8,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import numpy as np
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 
 # Reuse existing pyamiimage modules
 from pyamiimage.ami_image import AmiImage
@@ -20,7 +20,6 @@ import networkx as nx
 
 from pyamiimage.interactive.gui.image_viewer import ImageViewer
 from pyamiimage.interactive.gui.parameter_panel import ParameterPanel
-from pyamiimage.interactive.gui.graph_viewer import GraphViewer
 
 
 class SkeletonizationDashboard:
@@ -38,9 +37,9 @@ class SkeletonizationDashboard:
         else:
             self.root = root
             
-        self.root.title("Interactive - Skeletonization Dashboard")
-        self.root.geometry("1400x900")
-        self.root.minsize(1000, 700)
+        self.root.title("Interactive - Three-Window Skeletonization Dashboard")
+        self.root.geometry("1600x900")
+        self.root.minsize(1200, 700)
         
         # Configure root window for proper resizing
         self.root.columnconfigure(0, weight=1)
@@ -87,67 +86,47 @@ class SkeletonizationDashboard:
         help_menu.add_command(label="About", command=self._show_about)
         
     def _setup_main_layout(self):
-        """Setup the main layout with image viewers and parameter panel."""
+        """Setup the main layout with three windows: raw, skeleton, and parameters."""
         # Main container - use grid for proper weight distribution
         main_frame = ttk.Frame(self.root)
         main_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         
         # Configure grid weights for proper horizontal expansion
-        main_frame.columnconfigure(0, weight=35)  # Original image
-        main_frame.columnconfigure(1, weight=35)  # Skeleton image  
-        main_frame.columnconfigure(2, weight=30)  # Right panel
+        main_frame.columnconfigure(0, weight=1)  # Raw image
+        main_frame.columnconfigure(1, weight=1)  # Skeleton image  
+        main_frame.columnconfigure(2, weight=0)  # Parameters (fixed width)
         main_frame.rowconfigure(0, weight=1)
         
-        # Left panel - Original image viewer
-        left_frame = ttk.Frame(main_frame, width=500)
+        # Left panel - Raw image viewer
+        left_frame = ttk.Frame(main_frame)
         left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
-        left_frame.grid_propagate(False)  # Prevent frame from shrinking
         
-        # Configure left frame grid weights
-        left_frame.columnconfigure(0, weight=1)
-        left_frame.rowconfigure(1, weight=1)  # Row 1 is the ImageViewer
+        original_label = ttk.Label(left_frame, text="Raw Image")
+        original_label.pack(pady=(0, 5))
         
-        original_label = ttk.Label(left_frame, text="Original Image")
-        original_label.grid(row=0, column=0, pady=(0, 5), sticky="w")
-        
-        self.original_viewer = ImageViewer(left_frame, title="Original")
-        self.original_viewer.grid(row=1, column=0, sticky="nsew")
+        self.original_viewer = ImageViewer(left_frame, title="Raw Image")
+        self.original_viewer.pack(fill=tk.BOTH, expand=True)
         
         # Center panel - Skeleton image viewer
-        center_frame = ttk.Frame(main_frame, width=500)
+        center_frame = ttk.Frame(main_frame)
         center_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 5))
-        center_frame.grid_propagate(False)  # Prevent frame from shrinking
-        
-        # Configure center frame grid weights
-        center_frame.columnconfigure(0, weight=1)
-        center_frame.rowconfigure(1, weight=1)  # Row 1 is the ImageViewer
         
         skeleton_label = ttk.Label(center_frame, text="Skeleton Image")
-        skeleton_label.grid(row=0, column=0, pady=(0, 5), sticky="w")
+        skeleton_label.pack(pady=(0, 5))
         
         self.skeleton_viewer = ImageViewer(center_frame, title="Skeleton")
-        self.skeleton_viewer.grid(row=1, column=0, sticky="nsew")
+        self.skeleton_viewer.pack(fill=tk.BOTH, expand=True)
         
-        # Right panel - Parameters and graph
-        right_frame = ttk.Frame(main_frame, width=300)
-        right_frame.grid(row=0, column=2, sticky="nsew", padx=(5, 0))
-        right_frame.grid_propagate(False)  # Prevent frame from shrinking
+        # Right panel - Parameters
+        param_frame = ttk.Frame(main_frame, width=300)
+        param_frame.grid(row=0, column=2, sticky="nsew", padx=(5, 0))
+        param_frame.grid_propagate(False)  # Prevent frame from shrinking
         
-        # Configure right frame grid weights
-        right_frame.columnconfigure(0, weight=1)
-        right_frame.rowconfigure(2, weight=1)  # Row 2 is the GraphViewer
+        param_label = ttk.Label(param_frame, text="Parameters")
+        param_label.pack(pady=(0, 5))
         
-        param_label = ttk.Label(right_frame, text="Parameters")
-        param_label.grid(row=0, column=0, pady=(0, 5), sticky="w")
-        
-        self.parameter_panel = ParameterPanel(right_frame, callback=self._on_parameters_changed)
-        self.parameter_panel.grid(row=1, column=0, sticky="ew", pady=(0, 10))
-        
-        graph_label = ttk.Label(right_frame, text="Graph Analysis")
-        graph_label.grid(row=2, column=0, pady=(0, 5), sticky="w")
-        
-        self.graph_viewer = GraphViewer(right_frame)
-        self.graph_viewer.grid(row=3, column=0, sticky="nsew")
+        self.parameter_panel = ParameterPanel(param_frame, callback=self._on_parameters_changed)
+        self.parameter_panel.pack(fill=tk.X)
         
     def _setup_status_bar(self):
         """Setup the status bar."""
@@ -181,6 +160,10 @@ class SkeletonizationDashboard:
             self.status_bar.config(text=f"Loading image: {Path(file_path).name}")
             self.root.update()
             
+            # Clear any previous results
+            self.skeleton_viewer.clear_image()
+            # self.graph_viewer.clear_graph() # Removed graph viewer
+            
             # Load image using existing AmiImage functionality and convert to grayscale
             image = AmiImage.create_grayscale_from_file(file_path)
             if image is None:
@@ -196,8 +179,9 @@ class SkeletonizationDashboard:
             # Update status
             self.status_bar.config(text=f"Loaded: {Path(file_path).name}")
             
-            # Enable parameter controls
+            # Enable parameter controls and reset to defaults
             self.parameter_panel.set_enabled(True)
+            self.parameter_panel.reset_to_defaults()
             
             # Process with default parameters
             self._process_image()
@@ -261,8 +245,51 @@ class SkeletonizationDashboard:
             messagebox.showerror("Error", f"Processing failed: {str(e)}")
             self.status_bar.config(text="Processing failed")
             
+    def _process_with_parameter_changes(self):
+        """Process image with parameter changes, clearing affected displays."""
+        if not hasattr(self, 'current_image_path'):
+            return
+            
+        try:
+            # Get current parameters
+            params = self.parameter_panel.get_parameters()
+            
+            # Determine which viewers need to be cleared based on parameter changes
+            clear_skeleton = self._should_clear_skeleton(params)
+            # clear_graph = self._should_clear_graph(params) # Removed graph viewer
+            
+            # Clear affected viewers
+            if clear_skeleton:
+                self.skeleton_viewer.show_processing("Regenerating skeleton...")
+                self.root.update()
+                
+            # if clear_graph: # Removed graph viewer
+            #     self.graph_viewer.clear_graph()
+            #     self.root.update()
+                
+            # Process the image
+            self._process_image()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Processing failed: {str(e)}")
+            self.status_bar.config(text="Processing failed")
+            
+    def _should_clear_skeleton(self, params: Dict[str, Any]) -> bool:
+        """Determine if skeleton viewer should be cleared based on parameter changes."""
+        # Skeleton changes when preprocessing or skeletonization parameters change
+        return (params['gaussian_blur'] > 1 or 
+                params['median_filter'] > 1 or 
+                params['threshold_method'] == 'manual' or
+                params['skeleton_method'] != 'medial_axis' or
+                (params['skeleton_method'] == 'thin' and params['max_iterations'] != 100))
+                
+    def _should_clear_graph(self, params: Dict[str, Any]) -> bool:
+        """Determine if graph should be regenerated based on parameter changes."""
+        # Graph changes when any parameter changes (since skeleton affects graph)
+        return True
+            
     def _extract_graph(self, skeleton: np.ndarray):
-        """Extract graph from skeleton using existing AmiGraph functionality."""
+        """Extract graph from skeleton and save to file."""
         try:
             print(f"Extracting graph from skeleton of shape: {skeleton.shape}")
             print(f"Skeleton dtype: {skeleton.dtype}")
@@ -285,14 +312,14 @@ class SkeletonizationDashboard:
                 # Update skeleton viewer with colored version
                 self.skeleton_viewer.set_image(colored_skeleton)
                 
-                # Update graph viewer with colored graph
-                self.graph_viewer.set_graph(colored_graph)
+                # Save graph to file
+                self._save_graph_to_file(self.current_graph)
                 
                 # Update status with graph info
                 num_nodes = len(self.current_graph.nodes())
                 num_edges = len(self.current_graph.edges())
                 num_components = len(list(nx.connected_components(self.current_graph)))
-                self.status_bar.config(text=f"Graph extracted: {num_nodes} nodes, {num_edges} edges, {num_components} components")
+                self.status_bar.config(text=f"Graph extracted: {num_nodes} nodes, {num_edges} edges, {num_components} components. Saved to file.")
             else:
                 self.status_bar.config(text="Graph extraction failed")
                 
@@ -302,6 +329,78 @@ class SkeletonizationDashboard:
             traceback.print_exc()
             self.status_bar.config(text="Graph extraction failed")
             
+    def _save_graph_to_file(self, graph: nx.Graph):
+        """Save the extracted graph to a file."""
+        try:
+            import os
+            from datetime import datetime
+            
+            # Create output directory if it doesn't exist
+            output_dir = "extracted_graphs"
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # Generate filename with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"graph_{timestamp}"
+            
+            # Save in multiple formats
+            gml_file = os.path.join(output_dir, f"{filename}.gml")
+            xml_file = os.path.join(output_dir, f"{filename}.xml")
+            pkl_file = os.path.join(output_dir, f"{filename}.pkl")
+            
+            # Save GML format
+            nx.write_gml(graph, gml_file)
+            print(f"Graph saved as GML: {gml_file}")
+            
+            # Save GraphML format
+            nx.write_graphml(graph, xml_file)
+            print(f"Graph saved as GraphML: {xml_file}")
+            
+            # Save pickle format
+            import pickle
+            with open(pkl_file, 'wb') as f:
+                pickle.dump(graph, f)
+            print(f"Graph saved as pickle: {pkl_file}")
+            
+            # Also save a simple text summary
+            txt_file = os.path.join(output_dir, f"{filename}_summary.txt")
+            with open(txt_file, 'w') as f:
+                f.write(f"Graph Summary - {timestamp}\n")
+                f.write("=" * 40 + "\n")
+                f.write(f"Nodes: {len(graph.nodes())}\n")
+                f.write(f"Edges: {len(graph.edges())}\n")
+                f.write(f"Density: {nx.density(graph):.4f}\n")
+                
+                # Component analysis
+                components = list(nx.connected_components(graph))
+                f.write(f"Components: {len(components)}\n")
+                if components:
+                    largest = max(len(comp) for comp in components)
+                    f.write(f"Largest component: {largest} nodes\n")
+                
+                # Node degree analysis
+                degrees = [d for n, d in graph.degree()]
+                if degrees:
+                    f.write(f"Average degree: {sum(degrees)/len(degrees):.2f}\n")
+                    f.write(f"Max degree: {max(degrees)}\n")
+                
+                # Node types
+                end_nodes = sum(1 for n, d in graph.degree() if d == 1)
+                branch_nodes = sum(1 for n, d in graph.degree() if d > 2)
+                junction_nodes = sum(1 for n, d in graph.degree() if d == 2)
+                
+                f.write(f"\nNode Types:\n")
+                f.write(f"End nodes (degree=1): {end_nodes}\n")
+                f.write(f"Junction nodes (degree=2): {junction_nodes}\n")
+                f.write(f"Branch nodes (degree>2): {branch_nodes}\n")
+            
+            print(f"Graph summary saved: {txt_file}")
+            
+        except Exception as e:
+            print(f"Error saving graph to file: {e}")
+            import traceback
+            traceback.print_exc()
+        
     def _color_graph_components(self, graph):
         """Color each connected component of the graph with different colors."""
         import networkx as nx
@@ -463,10 +562,25 @@ class SkeletonizationDashboard:
         if skeleton_viewport:
             # Update original viewer with viewport overlay
             self.original_viewer.set_viewport_overlay(skeleton_viewport)
+        else:
+            # Clear viewport overlay if no viewport available
+            self.original_viewer.set_viewport_overlay(None)
+            
+    def _check_parameter_changes(self):
+        """Check if parameters have changed and update UI state."""
+        if self.parameter_panel.has_changes():
+            # Parameters have changed, enable apply button
+            self.parameter_panel.set_enabled(True)
+        else:
+            # No changes, disable apply button
+            self.parameter_panel.set_enabled(True)  # Keep enabled but button disabled
             
     def _on_parameters_changed(self):
         """Callback when parameters change."""
-        self._process_image()
+        # This method is called when the Apply Parameters button is clicked
+        # The parameter panel will handle enabling/disabling the button
+        # We just need to process the image with the new parameters
+        self._process_with_parameter_changes()
         
     def _save_skeleton(self):
         """Save the current skeleton image."""
@@ -524,14 +638,16 @@ class SkeletonizationDashboard:
                 messagebox.showerror("Error", f"Failed to save graph: {str(e)}")
                 
     def _reset_view(self):
-        """Reset all views to default."""
-        self.original_viewer.reset_view()
-        self.skeleton_viewer.reset_view()
+        """Reset all viewers to default zoom and pan."""
+        self.original_viewer._reset_view()
+        self.skeleton_viewer._reset_view()
+        # self.graph_viewer._reset_view() # Removed graph viewer
         
     def _fit_to_window(self):
-        """Fit images to window."""
+        """Fit images to window size in all viewers."""
         self.original_viewer.fit_to_window()
         self.skeleton_viewer.fit_to_window()
+        # self.graph_viewer.fit_to_window() # Removed graph viewer
         
     def _show_about(self):
         """Show about dialog."""
