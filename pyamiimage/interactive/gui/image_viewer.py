@@ -22,6 +22,10 @@ class ImageViewer(ttk.Frame):
         self.pan_y = 0
         self.viewport_overlay = None
         
+        # Performance optimization: debounce display updates
+        self._update_pending = False
+        self._last_update_time = 0
+        
         self._setup_ui()
         self._bind_events()
         
@@ -110,12 +114,24 @@ class ImageViewer(ttk.Frame):
         """Get the current image."""
         return self.image
         
-    def _update_display(self):
-        """Update the image display."""
+    def _update_display(self, force=False):
+        """Update the image display with debouncing for performance."""
         if self.image is None:
             self.canvas.delete("all")
             self.status_label.config(text="No image loaded")
             return
+            
+        # Performance optimization: debounce rapid updates
+        if not force:
+            import time
+            current_time = time.time()
+            if current_time - self._last_update_time < 0.1:  # 100ms debounce
+                if not self._update_pending:
+                    self._update_pending = True
+                    self.after(100, self._debounced_update)
+                return
+            self._last_update_time = current_time
+            self._update_pending = False
             
         try:
             # Convert numpy array to PIL Image
@@ -173,24 +189,29 @@ class ImageViewer(ttk.Frame):
         except Exception as e:
             self.status_label.config(text=f"Error displaying image: {str(e)}")
             
+    def _debounced_update(self):
+        """Debounced update method for performance optimization."""
+        self._update_pending = False
+        self._update_display(force=True)
+            
     def _zoom_in(self):
         """Zoom in by 20%."""
         self.zoom_factor *= 1.2
-        self._update_display()
+        self._update_display()  # Uses debounced update
         
     def _zoom_out(self):
         """Zoom out by 20%."""
         self.zoom_factor /= 1.2
         if self.zoom_factor < 0.1:
             self.zoom_factor = 0.1
-        self._update_display()
+        self._update_display()  # Uses debounced update
         
     def _reset_view(self):
         """Reset zoom and pan to default."""
         self.zoom_factor = 1.0
         self.pan_x = 0
         self.pan_y = 0
-        self._update_display()
+        self._update_display(force=True)  # Force immediate update for reset
         
     def _on_mouse_down(self, event):
         """Handle mouse button press."""
@@ -200,6 +221,9 @@ class ImageViewer(ttk.Frame):
         """Handle mouse drag for panning."""
         # Use canvas scan_dragto for smooth panning with scrollbars
         self.canvas.scan_dragto(event.x, event.y, gain=1)
+        # Update pan coordinates for viewport calculations
+        self.pan_x = self.canvas.canvasx(0)
+        self.pan_y = self.canvas.canvasy(0)
         
         # Update pan coordinates for viewport overlay
         self.pan_x = self.canvas.canvasx(0)

@@ -1,8 +1,8 @@
-# ATPOE Dashboard User Guide
+# Interactive Dashboard User Guide
 
 ## Overview
 
-ATPOE (Advanced Topological Processing and Optimization Engine) is an interactive desktop application for skeletonization and graph analysis of images. It provides a user-friendly interface to explore different skeletonization parameters and analyze the resulting graph structures.
+Interactive is an interactive desktop application for skeletonization and graph analysis of images. It provides a user-friendly interface to explore different skeletonization parameters and analyze the resulting graph structures.
 
 ## Features
 
